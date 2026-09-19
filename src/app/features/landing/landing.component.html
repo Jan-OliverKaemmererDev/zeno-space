@@ -1,0 +1,160 @@
+<div class="landing-container">
+  <!-- Interactive 3D Warp Starfield Canvas -->
+  <canvas #starCanvas class="starfield-canvas"></canvas>
+
+  <!-- Ambient Nebulae (Atmosphere behind game sections) -->
+  <div class="ambient-nebula ambient-nebula-1"></div>
+  <div class="ambient-nebula ambient-nebula-2"></div>
+
+  <!-- Hero Section with uploaded Anime Sky background -->
+  <section class="hero-section" id="hero">
+    <!-- Top-Right: Transparent Circular Audio Mute / Unmute Toggle Button -->
+    <button 
+      type="button" 
+      class="hero-sound-toggle hero-ui-fade"
+      (click)="toggleSound()"
+      [attr.aria-label]="audioService.isMuted() ? 'Ambient Sound aktivieren' : 'Ambient Sound stummschalten'"
+      [title]="audioService.isMuted() ? 'Chill Ambient Sound aktivieren' : 'Ambient Sound stummschalten'"
+    >
+      @if (!audioService.isMuted()) {
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+        </svg>
+      } @else {
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+          <line x1="23" y1="9" x2="17" y2="15" />
+          <line x1="17" y1="9" x2="23" y2="15" />
+        </svg>
+      }
+    </button>
+
+    <!-- Center: "Willkommen im Zeno-Space" without pill, letters emerging like air bubbles -->
+    <div class="hero-center-container">
+      <h1 class="bubble-letters-heading" aria-label="Willkommen im Zeno-Space">
+        @for (item of textLetters; track $index) {
+          @if (item.isSpace) {
+            <span class="bubble-letter-space">&nbsp;</span>
+          } @else {
+            <span 
+              class="bubble-letter" 
+              [style.--bubble-index]="$index"
+            >{{ item.char }}</span>
+          }
+        }
+      </h1>
+    </div>
+
+    <!-- Scroll Down Prompter (with blue dot matching the image) -->
+    <div class="scroll-prompter hero-ui-fade" (click)="scrollToHub()" role="button" tabindex="0">
+      <span class="prompter-text">Nach unten schweben</span>
+      <div class="prompter-bubble">
+        <div class="prompter-dot"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Mini-Game Hub Section -->
+  <section class="bubble-hub-section" id="bubble-hub">
+    <div class="section-header">
+      <div class="zeno-badge">
+        <span>Interaktive Welten</span>
+      </div>
+      <h2 class="section-title">
+        Schwebende <span class="gradient-text">Pastell-Welten</span>
+      </h2>
+      <p class="section-subtitle">
+        Jedes Mini-Game ruht in einem sanft schwebenden Glaskörper. Berühre sie mit der Maus,
+        bringe sie zum Schwingen oder klicke, um einzutauchen.
+      </p>
+
+      <!-- Category Filter Pills -->
+      <div class="filter-pills">
+        @for (f of filters; track f.value) {
+          <button 
+            type="button" 
+            class="filter-pill"
+            [class.active]="activeFilter() === f.value"
+            (click)="setFilter(f.value)"
+          >
+            {{ f.label }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Cards Playground -->
+    <div class="bubbles-playground">
+      @for (game of filteredGames(); track game.id) {
+        <div class="bubble-slot" [class]="'slot-' + game.id">
+          <app-bubble-card [game]="game"></app-bubble-card>
+        </div>
+      }
+    </div>
+
+    <!-- Sound Tip Banner -->
+    <div class="sound-tip-banner">
+      <div class="tip-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18h6"/>
+          <path d="M10 22h4"/>
+          <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
+        </svg>
+      </div>
+      <p class="tip-text">
+        <strong>Tipp für maximale Entspannung:</strong> Aktiviere den <em>Chill Ambient Sound</em> oben rechts
+        auf der Startseite oder in der Navigationsleiste für schwebende Synthesizer-Drones und harmonische Glockentöne.
+      </p>
+    </div>
+  </section>
+
+  <!-- Cozy Sanctuary Section -->
+  <section class="cozy-sanctuary-section">
+    <div class="sanctuary-card">
+      <div class="sanctuary-glow"></div>
+      <div class="sanctuary-inner">
+        <span class="sanctuary-badge">Das zeno-space Manifest</span>
+        <h3 class="sanctuary-title">Warum gemütlich & entschleunigt?</h3>
+        <p class="sanctuary-text">
+          Das Internet ist oft laut, hektisch und voller endloser Feeds. <strong>zeno-space</strong>
+          ist ein bewusstes Gegenstück: Ein digitaler Wohlfühlort ohne Highscores, ohne Hektik und ohne Werbung.
+          Hier geht es einzig um das beruhigende Gefühl von sanften physikalischen Bewegungen, wunderschönen
+          Farben und spielerischer Achtsamkeit.
+        </p>
+        <div class="sanctuary-stats">
+          <div class="stat-pill">
+            <span class="stat-value">60 FPS</span>
+            <span class="stat-label">Flüssiges Schweben</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-value">WebGL</span>
+            <span class="stat-label">Hardware-3D</span>
+          </div>
+          <div class="stat-pill">
+            <span class="stat-value">WebAudio</span>
+            <span class="stat-label">Synthesizer</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cozy Footer -->
+  <footer class="cozy-footer">
+    <div class="footer-orb"></div>
+    <p class="footer-text">
+      Erschaffen für gemütliche Momente & Entspannung im Kosmos. Mit Liebe gebaut für <strong>zeno-space</strong>.
+    </p>
+    <div class="footer-links">
+      <a routerLink="/game/cosmic-sculptor">3D Cosmos</a>
+      <span>•</span>
+      <a routerLink="/game/bubble-harmony">Bubble Harmony</a>
+      <span>•</span>
+      <a routerLink="/game/zen-sand">Zen Sand</a>
+      <span>•</span>
+      <a routerLink="/game/soundscape-mixer">Soundscape</a>
+    </div>
+  </footer>
+</div>

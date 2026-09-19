@@ -1,0 +1,291 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+.card-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: gentleCardFloat var(--float-duration, 9s) ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.is-entering {
+    animation: none;
+    transform: scale(0.97);
+    opacity: 0.8;
+  }
+}
+
+// Gentle, calm floating animation (no violent bobbing or wobble)
+@keyframes gentleCardFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+// Modern rounded glass box with organic bubble silhouettes
+.glass-bubble-card {
+  position: relative;
+  width: 320px;
+  min-height: 380px;
+  padding: 34px 26px;
+  border-radius: 46px 28px 48px 26px / 32px 50px 28px 46px;
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  will-change: transform, border-radius;
+
+  // Frosted Transparent Glass
+  background: rgba(255, 255, 255, 0.045);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 16px 36px -10px rgba(0, 0, 0, 0.5),
+    0 0 24px -4px var(--pastel-glow, rgba(147, 197, 253, 0.18)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+
+  transition: 
+    border-radius 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    background 0.4s ease,
+    transform 0.2s ease-out;
+
+  // Distinctly varied organic bubble shapes per game
+  &.card--cosmic-sculptor {
+    border-radius: 58px 26px 54px 22px / 32px 56px 26px 50px;
+
+    &:hover {
+      border-radius: 46px 36px 42px 32px / 40px 46px 36px 42px;
+    }
+  }
+
+  &.card--bubble-harmony {
+    border-radius: 26px 62px 24px 54px / 54px 26px 58px 30px;
+
+    &:hover {
+      border-radius: 36px 50px 34px 44px / 44px 36px 48px 38px;
+    }
+  }
+
+  &.card--zen-sand {
+    border-radius: 52px 26px 60px 32px / 28px 54px 26px 56px;
+
+    &:hover {
+      border-radius: 42px 36px 48px 40px / 38px 44px 36px 46px;
+    }
+  }
+
+  &.card--soundscape-mixer {
+    border-radius: 30px 56px 28px 60px / 58px 30px 50px 24px;
+
+    &:hover {
+      border-radius: 38px 46px 36px 50px / 48px 38px 42px 34px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    width: 290px;
+    min-height: 360px;
+    padding: 28px 20px;
+  }
+
+  // Hover state: gentle highlight and pastel glow
+  &:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow:
+      0 24px 48px -12px rgba(0, 0, 0, 0.65),
+      0 0 35px 2px var(--pastel-glow, rgba(147, 197, 253, 0.35)),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+
+    .card-icon-wrapper {
+      transform: scale(1.06) translateY(-2px);
+      border-color: rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .card-icon-halo {
+      opacity: 0.8;
+      transform: scale(1.15);
+    }
+
+    .card-cta {
+      background: rgba(255, 255, 255, 0.16);
+      border-color: rgba(255, 255, 255, 0.35);
+      color: #ffffff;
+
+      .cta-arrow {
+        transform: translateX(4px);
+      }
+    }
+
+    .card-ambient-glow {
+      opacity: 0.4;
+    }
+  }
+}
+
+// Subtle internal glass reflection
+.card-glass-sheen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 90px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(255, 255, 255, 0.02) 60%,
+    transparent 100%
+  );
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.card-ambient-glow {
+  position: absolute;
+  bottom: -40px;
+  right: -40px;
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: var(--pastel-color, #93c5fd);
+  filter: blur(50px);
+  opacity: 0.2;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+// Card Content
+.card-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  height: 100%;
+}
+
+// Icon Wrapper
+.card-icon-wrapper {
+  position: relative;
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 18px;
+  color: var(--pastel-color, #93c5fd);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+
+  .card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+
+  .card-icon-halo {
+    position: absolute;
+    inset: -6px;
+    border-radius: 24px;
+    background: var(--pastel-glow, rgba(147, 197, 253, 0.2));
+    filter: blur(8px);
+    opacity: 0.4;
+    transition: all 0.4s ease;
+    z-index: 1;
+  }
+}
+
+// Badge
+.card-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pastel-color, #93c5fd);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 4px 12px;
+  border-radius: 999px;
+  margin-bottom: 14px;
+}
+
+// Typography
+.card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 6px 0;
+  line-height: 1.3;
+}
+
+.card-subtitle {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 14px 0;
+  font-weight: 500;
+}
+
+.card-desc {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.55;
+  margin: 0 0 20px 0;
+  max-width: 270px;
+}
+
+// Tag Pills
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 24px;
+
+  .tag-pill {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+}
+
+// Footer CTA
+.card-footer {
+  margin-top: auto;
+  width: 100%;
+}
+
+.card-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.86rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: all 0.25s ease;
+
+  .cta-arrow {
+    transition: transform 0.25s ease;
+  }
+}

@@ -1,0 +1,48 @@
+<header class="navbar-wrapper" [class.is-visible]="isVisible()">
+  <nav class="navbar">
+    <!-- Brand Logo -->
+    <a routerLink="/" class="brand">
+      <div class="brand-orb">
+        <div class="brand-orb__inner"></div>
+        <div class="brand-orb__glow"></div>
+      </div>
+      <div class="brand-text">
+        <span class="brand-title">zeno<span class="brand-accent">.space</span></span>
+        <span class="brand-tag">cozy sanctuary</span>
+      </div>
+    </a>
+
+    <!-- Nav Links -->
+    <div class="nav-links">
+      <a routerLink="/" fragment="hero" class="nav-link">Kosmos</a>
+      <a routerLink="/" fragment="hub" class="nav-link">Welten</a>
+      <a routerLink="/game/cosmic-sculptor" routerLinkActive="active" class="nav-link special-link">
+        <svg class="nav-sparkle-svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/>
+        </svg>
+        <span>3D Galaxy</span>
+      </a>
+    </div>
+
+    <!-- Actions & Sound Toggle -->
+    <div class="nav-actions">
+      <button 
+        type="button"
+        class="sound-toggle-btn" 
+        [class.is-playing]="!audioService.isMuted()" 
+        (click)="onToggleAudio()"
+        title="Ambient-Sound & Effekte ein-/ausschalten"
+      >
+        <div class="sound-wave">
+          <span class="bar bar-1"></span>
+          <span class="bar bar-2"></span>
+          <span class="bar bar-3"></span>
+          <span class="bar bar-4"></span>
+        </div>
+        <span class="sound-label">
+          {{ audioService.isMuted() ? 'Sound Aus' : 'Chill Ambient An' }}
+        </span>
+      </button>
+    </div>
+  </nav>
+</header>

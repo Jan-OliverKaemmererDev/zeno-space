@@ -1,0 +1,90 @@
+<div class="zen-sand-wrapper">
+  <!-- Interactive Sand Canvas -->
+  <canvas 
+    #sandCanvas
+    class="sand-canvas"
+    (mousedown)="onPointerDown($event)"
+    (mousemove)="onPointerMove($event)"
+    (mouseup)="onPointerUp()"
+    (touchstart)="onPointerDown($event)"
+    (touchmove)="onPointerMove($event)"
+    (touchend)="onPointerUp()"
+  ></canvas>
+
+  <!-- Top Glass HUD -->
+  <header class="game-hud-header">
+    <a routerLink="/" class="back-link">
+      <span class="back-icon">←</span>
+      <span>Zurück zu den Seifenblasen</span>
+    </a>
+
+    <div class="hud-stats">
+      <div class="stat-bubble">
+        <span class="stat-num">{{ stoneCount() }}</span>
+        <span class="stat-text">Kieselsteine</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Bottom Floating Control Dock -->
+  <div class="game-controls-dock">
+    <div class="dock-panel">
+      <!-- Tool: Rake -->
+      <button 
+        type="button" 
+        class="dock-btn dock-btn--secondary"
+        [class.active]="currentTool() === 'rake'"
+        (click)="setTool('rake')"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M2 12c2-2 4-2 6 0s4 2 6 0 4-2 6 0" />
+          <path d="M2 17c2-2 4-2 6 0s4 2 6 0 4-2 6 0" />
+        </svg>
+        <span>Harke (Wellen ziehen)</span>
+      </button>
+
+      <!-- Tool: Stone -->
+      <button 
+        type="button" 
+        class="dock-btn dock-btn--secondary"
+        [class.active]="currentTool() === 'stone'"
+        (click)="setTool('stone')"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <ellipse cx="12" cy="14" rx="8" ry="5" />
+          <ellipse cx="12" cy="8" rx="5" ry="3" />
+        </svg>
+        <span>Kieselstein setzen</span>
+      </button>
+
+      <div class="dock-divider"></div>
+
+      <!-- Clear Canvas -->
+      <button 
+        type="button" 
+        class="dock-btn dock-btn--ghost"
+        (click)="clearSand()"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+          <path d="M3 3v5h5" />
+        </svg>
+        <span>Sand glätten</span>
+      </button>
+    </div>
+
+    <!-- Instruction Hint -->
+    <div class="interaction-hint">
+      <span class="hint-item">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+        <span>Ziehe mit der Maus beruhigende Muster in den Sand</span>
+      </span>
+      <span>•</span>
+      <span>Platziere Steine für harmonische Wellen</span>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,93 @@
+<div 
+  class="card-container"
+  [class.is-entering]="isPopping"
+  [style.--float-delay]="game.floatDelay"
+  [style.--float-duration]="game.floatDuration"
+  [style.--pastel-color]="game.primaryColor"
+  [style.--pastel-glow]="game.glowColor"
+>
+  <div 
+    class="glass-bubble-card"
+    [class]="'glass-bubble-card card--' + game.id"
+    [style.transform]="'perspective(1400px) rotateX(' + tiltX + 'deg) rotateY(' + tiltY + 'deg)'"
+    (click)="openGame()"
+    role="button"
+    tabindex="0"
+    (keyup.enter)="openGame()"
+  >
+    <!-- Soft Glass Highlights -->
+    <div class="card-glass-sheen"></div>
+    <div class="card-ambient-glow"></div>
+
+    <!-- Card Content -->
+    <div class="card-content">
+      <!-- Icon with soft pastel halo -->
+      <div class="card-icon-wrapper">
+        <div class="card-icon-halo"></div>
+        <div class="card-icon">
+          @switch (game.icon) {
+            @case ('cosmos') {
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="5.5" />
+                <path d="M2.5 12c0-3.3 4.3-6 9.5-6s9.5 2.7 9.5 6-4.3 6-9.5 6-9.5-2.7-9.5-6z" transform="rotate(-25 12 12)" />
+              </svg>
+            }
+            @case ('bubble') {
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9.5" cy="14" r="5.5" />
+                <circle cx="16" cy="8.5" r="4" />
+                <circle cx="6" cy="7" r="2.2" />
+              </svg>
+            }
+            @case ('zen') {
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <ellipse cx="12" cy="16.5" rx="7.5" ry="3.5" />
+                <ellipse cx="12" cy="11" rx="5" ry="2.8" />
+                <circle cx="12" cy="5.8" r="2" />
+              </svg>
+            }
+            @case ('soundscape') {
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 10v4" />
+                <path d="M7 6v12" />
+                <path d="M11 3v18" />
+                <path d="M15 7v10" />
+                <path d="M19 11v2" />
+              </svg>
+            }
+            @default {
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="9" />
+              </svg>
+            }
+          }
+        </div>
+      </div>
+
+      <!-- Badge -->
+      <span class="card-badge">{{ game.badge }}</span>
+
+      <!-- Title & Subtitle -->
+      <h3 class="card-title">{{ game.title }}</h3>
+      <p class="card-subtitle">{{ game.subtitle }}</p>
+      <p class="card-desc">{{ game.description }}</p>
+
+      <!-- Tags -->
+      <div class="card-tags">
+        @for (tag of game.tags; track tag) {
+          <span class="tag-pill">{{ tag }}</span>
+        }
+      </div>
+
+      <!-- Footer CTA -->
+      <div class="card-footer">
+        <span class="card-cta">
+          <span>Eintauchen</span>
+          <svg class="cta-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

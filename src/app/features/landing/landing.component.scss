@@ -1,0 +1,551 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+.landing-container {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-color: #070913;
+}
+
+// 3D Starfield Canvas (Fixed in background)
+.starfield-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+  pointer-events: none;
+}
+
+// Soft Atmospheric Ambient Nebulae (Layer 2)
+.ambient-nebula {
+  position: fixed;
+  pointer-events: none;
+  z-index: 2;
+  border-radius: 50%;
+  filter: blur(80px);
+}
+
+.ambient-nebula-1 {
+  top: 30%;
+  left: -15%;
+  width: 65vw;
+  height: 65vw;
+  background: radial-gradient(
+    circle,
+    rgba(56, 189, 248, 0.09) 0%,
+    rgba(147, 197, 253, 0.04) 50%,
+    transparent 70%
+  );
+}
+
+.ambient-nebula-2 {
+  top: 60%;
+  right: -15%;
+  width: 70vw;
+  height: 70vw;
+  background: radial-gradient(
+    circle,
+    rgba(254, 215, 170, 0.07) 0%,
+    rgba(196, 181, 253, 0.05) 50%,
+    transparent 70%
+  );
+}
+
+// Hero Section with full-bleed uploaded Anime Sky
+.hero-section {
+  position: relative;
+  z-index: 5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  padding: 36px 24px 44px;
+  background-image: url('/images/landing-bg.jpg');
+  background-size: cover;
+  background-position: center top;
+  background-repeat: no-repeat;
+  overflow: hidden;
+
+  // Seamless gradient transition to dark starfield cosmos below
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 240px;
+    background: linear-gradient(
+      to bottom,
+      transparent 0%,
+      rgba(7, 9, 19, 0.4) 40%,
+      rgba(7, 9, 19, 0.85) 75%,
+      #070913 100%
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+}
+
+// UI Slow Fade-in: When user opens page, ONLY the image is visible first
+.hero-ui-fade {
+  opacity: 0;
+  animation: heroUiFadeIn 1.8s cubic-bezier(0.16, 1, 0.3, 1) 1.0s forwards;
+}
+
+@keyframes heroUiFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Top-Right Circular Transparent Audio Button
+.hero-sound-toggle {
+  position: absolute;
+  top: 28px;
+  right: 28px;
+  z-index: 30;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.55);
+    transform: scale(1.08);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35), 0 0 18px rgba(56, 189, 248, 0.45);
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+
+  svg {
+    transition: transform 0.2s ease;
+  }
+}
+
+// Center Container for the floating bubble letters (NO PILL!)
+.hero-center-container {
+  position: relative;
+  z-index: 5;
+  margin: auto 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 980px;
+  padding: 20px 24px;
+}
+
+// Heading containing each individual bubble letter
+.bubble-letters-heading {
+  margin: 0;
+  padding: 0;
+  font-family: v.$font-family-heading;
+  font-size: clamp(2.2rem, 5.2vw, 4.4rem);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  user-select: none;
+}
+
+// Each letter is revealed in a sweeping, ultra-smooth horizontal Laola wave from left to right
+.bubble-letter {
+  display: inline-block;
+  position: relative;
+  opacity: 0;
+  transform: translate3d(0, 0, 0) scale(0.95);
+  will-change: transform, opacity;
+  background: linear-gradient(180deg, #ffffff 0%, #e0f2fe 55%, #bae6fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.45)) drop-shadow(0 0 16px rgba(56, 189, 248, 0.5));
+
+  // Staggered buttery-smooth horizontal Laola wave & continuous floating
+  animation: 
+    laolaWave 1.25s forwards calc(0.75s + var(--bubble-index, 0) * 0.052s),
+    bubbleFloating 6s ease-in-out calc(2.0s + var(--bubble-index, 0) * 0.052s) infinite alternate;
+}
+
+// Spacing between words
+.bubble-letter-space {
+  display: inline-block;
+  width: clamp(14px, 2.2vw, 26px);
+}
+
+// Buttery-smooth Laola wave: arches up high into the air and glides down smoothly without hitches
+@keyframes laolaWave {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.95);
+    animation-timing-function: cubic-bezier(0.22, 0.85, 0.36, 1);
+  }
+  44% {
+    opacity: 1;
+    // Generous, high Laola wave crest
+    transform: translate3d(0, -30px, 0) scale(1.1);
+    animation-timing-function: cubic-bezier(0.32, 0.9, 0.4, 1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+// Calming, peaceful floating motion for the suspended bubble letters
+@keyframes bubbleFloating {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -6px, 0) scale(1.015);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+// Scroll Prompter
+.scroll-prompter {
+  position: relative;
+  z-index: 4;
+  margin-top: 0;
+  margin-bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  opacity: 0.85;
+  transition: opacity 0.25s ease;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  .prompter-text {
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .prompter-bubble {
+    width: 24px;
+    height: 38px;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    display: flex;
+    justify-content: center;
+    padding-top: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(4px);
+
+    // Matching serene anime sky blue dot
+    .prompter-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.9);
+      animation: scrollBounce 2s infinite ease-in-out;
+    }
+  }
+}
+
+@keyframes scrollBounce {
+  0% { transform: translateY(0); opacity: 1; }
+  50% { transform: translateY(12px); opacity: 0.3; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+// Mini-Game Hub Section
+.bubble-hub-section {
+  position: relative;
+  z-index: 5;
+  min-height: 100vh;
+  padding: 80px 24px 80px;
+  max-width: 1300px;
+  margin: 0 auto;
+}
+
+.section-header {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 50px;
+
+  .section-title {
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    letter-spacing: -0.02em;
+    margin: 16px 0;
+    color: #fff;
+
+    .gradient-text {
+      background: linear-gradient(135deg, #bae6fd, #fed7aa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  }
+
+  .section-subtitle {
+    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.7);
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+}
+
+.filter-pills {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-pill {
+  padding: 8px 20px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  transition: all 0.25s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+  }
+
+  &.active {
+    background: linear-gradient(135deg, rgba(147, 197, 253, 0.25), rgba(254, 215, 170, 0.25));
+    border-color: rgba(186, 230, 253, 0.5);
+    color: #fff;
+    box-shadow: 0 0 18px rgba(147, 197, 253, 0.2);
+  }
+}
+
+// Playground Cards Layout
+.bubbles-playground {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: stretch;
+  gap: 32px;
+  margin: 30px 0 60px;
+  padding: 10px 0;
+
+  .bubble-slot {
+    display: flex;
+    justify-content: center;
+  }
+}
+
+.sound-tip-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(147, 197, 253, 0.2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+
+  .tip-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fed7aa;
+    flex-shrink: 0;
+  }
+
+  .tip-text {
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.8);
+    line-height: 1.55;
+    margin: 0;
+
+    strong {
+      color: #fff;
+    }
+
+    em {
+      color: #bae6fd;
+      font-style: normal;
+    }
+  }
+}
+
+// Cozy Sanctuary Section
+.cozy-sanctuary-section {
+  position: relative;
+  z-index: 5;
+  padding: 60px 24px 80px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.sanctuary-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 32px;
+  padding: 48px 36px;
+  overflow: hidden;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+
+  .sanctuary-glow {
+    position: absolute;
+    top: -40%;
+    left: 20%;
+    width: 60%;
+    height: 80%;
+    background: radial-gradient(circle, rgba(147, 197, 253, 0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .sanctuary-inner {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .sanctuary-badge {
+    display: inline-block;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #bae6fd;
+    background: rgba(147, 197, 253, 0.1);
+    border: 1px solid rgba(147, 197, 253, 0.2);
+    padding: 5px 14px;
+    border-radius: 999px;
+    margin-bottom: 16px;
+  }
+
+  .sanctuary-title {
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 16px 0;
+  }
+
+  .sanctuary-text {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 0 32px 0;
+
+    strong {
+      color: #fff;
+    }
+  }
+
+  .sanctuary-stats {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    flex-wrap: wrap;
+
+    .stat-pill {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 24px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+
+      .stat-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #fff;
+      }
+
+      .stat-label {
+        font-size: 0.74rem;
+        color: rgba(255, 255, 255, 0.5);
+      }
+    }
+  }
+}
+
+// Cozy Footer
+.cozy-footer {
+  position: relative;
+  z-index: 5;
+  text-align: center;
+  padding: 40px 24px 60px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+  .footer-text {
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-bottom: 16px;
+
+    strong {
+      color: #fff;
+    }
+  }
+
+  .footer-links {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 0.85rem;
+
+    a {
+      color: rgba(255, 255, 255, 0.65);
+      text-decoration: none;
+      transition: color 0.2s ease;
+
+      &:hover {
+        color: #bae6fd;
+      }
+    }
+
+    span {
+      color: rgba(255, 255, 255, 0.2);
+    }
+  }
+}
