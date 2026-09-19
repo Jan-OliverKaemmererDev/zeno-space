@@ -1,12 +1,8 @@
 <div class="landing-container">
-  <!-- Interactive 3D Warp Starfield Canvas -->
-  <canvas #starCanvas class="starfield-canvas"></canvas>
+  <!-- Living WebGL Procedural Anime Cloud Canvas -->
+  <canvas #cloudCanvas class="cloud-canvas"></canvas>
 
-  <!-- Ambient Nebulae (Atmosphere behind game sections) -->
-  <div class="ambient-nebula ambient-nebula-1"></div>
-  <div class="ambient-nebula ambient-nebula-2"></div>
-
-  <!-- Hero Section with uploaded Anime Sky background -->
+  <!-- Hero Section with transparent view into living anime sky -->
   <section class="hero-section" id="hero">
     <!-- Top-Right: Transparent Circular Audio Mute / Unmute Toggle Button -->
     <button 
@@ -32,16 +28,23 @@
     </button>
 
     <!-- Center: "Willkommen im Zeno-Space" without pill, letters emerging like air bubbles -->
-    <div class="hero-center-container">
+    <div 
+      class="hero-center-container"
+      (pointermove)="onHeadingPointerMove($event)"
+      (pointerleave)="onHeadingPointerLeave()"
+      (pointerup)="onHeadingPointerLeave()"
+    >
       <h1 class="bubble-letters-heading" aria-label="Willkommen im Zeno-Space">
         @for (item of textLetters; track $index) {
           @if (item.isSpace) {
             <span class="bubble-letter-space">&nbsp;</span>
           } @else {
             <span 
-              class="bubble-letter" 
+              class="bubble-letter-carrier" 
               [style.--bubble-index]="$index"
-            >{{ item.char }}</span>
+            >
+              <span class="bubble-letter">{{ item.char }}</span>
+            </span>
           }
         }
       </h1>
@@ -145,7 +148,7 @@
   <footer class="cozy-footer">
     <div class="footer-orb"></div>
     <p class="footer-text">
-      Erschaffen für gemütliche Momente & Entspannung im Kosmos. Mit Liebe gebaut für <strong>zeno-space</strong>.
+      Erschaffen für gemütliche Momente & Entspannung in deinem Wohlfühlort. Mit Liebe gebaut für <strong>zeno-space</strong>.
     </p>
     <div class="footer-links">
       <a routerLink="/game/cosmic-sculptor">3D Cosmos</a>
