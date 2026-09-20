@@ -79,6 +79,8 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     }));
   })();
 
+  readonly prompterWords = ['Nach', 'unten', 'schweben'];
+
   // Filters
   readonly activeFilter = signal<string>('all');
   readonly filters = [
@@ -136,6 +138,10 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     if (this.mouseEvadeRafId !== null) {
       cancelAnimationFrame(this.mouseEvadeRafId);
       this.mouseEvadeRafId = null;
+    }
+    if (this.prompterEvadeRafId !== null) {
+      cancelAnimationFrame(this.prompterEvadeRafId);
+      this.prompterEvadeRafId = null;
     }
     if (this.animFrameId !== null) {
       cancelAnimationFrame(this.animFrameId);
@@ -300,6 +306,76 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
         const pushY = (dy / dist) * force * maxPush;
         const scale = 1 + force * 0.08;
         const rot = (dx / dist) * force * 3;
+
+        el.style.setProperty('--evade-x', `${pushX.toFixed(2)}px`);
+        el.style.setProperty('--evade-y', `${pushY.toFixed(2)}px`);
+        el.style.setProperty('--evade-scale', `${scale.toFixed(3)}`);
+        el.style.setProperty('--evade-rot', `${rot.toFixed(2)}deg`);
+      } else {
+        el.style.setProperty('--evade-x', '0px');
+        el.style.setProperty('--evade-y', '0px');
+        el.style.setProperty('--evade-scale', '1');
+        el.style.setProperty('--evade-rot', '0deg');
+      }
+    });
+  }
+
+  // ----------------------------------------------------
+  // Subtle Word Evasion for Prompter Text
+  // ----------------------------------------------------
+  private prompterEvadeRafId: number | null = null;
+  private lastPrompterPointerEvent: PointerEvent | null = null;
+
+  onPrompterPointerMove(event: PointerEvent): void {
+    this.lastPrompterPointerEvent = event;
+    if (this.prompterEvadeRafId !== null) return;
+
+    this.prompterEvadeRafId = requestAnimationFrame(() => {
+      this.prompterEvadeRafId = null;
+      if (!this.lastPrompterPointerEvent || this.isDestroyed) return;
+      this.applyPrompterWordEvade(this.lastPrompterPointerEvent);
+    });
+  }
+
+  onPrompterPointerLeave(): void {
+    if (this.prompterEvadeRafId !== null) {
+      cancelAnimationFrame(this.prompterEvadeRafId);
+      this.prompterEvadeRafId = null;
+    }
+    this.lastPrompterPointerEvent = null;
+
+    const words = document.querySelectorAll<HTMLElement>('.prompter-word');
+    words.forEach((el) => {
+      el.style.setProperty('--evade-x', '0px');
+      el.style.setProperty('--evade-y', '0px');
+      el.style.setProperty('--evade-scale', '1');
+      el.style.setProperty('--evade-rot', '0deg');
+    });
+  }
+
+  private applyPrompterWordEvade(event: PointerEvent): void {
+    const words = document.querySelectorAll<HTMLElement>('.prompter-word');
+    const mouseX = event.clientX;
+    const mouseY = event.clientY;
+    const radius = 65; // Sanfter Einflussbereich um den Zeiger
+    const maxPush = 5.5; // Sehr dezente Blasen-Ausweichung
+
+    words.forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = cx - mouseX;
+      const dy = cy - mouseY;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist < radius && dist > 0.001) {
+        const norm = dist / radius;
+        // Noch weichere Abfallkurve
+        const force = Math.pow(1 - norm, 2.0);
+        const pushX = (dx / dist) * force * maxPush;
+        const pushY = (dy / dist) * force * maxPush;
+        const scale = 1 + force * 0.03;
+        const rot = (dx / dist) * force * 1.2;
 
         el.style.setProperty('--evade-x', `${pushX.toFixed(2)}px`);
         el.style.setProperty('--evade-y', `${pushY.toFixed(2)}px`);

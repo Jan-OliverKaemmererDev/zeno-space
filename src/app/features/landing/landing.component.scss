@@ -290,8 +290,6 @@
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
   &:hover {
-    transform: translateY(-3px) !important;
-
     .prompter-text {
       text-shadow: 
         0 2px 4px rgba(7, 20, 50, 0.95),
@@ -309,6 +307,10 @@
   }
 
   .prompter-text {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    column-gap: 0.35em;
     font-family: v.$font-family-sniglet;
     font-size: clamp(0.95rem, 1.15vw, 1.15rem);
     letter-spacing: 0.08em;
@@ -323,6 +325,26 @@
     transition: all 0.25s ease;
   }
 
+  // Floating word carrier for smooth staggered hovering like the hero title
+  .prompter-word-carrier {
+    display: inline-block;
+    position: relative;
+    will-change: transform;
+    animation: prompterWordFloat 6.5s ease-in-out calc(var(--word-index, 0) * 0.22s) infinite alternate;
+  }
+
+  // Inner word element with soap-bubble cursor evasion physics
+  .prompter-word {
+    display: inline-block;
+    position: relative;
+    transform: translate3d(var(--evade-x, 0px), var(--evade-y, 0px), 0)
+               scale(var(--evade-scale, 1))
+               rotate(var(--evade-rot, 0deg));
+    transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: transform;
+  }
+
+  // Scroll pill floating independently from the text above
   .prompter-bubble {
     width: 28px;
     height: 44px;
@@ -339,6 +361,8 @@
       0 0 14px rgba(56, 189, 248, 0.35),
       inset 0 1px 2px rgba(255, 255, 255, 0.45);
     transition: all 0.25s ease;
+    will-change: transform;
+    animation: prompterBubbleFloat 5.4s ease-in-out 1.3s infinite alternate;
 
     // Matching serene anime sky blue dot
     .prompter-dot {
@@ -351,6 +375,30 @@
         0 0 4px #ffffff;
       animation: scrollBounce 2s infinite ease-in-out;
     }
+  }
+}
+
+@keyframes prompterWordFloat {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -3.5px, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes prompterBubbleFloat {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -4px, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
   }
 }
 
