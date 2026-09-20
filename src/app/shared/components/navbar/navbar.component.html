@@ -1,47 +1,66 @@
 <header class="navbar-wrapper" [class.is-visible]="isVisible()">
   <nav class="navbar">
-    <!-- Brand Logo -->
-    <a routerLink="/" class="brand">
-      <div class="brand-orb">
-        <div class="brand-orb__inner"></div>
-        <div class="brand-orb__glow"></div>
-      </div>
+    <!-- Brand Logo (No Orb, 'Interaktive Welten' Subtitle) -->
+    <a routerLink="/" class="brand" title="Zur Startseite">
       <div class="brand-text">
         <span class="brand-title">zeno<span class="brand-accent">.space</span></span>
-        <span class="brand-tag">cozy sanctuary</span>
+        <span class="brand-tag">Interaktive Welten</span>
       </div>
     </a>
 
-    <!-- Nav Links -->
-    <div class="nav-links">
-      <a routerLink="/" fragment="hero" class="nav-link">Kosmos</a>
-      <a routerLink="/" fragment="hub" class="nav-link">Welten</a>
-      <a routerLink="/game/cosmic-sculptor" routerLinkActive="active" class="nav-link special-link">
-        <svg class="nav-sparkle-svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 0l3 9 9 3-9 3-3 9-3-9-9-3 9-3z"/>
-        </svg>
-        <span>3D Galaxy</span>
-      </a>
+    <!-- Center: 3D Käserad of Worlds (Drag & Rotate in 3D) -->
+    <div 
+      class="wheel-viewport"
+      (pointerdown)="onPointerDown($event)"
+      (pointermove)="onPointerMove($event)"
+      (pointerup)="onPointerUp($event)"
+      (pointercancel)="onPointerUp($event)"
+      (wheel)="onWheel($event)"
+      title="Ziehen zum Drehen des Weltenrads"
+    >
+      <!-- Käserad Horizon Glow Disc -->
+      <div class="wheel-disc-ambient"></div>
+
+      <!-- 3D Rotating Cylinder -->
+      <div #wheelCylinder class="wheel-cylinder">
+        @for (world of worlds(); track world.id; let i = $index) {
+          <div 
+            class="wheel-item"
+            [class.is-active]="activeWorldIndex() === i"
+            [style.transform]="getItemTransform(i)"
+            (click)="onWorldClick($event, world, i)"
+          >
+            <div class="world-capsule">
+              <span class="world-name">{{ world.title }}</span>
+            </div>
+          </div>
+        }
+      </div>
     </div>
 
-    <!-- Actions & Sound Toggle -->
+    <!-- Right: Minimalist Sound Toggle Icon -->
     <div class="nav-actions">
       <button 
-        type="button"
-        class="sound-toggle-btn" 
+        type="button" 
+        class="nav-sound-toggle"
         [class.is-playing]="!audioService.isMuted()" 
         (click)="onToggleAudio()"
-        title="Ambient-Sound & Effekte ein-/ausschalten"
+        [attr.aria-label]="audioService.isMuted() ? 'Sound aktivieren' : 'Sound stummschalten'"
+        [title]="audioService.isMuted() ? 'Sound aktivieren (Space Ambient)' : 'Sound stummschalten (Space Ambient läuft)'"
       >
-        <div class="sound-wave">
-          <span class="bar bar-1"></span>
-          <span class="bar bar-2"></span>
-          <span class="bar bar-3"></span>
-          <span class="bar bar-4"></span>
-        </div>
-        <span class="sound-label">
-          {{ audioService.isMuted() ? 'Sound Aus' : 'Chill Ambient An' }}
-        </span>
+        @if (!audioService.isMuted()) {
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+          </svg>
+        } @else {
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <line x1="23" y1="9" x2="17" y2="15" />
+            <line x1="17" y1="9" x2="23" y2="15" />
+          </svg>
+        }
       </button>
     </div>
   </nav>

@@ -11,22 +11,19 @@
   justify-content: center;
   padding: 0 24px;
   pointer-events: none;
-  opacity: 0;
-  transform: translateY(-40px);
-  transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateY(-100px);
+  visibility: hidden;
+  transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.42s;
+  font-family: 'Sniglet', cursive, sans-serif;
 
   &.is-visible {
-    opacity: 1;
+    visibility: visible;
     transform: translateY(0);
     pointer-events: auto;
   }
 }
 
-.nav-sparkle-svg {
-  color: #ffd166;
-  margin-right: 4px;
-}
-
+// Pure Transparent Glass Navbar (transparent, zero background shifts)
 .navbar {
   pointer-events: auto;
   display: flex;
@@ -34,59 +31,35 @@
   justify-content: space-between;
   width: 100%;
   max-width: 1080px;
-  padding: 10px 24px;
-  background: rgba(14, 18, 34, 0.7);
+  height: 52px;
+  padding: 0 24px;
+  background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 999px;
   box-shadow: 
-    0 10px 30px -5px rgba(0, 0, 0, 0.5),
-    0 0 20px rgba(139, 92, 246, 0.12);
-  transition: all 0.3s ease;
+    0 8px 28px -4px rgba(0, 0, 0, 0.30),
+    inset 0 1px 2px rgba(255, 255, 255, 0.30);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  font-family: 'Sniglet', cursive, sans-serif;
 
   &:hover {
-    border-color: rgba(192, 132, 252, 0.3);
+    border-color: rgba(255, 255, 255, 0.35);
     box-shadow: 
-      0 12px 35px -5px rgba(0, 0, 0, 0.6),
-      0 0 25px rgba(139, 92, 246, 0.2);
+      0 10px 32px -4px rgba(0, 0, 0, 0.35),
+      inset 0 1px 2px rgba(255, 255, 255, 0.40);
   }
 }
 
-// Brand Logo & Orb
+// Brand Logo & Typography (No Orb, Stationary, Regular Font Weight)
 .brand {
   display: flex;
   align-items: center;
-  gap: 12px;
   text-decoration: none;
-}
-
-.brand-orb {
-  position: relative;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #a855f7, #38bdf8);
-  box-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
-
-  &__inner {
-    position: absolute;
-    inset: 2px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 30%, #ffffff 0%, #a855f7 70%);
-    animation: pulseGlow 4s ease-in-out infinite;
-  }
-
-  &__glow {
-    position: absolute;
-    inset: -3px;
-    border-radius: 50%;
-    background: conic-gradient(from 0deg, #c084fc, #38bdf8, #f472b6, #c084fc);
-    filter: blur(4px);
-    z-index: -1;
-    opacity: 0.6;
-    animation: rotateSlow 8s linear infinite;
-  }
+  user-select: none;
+  flex-shrink: 0;
+  font-family: 'Sniglet', cursive, sans-serif;
 }
 
 .brand-text {
@@ -95,139 +68,285 @@
 }
 
 .brand-title {
-  font-family: v.$font-family-heading;
-  font-size: 1.15rem;
-  font-weight: 700;
+  font-family: 'Sniglet', cursive, sans-serif;
+  font-size: 1.20rem;
+  font-weight: 400; // Regular weight
   letter-spacing: -0.01em;
-  color: #fff;
+  color: #ffffff;
   line-height: 1.1;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
 
   .brand-accent {
-    color: v.$color-accent-lavender;
+    color: rgba(255, 255, 255, 0.75);
     font-weight: 400;
   }
 }
 
 .brand-tag {
-  font-size: 0.7rem;
-  color: v.$color-text-muted;
-  letter-spacing: 0.06em;
+  font-family: 'Sniglet', cursive, sans-serif;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  font-weight: 400;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
 }
 
-// Nav links
-.nav-links {
+// ==========================================
+// 3D KÄSERAD OF WORLDS (Frontal 3D Carousel)
+// ==========================================
+.wheel-viewport {
+  position: relative;
+  width: 440px;
+  height: 44px;
+  perspective: 900px;
+  perspective-origin: 50% 50%;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  cursor: grab;
+  overflow: visible;
+  font-family: 'Sniglet', cursive, sans-serif;
 
-  @media (max-width: 680px) {
-    display: none;
+  &:active {
+    cursor: grabbing;
   }
 }
 
-.nav-link {
-  padding: 8px 16px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: v.$color-text-secondary;
+// Käserad Horizontal Orbit Disc (ambient subtle guide)
+.wheel-disc-ambient {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 380px;
+  height: 24px;
+  margin-left: -190px;
+  margin-top: -12px;
   border-radius: 999px;
-  transition: all 0.25s ease;
-
-  &:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.08);
-  }
-
-  &.active {
-    color: #fff;
-    background: rgba(139, 92, 246, 0.2);
-    border: 1px solid rgba(168, 85, 247, 0.3);
-  }
-
-  &.special-link {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(56, 189, 248, 0.2));
-    border: 1px solid rgba(192, 132, 252, 0.3);
-    color: #f1f5f9;
-
-    .sparkle {
-      color: v.$color-accent-gold;
-      margin-right: 2px;
-    }
-
-    &:hover {
-      background: linear-gradient(135deg, rgba(139, 92, 246, 0.35), rgba(56, 189, 248, 0.35));
-      transform: translateY(-1px);
-    }
-  }
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
 }
 
-// Sound Toggle Button
-.sound-toggle-btn {
-  display: inline-flex;
+// 3D Rotating Cylinder
+.wheel-cylinder {
+  position: absolute;
+  inset: 0;
+  display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  justify-content: center;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+// World Item positioned on the 3D rim - strictly centered at Y = 0
+.wheel-item {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 136px;
+  height: 36px;
+  margin-left: -68px;
+  margin-top: -18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-style: preserve-3d;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+  pointer-events: auto;
+  will-change: transform, opacity;
+}
+
+// World Transparent Glass Capsule
+.world-capsule {
+  width: 100%;
+  height: 100%;
   border-radius: 999px;
-  color: v.$color-text-secondary;
-  font-size: 0.85rem;
-  font-weight: 500;
-  transition: all 0.25s ease;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.18),
+    inset 0 1px 2px rgba(255, 255, 255, 0.25);
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.12);
-    color: #fff;
-    border-color: rgba(192, 132, 252, 0.4);
+    border-color: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.14);
+    box-shadow: 
+      0 4px 14px rgba(0, 0, 0, 0.22),
+      inset 0 1px 2px rgba(255, 255, 255, 0.45);
   }
+
+  .is-active & {
+    background: rgba(255, 255, 255, 0.20);
+    border: 1.5px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 
+      0 4px 16px rgba(0, 0, 0, 0.25),
+      inset 0 1.5px 3px rgba(255, 255, 255, 0.75);
+  }
+}
+
+.world-name {
+  font-family: 'Sniglet', cursive, sans-serif;
+  font-size: 0.90rem;
+  font-weight: 400;
+  color: #ffffff;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  .is-active & {
+    color: #ffffff;
+    font-weight: 500;
+    text-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
+  }
+}
+
+// ==========================================
+// RIGHT SIDE: MINIMALIST SOUND TOGGLE
+// ==========================================
+.nav-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.nav-sound-toggle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  box-shadow: 
+    0 4px 12px rgba(0, 0, 0, 0.15),
+    inset 0 1px 2px rgba(255, 255, 255, 0.30);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 
   &.is-playing {
-    background: rgba(139, 92, 246, 0.2);
-    border-color: rgba(168, 85, 247, 0.5);
-    color: #f3e8ff;
-    box-shadow: 0 0 15px rgba(168, 85, 247, 0.25);
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.65);
+    color: #ffffff;
+    box-shadow: 
+      0 4px 14px rgba(0, 0, 0, 0.20),
+      inset 0 1px 2px rgba(255, 255, 255, 0.60);
 
-    .bar {
-      background: #c084fc;
-      animation: equalizer 1.2s ease-in-out infinite alternate;
+    svg {
+      animation: soundPulse 2.4s ease-in-out infinite;
     }
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.18);
+    border-color: rgba(255, 255, 255, 0.75);
+    transform: scale(1.06);
+    box-shadow: 
+      0 6px 18px rgba(0, 0, 0, 0.22),
+      inset 0 1px 3px rgba(255, 255, 255, 0.80);
+    color: #ffffff;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  svg {
+    transition: transform 0.2s ease, filter 0.3s ease;
   }
 }
 
-// Equalizer Bars
-.sound-wave {
-  display: flex;
-  align-items: center;
-  gap: 2.5px;
-  height: 14px;
+@keyframes soundPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
 }
 
-.bar {
-  width: 2.5px;
-  height: 4px;
-  background: v.$color-text-muted;
-  border-radius: 999px;
-  transition: all 0.2s ease;
+// ==========================================
+// RESPONSIVENESS
+// ==========================================
+@media (max-width: 860px) {
+  .navbar {
+    padding: 0 16px;
+  }
 
-  &-1 { animation-delay: 0.1s !important; }
-  &-2 { animation-delay: 0.3s !important; }
-  &-3 { animation-delay: 0.2s !important; }
-  &-4 { animation-delay: 0.4s !important; }
+  .wheel-viewport {
+    width: 320px;
+  }
+
+  .wheel-disc-ambient {
+    width: 280px;
+    margin-left: -140px;
+  }
+
+  .wheel-item {
+    width: 120px;
+    height: 34px;
+    margin-left: -60px;
+    margin-top: -17px;
+  }
+
+  .world-name {
+    font-size: 0.82rem;
+  }
+
+  .brand-title {
+    font-size: 1.1rem;
+  }
+
+  .brand-tag {
+    font-size: 0.65rem;
+  }
 }
 
-@keyframes equalizer {
-  0% { height: 3px; }
-  50% { height: 14px; }
-  100% { height: 6px; }
+@media (max-width: 580px) {
+  .brand-tag {
+    display: none;
+  }
+
+  .wheel-viewport {
+    width: 220px;
+  }
+
+  .wheel-disc-ambient {
+    display: none;
+  }
+
+  .wheel-item {
+    width: 104px;
+    height: 32px;
+    margin-left: -52px;
+    margin-top: -16px;
+  }
+
+  .world-capsule {
+    padding: 0 8px;
+  }
+
+  .world-name {
+    font-size: 0.76rem;
+  }
 }
 
-@keyframes rotateSlow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
 
-@keyframes pulseGlow {
-  0%, 100% { transform: scale(0.95); opacity: 0.9; }
-  50% { transform: scale(1.05); opacity: 1; }
-}
