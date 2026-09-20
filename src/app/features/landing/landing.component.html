@@ -35,17 +35,21 @@
       (pointerup)="onHeadingPointerLeave()"
     >
       <h1 class="bubble-letters-heading" aria-label="Willkommen im Zeno-Space">
-        @for (item of textLetters; track $index) {
-          @if (item.isSpace) {
-            <span class="bubble-letter-space">&nbsp;</span>
-          } @else {
-            <span 
-              class="bubble-letter-carrier" 
-              [style.--bubble-index]="$index"
-            >
-              <span class="bubble-letter">{{ item.char }}</span>
-            </span>
-          }
+        @for (phrase of textPhrases; track $index) {
+          <span class="bubble-phrase">
+            @for (word of phrase.words; track $index) {
+              <span class="bubble-word">
+                @for (item of word.letters; track item.globalIndex) {
+                  <span 
+                    class="bubble-letter-carrier" 
+                    [style.--bubble-index]="item.globalIndex"
+                  >
+                    <span class="bubble-letter">{{ item.char }}</span>
+                  </span>
+                }
+              </span>
+            }
+          </span>
         }
       </h1>
     </div>

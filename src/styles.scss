@@ -4,6 +4,39 @@
 @use 'styles/variables' as v;
 @use 'styles/mixins' as m;
 
+// ==========================================
+// CUSTOM BUBBLE FONT: SNIGLET
+// ==========================================
+@font-face {
+  font-family: 'Sniglet';
+  src: url('../public/fonts/Singlet/Sniglet-Regular.ttf') format('truetype'),
+       url('/fonts/Singlet/Sniglet-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sniglet';
+  src: url('../public/fonts/Singlet/Sniglet-ExtraBold.ttf') format('truetype'),
+       url('/fonts/Singlet/Sniglet-ExtraBold.ttf') format('truetype');
+  font-weight: 700 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+// ==========================================
+// CUSTOM BUBBLE FONT: DYNAPUFF
+// ==========================================
+@font-face {
+  font-family: 'DynaPuff';
+  src: url('../public/fonts/DynaPuff/static/DynaPuff-SemiBold.ttf') format('truetype'),
+       url('/fonts/DynaPuff/static/DynaPuff-SemiBold.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;

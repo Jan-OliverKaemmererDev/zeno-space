@@ -103,25 +103,71 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  max-width: 980px;
+  width: 100%;
+  max-width: min(96vw, 1560px);
   padding: 20px 24px;
 }
 
-// Heading containing each individual bubble letter
+// Heading containing each individual bubble word
 .bubble-letters-heading {
   margin: 0;
   padding: 0;
-  font-family: v.$font-family-heading;
-  font-size: clamp(2.2rem, 5.2vw, 4.4rem);
-  font-weight: 800;
-  letter-spacing: -0.015em;
+  font-family: v.$font-family-bubble;
+  font-size: 4.6rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   line-height: 1.25;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   text-align: center;
+  column-gap: 0.42em;
+  row-gap: 0.22em;
   user-select: none;
+  transition: font-size 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+              column-gap 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+              row-gap 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+
+  @media (max-width: 1280px) {
+    font-size: 3.8rem;
+  }
+
+  @media (max-width: 1024px) {
+    font-size: 3.2rem;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 2.7rem;
+  }
+
+  @media (max-width: 480px) {
+    font-size: 2.2rem;
+  }
+}
+
+// Phrase blocks ("Willkommen im" and "Zeno-Space")
+.bubble-phrase {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  align-items: center;
+  justify-content: center;
+  column-gap: 0.35em;
+  will-change: transform;
+
+  @media (max-width: 380px) {
+    flex-wrap: wrap;
+    row-gap: 0.15em;
+  }
+}
+
+// Each word is kept strictly contiguous: never breaks individual letters!
+.bubble-word {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  word-break: keep-all;
 }
 
 // Each letter carrier manages the sweeping horizontal Laola wave and ongoing floating
@@ -155,12 +201,6 @@
              rotate(var(--evade-rot, 0deg));
   transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
   will-change: transform;
-}
-
-// Spacing between words
-.bubble-letter-space {
-  display: inline-block;
-  width: clamp(14px, 2.2vw, 26px);
 }
 
 // Buttery-smooth Laola wave: arches up high into the air and glides down smoothly without hitches
@@ -228,11 +268,11 @@
   }
 
   .prompter-text {
-    font-size: clamp(0.85rem, 1.05vw, 1.02rem);
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    font-family: v.$font-family-sniglet;
+    font-size: clamp(0.95rem, 1.15vw, 1.15rem);
+    letter-spacing: 0.08em;
     color: #ffffff;
-    font-weight: 700;
+    font-weight: 400;
     user-select: none;
     // Multi-Layer-Drop-Shadow for crystal clear readability over clouds & sky
     text-shadow: 

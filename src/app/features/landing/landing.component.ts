@@ -16,9 +16,17 @@ import { AudioService } from '../../core/services/audio.service';
 import { BubbleCardComponent } from '../../shared/components/bubble-card/bubble-card.component';
 import { Minigame } from '../../core/models/minigame.model';
 
-interface LetterItem {
+export interface BubbleLetter {
   char: string;
-  isSpace: boolean;
+  globalIndex: number;
+}
+
+export interface BubbleWord {
+  letters: BubbleLetter[];
+}
+
+export interface BubblePhrase {
+  words: BubbleWord[];
 }
 
 @Component({
@@ -33,11 +41,22 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild('cloudCanvas') cloudCanvasRef!: ElementRef<HTMLCanvasElement>;
 
-  // Letters of the heading "Willkommen im Zeno-Space"
-  readonly textLetters: LetterItem[] = Array.from('Willkommen im Zeno-Space').map((char) => ({
-    char,
-    isSpace: char === ' ',
-  }));
+  // Structured phrases ("Willkommen im" and "Zeno-Space") for controlled responsive wrapping
+  readonly textPhrases: BubblePhrase[] = (() => {
+    const rawPhrases = [
+      ['Willkommen', 'im'],
+      ['Zeno-Space'],
+    ];
+    let runningIndex = 0;
+    return rawPhrases.map((words) => ({
+      words: words.map((word) => ({
+        letters: Array.from(word).map((char) => ({
+          char,
+          globalIndex: runningIndex++,
+        })),
+      })),
+    }));
+  })();
 
   // Filters
   readonly activeFilter = signal<string>('all');
@@ -71,10 +90,21 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     this.initCloudScene();
+    this.initPhraseSmoothWrapping();
   }
 
   ngOnDestroy(): void {
     this.isDestroyed = true;
+    if (this.phraseResizeObserver) {
+      this.phraseResizeObserver.disconnect();
+      this.phraseResizeObserver = null;
+    }
+    if (this.phraseRafId !== null) {
+      cancelAnimationFrame(this.phraseRafId);
+      this.phraseRafId = null;
+    }
+    window.removeEventListener('resize', this.onWindowResizeForPhrases);
+
     if (this.mouseEvadeRafId !== null) {
       cancelAnimationFrame(this.mouseEvadeRafId);
       this.mouseEvadeRafId = null;
@@ -99,6 +129,91 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
       this.renderer.dispose();
       this.renderer = null;
     }
+  }
+
+  // ----------------------------------------------------
+  // Smooth Layout Wrapping Animation (FLIP) for Phrases
+  // ----------------------------------------------------
+  private phraseResizeObserver: ResizeObserver | null = null;
+  private phraseRafId: number | null = null;
+  private lastPhraseRects = new Map<HTMLElement, DOMRect>();
+  private isPhraseLayoutInitialized = false;
+
+  private initPhraseSmoothWrapping(): void {
+    const heading = document.querySelector<HTMLElement>('.bubble-letters-heading');
+    if (!heading) return;
+
+    this.phraseResizeObserver = new ResizeObserver(() => {
+      if (this.isDestroyed) return;
+      this.onWindowResizeForPhrases();
+    });
+    this.phraseResizeObserver.observe(heading);
+
+    window.addEventListener('resize', this.onWindowResizeForPhrases, { passive: true });
+  }
+
+  private onWindowResizeForPhrases = (): void => {
+    if (this.phraseRafId !== null) return;
+    this.phraseRafId = requestAnimationFrame(() => {
+      this.phraseRafId = null;
+      if (!this.isDestroyed) {
+        this.animatePhraseWrapping();
+      }
+    });
+  };
+
+  private animatePhraseWrapping(): void {
+    const phrases = Array.from(document.querySelectorAll<HTMLElement>('.bubble-phrase'));
+    if (phrases.length === 0) return;
+
+    if (!this.isPhraseLayoutInitialized) {
+      // First measurement: record rects without animating
+      phrases.forEach((el) => {
+        this.lastPhraseRects.set(el, el.getBoundingClientRect());
+      });
+      this.isPhraseLayoutInitialized = true;
+      return;
+    }
+
+    // Step 1: Measure current layout positions without active transform
+    const newRects = new Map<HTMLElement, DOMRect>();
+    phrases.forEach((el) => {
+      el.style.transition = 'none';
+      el.style.transform = '';
+      newRects.set(el, el.getBoundingClientRect());
+    });
+
+    // Step 2: Calculate deltas and invert
+    let hasMovement = false;
+    phrases.forEach((el) => {
+      const oldRect = this.lastPhraseRects.get(el);
+      const newRect = newRects.get(el);
+      if (oldRect && newRect) {
+        const dx = oldRect.left - newRect.left;
+        const dy = oldRect.top - newRect.top;
+
+        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+          hasMovement = true;
+          el.style.transform = `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0)`;
+        }
+      }
+      if (newRect) {
+        this.lastPhraseRects.set(el, newRect);
+      }
+    });
+
+    if (!hasMovement) return;
+
+    // Force browser reflow to commit the inverted transform
+    document.body.offsetHeight;
+
+    // Step 3: Play smooth transition to natural position
+    requestAnimationFrame(() => {
+      phrases.forEach((el) => {
+        el.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+        el.style.transform = 'translate3d(0, 0, 0)';
+      });
+    });
   }
 
   // ----------------------------------------------------
