@@ -590,6 +590,65 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
         );
       }
 
+      // Distance from point p to line segment between a and b
+      float segDist(vec2 p, vec2 a, vec2 b, out float h) {
+        vec2 pa = p - a;
+        vec2 ba = b - a;
+        h = clamp(dot(pa, ba) / max(dot(ba, ba), 0.00001), 0.0, 1.0);
+        return length(pa - ba * h);
+      }
+
+      // Gentle, distant shooting star generator
+      float shootingStar(vec2 uv, float time, float seed, float cycleTime, float aspect) {
+        float t = time + seed * 19.41;
+        float cycleId = floor(t / cycleTime);
+        float progress = fract(t / cycleTime);
+
+        vec2 r = hash2(vec2(cycleId, seed * 7.13));
+
+        // Active window: shooting star is active for ~18% of the cycle, then quiet pause
+        float activeDuration = 0.18;
+        if (progress > activeDuration) return 0.0;
+
+        float flight = progress / activeDuration; // 0.0 -> 1.0 during flight
+
+        // Trajectory in aspect-corrected coordinates
+        float startX = (0.15 + 0.70 * r.x) * aspect;
+        float startY = 0.72 + 0.20 * r.y;
+        vec2 startPos = vec2(startX, startY);
+
+        // Trajectory angle: gentle downward-left diagonal (~-150 to -165 degrees)
+        float angle = -2.65 - 0.35 * (r.y - 0.5); 
+        vec2 dir = vec2(cos(angle), sin(angle));
+
+        // Travel distance (delicate and distant)
+        float speedDist = (0.24 + 0.12 * r.x) * aspect;
+        vec2 head = startPos + dir * (speedDist * flight);
+
+        // Tail extends behind head
+        float tailLength = 0.10 + 0.06 * r.y;
+        vec2 tail = head - dir * tailLength;
+
+        vec2 p = vec2(uv.x * aspect, uv.y);
+
+        float h;
+        float dist = segDist(p, head, tail, h);
+
+        float width = mix(0.0016, 0.0003, h);
+        float trailFade = pow(1.0 - h, 2.4);
+
+        float streak = smoothstep(width, 0.0, dist) * trailFade;
+        float halo = smoothstep(width * 4.5, 0.0, dist) * trailFade * 0.30;
+
+        float headDist = length(p - head);
+        float headGlow = smoothstep(0.0035, 0.0005, headDist) * 1.4;
+
+        float life = sin(flight * 3.14159);
+        float skyMask = smoothstep(0.38, 0.65, head.y);
+
+        return (streak + halo + headGlow) * life * skyMask;
+      }
+
       void main() {
         vec2 uv = vUv;
         float screenAspect = u_resolution.x / max(u_resolution.y, 1.0);
@@ -661,17 +720,54 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
         vec3 finalColor = mix(baseArtColor, colCloudSea, scrollFade * 0.85);
 
         // -----------------------------------------------------------------
-        // 4. Cozy Atmosphere: Ambient Starlight Motes in Sky
+        // 4. Cozy Atmosphere: Delicate Starry Sky & Distant Shooting Stars
         // -----------------------------------------------------------------
-        vec2 starCoord = uv * vec2(screenAspect * 3.2, 3.2);
-        starCoord.y += t * 0.12;
-        vec2 starCell = floor(starCoord);
-        vec2 starFrac = fract(starCoord);
-        vec2 starRnd = hash2(starCell);
-        float starDist = length(starFrac - (0.25 + 0.50 * starRnd));
-        float starGlow = smoothstep(0.038, 0.005, starDist) * (sin(u_time * 1.8 + starRnd.x * 6.28) * 0.5 + 0.5);
-        float starVis = smoothstep(0.35, 0.95, uv.y);
-        finalColor += vec3(0.75, 0.90, 1.0) * starGlow * starVis * 0.50;
+        float starSkyVis = smoothstep(0.38, 0.85, uv.y + scroll * 0.15);
+
+        // Layer 1: Fine background stardust (Micro-stars)
+        vec2 starCoord1 = uv * vec2(screenAspect * 36.0, 36.0);
+        starCoord1.y += t * 0.06;
+        vec2 cell1 = floor(starCoord1);
+        vec2 frac1 = fract(starCoord1);
+        vec2 rnd1 = hash2(cell1);
+        
+        float microStars = 0.0;
+        if (rnd1.x > 0.35) {
+          vec2 pos1 = 0.15 + 0.70 * hash2(cell1 + 3.17);
+          float d1 = length(frac1 - pos1);
+          float tw1 = sin(u_time * (1.1 + rnd1.y * 1.6) + rnd1.x * 6.28) * 0.35 + 0.65;
+          microStars = smoothstep(0.016, 0.001, d1) * tw1 * (0.35 + 0.50 * rnd1.y);
+        }
+
+        // Layer 2: Sparkling crystal stars (Twinkling primary stars)
+        vec2 starCoord2 = uv * vec2(screenAspect * 15.0, 15.0);
+        starCoord2.y += t * 0.04;
+        vec2 cell2 = floor(starCoord2);
+        vec2 frac2 = fract(starCoord2);
+        vec2 rnd2 = hash2(cell2);
+
+        float crystalStars = 0.0;
+        vec3 starColor = vec3(0.90, 0.96, 1.0);
+        if (rnd2.x > 0.58) {
+          vec2 pos2 = 0.20 + 0.60 * hash2(cell2 + 8.91);
+          float d2 = length(frac2 - pos2);
+          float tw2 = pow(sin(u_time * (1.5 + rnd2.y * 2.1) + rnd2.x * 6.28) * 0.5 + 0.5, 1.6);
+          float core = smoothstep(0.018, 0.002, d2);
+          float halo = smoothstep(0.045, 0.004, d2) * 0.25;
+          crystalStars = (core + halo) * tw2 * (0.50 + 0.50 * rnd2.y);
+          // Subtle warm vs cool tint
+          starColor = mix(vec3(0.85, 0.94, 1.00), vec3(1.00, 0.95, 0.88), rnd2.y);
+        }
+
+        // Combine stars into finalColor
+        finalColor += vec3(0.85, 0.92, 1.00) * microStars * starSkyVis * 0.55;
+        finalColor += starColor * crystalStars * starSkyVis * 0.70;
+
+        // Layer 3: Distant gentle shooting stars (Sternschnuppen)
+        float shoot1 = shootingStar(uv, u_time, 1.0, 7.8, screenAspect);
+        float shoot2 = shootingStar(uv, u_time, 2.0, 12.4, screenAspect);
+        vec3 colShoot = vec3(0.92, 0.97, 1.00);
+        finalColor += colShoot * (shoot1 + shoot2) * starSkyVis * 0.85;
 
         gl_FragColor = vec4(finalColor, 1.0);
       }
