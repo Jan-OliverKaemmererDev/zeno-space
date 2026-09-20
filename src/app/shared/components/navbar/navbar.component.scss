@@ -77,7 +77,7 @@
   text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
 
   .brand-accent {
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--pastel-color, #93c5fd);
     font-weight: 400;
   }
 }
@@ -85,11 +85,14 @@
 .brand-tag {
   font-family: 'Sniglet', cursive, sans-serif;
   font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.65);
   letter-spacing: 0.08em;
   text-transform: uppercase;
   font-weight: 400;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  background: linear-gradient(135deg, #bae6fd, #fed7aa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
 }
 
 // ==========================================
@@ -97,9 +100,9 @@
 // ==========================================
 .wheel-viewport {
   position: relative;
-  width: 440px;
+  width: 390px;
   height: 44px;
-  perspective: 900px;
+  perspective: 580px;
   perspective-origin: 50% 50%;
   display: flex;
   align-items: center;
@@ -116,19 +119,52 @@
   }
 }
 
-// Käserad Horizontal Orbit Disc (ambient subtle guide)
+// Käserad Horizontal Orbit Disc (ambient 3D cylinder guide)
 .wheel-disc-ambient {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 380px;
-  height: 24px;
-  margin-left: -190px;
-  margin-top: -12px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  width: 330px;
+  height: 36px;
+  margin-left: -165px;
+  margin-top: -18px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
   pointer-events: none;
-  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
+  transform: translateZ(-55px) rotateX(72deg);
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.03) 60%, transparent 80%);
+  box-shadow: 
+    0 0 25px rgba(255, 255, 255, 0.15),
+    inset 0 0 15px rgba(255, 255, 255, 0.10);
+}
+
+// Käserad Outer Blur Lenses: strongly blurs the receding ends of the flanking pills with a luminous light frosted glass gradient
+.wheel-edge-blur {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 72px;
+  pointer-events: none;
+  z-index: 10;
+  border-radius: 999px;
+
+  &--left {
+    left: -2px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background: linear-gradient(to right, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.06) 60%, transparent 100%);
+    mask-image: linear-gradient(to right, black 25%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black 25%, transparent 100%);
+  }
+
+  &--right {
+    right: -2px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    background: linear-gradient(to left, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.06) 60%, transparent 100%);
+    mask-image: linear-gradient(to left, black 25%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to left, black 25%, transparent 100%);
+  }
 }
 
 // 3D Rotating Cylinder
@@ -147,9 +183,9 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 136px;
+  width: 134px;
   height: 36px;
-  margin-left: -68px;
+  margin-left: -67px;
   margin-top: -18px;
   display: flex;
   align-items: center;
@@ -157,9 +193,64 @@
   transform-style: preserve-3d;
   user-select: none;
   -webkit-user-select: none;
-  cursor: pointer;
-  pointer-events: auto;
-  will-change: transform, opacity;
+  cursor: grab;
+  pointer-events: none !important;
+  will-change: transform, opacity, filter;
+
+  // Left side pill: light gradient and soft mask towards outer left tip (not clickable)
+  &.is-side-left {
+    pointer-events: none !important;
+    cursor: grab !important;
+
+    .world-capsule {
+      pointer-events: none !important;
+      cursor: grab !important;
+      background: linear-gradient(to right, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.12) 100%);
+      mask-image: linear-gradient(to right, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.90) 35%, black 85%);
+      -webkit-mask-image: linear-gradient(to right, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.90) 35%, black 85%);
+    }
+  }
+
+  // Right side pill: light gradient and soft mask towards outer right tip (not clickable)
+  &.is-side-right {
+    pointer-events: none !important;
+    cursor: grab !important;
+
+    .world-capsule {
+      pointer-events: none !important;
+      cursor: grab !important;
+      background: linear-gradient(to left, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.12) 100%);
+      mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.90) 35%, black 85%);
+      -webkit-mask-image: linear-gradient(to left, rgba(0, 0, 0, 0.35) 0%, rgba(0, 0, 0, 0.90) 35%, black 85%);
+    }
+  }
+
+  &.is-active {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+
+    .world-capsule {
+      cursor: pointer !important;
+      pointer-events: auto !important;
+      mask-image: none !important;
+      -webkit-mask-image: none !important;
+      background: rgba(255, 255, 255, 0.20);
+      border: 1.5px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 
+        0 4px 18px rgba(0, 0, 0, 0.28),
+        inset 0 1.5px 3px rgba(255, 255, 255, 0.75),
+        0 0 16px rgba(255, 255, 255, 0.20);
+
+      &:hover {
+        border-color: rgba(255, 255, 255, 0.95);
+        background: rgba(255, 255, 255, 0.26);
+        box-shadow: 
+          0 6px 22px rgba(0, 0, 0, 0.32),
+          inset 0 1.5px 3px rgba(255, 255, 255, 0.90),
+          0 0 20px rgba(255, 255, 255, 0.35);
+      }
+    }
+  }
 }
 
 // World Transparent Glass Capsule
@@ -167,7 +258,7 @@
   width: 100%;
   height: 100%;
   border-radius: 999px;
-  padding: 0 14px;
+  padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -178,28 +269,12 @@
   box-shadow: 
     0 4px 12px rgba(0, 0, 0, 0.18),
     inset 0 1px 2px rgba(255, 255, 255, 0.25);
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
-
-  &:hover {
-    border-color: rgba(255, 255, 255, 0.55);
-    background: rgba(255, 255, 255, 0.14);
-    box-shadow: 
-      0 4px 14px rgba(0, 0, 0, 0.22),
-      inset 0 1px 2px rgba(255, 255, 255, 0.45);
-  }
-
-  .is-active & {
-    background: rgba(255, 255, 255, 0.20);
-    border: 1.5px solid rgba(255, 255, 255, 0.85);
-    box-shadow: 
-      0 4px 16px rgba(0, 0, 0, 0.25),
-      inset 0 1.5px 3px rgba(255, 255, 255, 0.75);
-  }
+  transition: border-color 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
 }
 
 .world-name {
   font-family: 'Sniglet', cursive, sans-serif;
-  font-size: 0.90rem;
+  font-size: 0.88rem;
   font-weight: 400;
   color: #ffffff;
   white-space: nowrap;
@@ -207,6 +282,7 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 100%;
 
   .is-active & {
     color: #ffffff;
@@ -292,23 +368,28 @@
   }
 
   .wheel-viewport {
-    width: 320px;
+    width: 340px;
+    perspective: 480px;
+  }
+
+  .wheel-edge-blur {
+    width: 75px;
   }
 
   .wheel-disc-ambient {
-    width: 280px;
-    margin-left: -140px;
+    width: 290px;
+    margin-left: -145px;
   }
 
   .wheel-item {
-    width: 120px;
+    width: 124px;
     height: 34px;
-    margin-left: -60px;
+    margin-left: -62px;
     margin-top: -17px;
   }
 
   .world-name {
-    font-size: 0.82rem;
+    font-size: 0.80rem;
   }
 
   .brand-title {
@@ -326,7 +407,12 @@
   }
 
   .wheel-viewport {
-    width: 220px;
+    width: 230px;
+    perspective: 400px;
+  }
+
+  .wheel-edge-blur {
+    width: 50px;
   }
 
   .wheel-disc-ambient {
@@ -334,9 +420,9 @@
   }
 
   .wheel-item {
-    width: 104px;
+    width: 106px;
     height: 32px;
-    margin-left: -52px;
+    margin-left: -53px;
     margin-top: -16px;
   }
 
@@ -345,7 +431,7 @@
   }
 
   .world-name {
-    font-size: 0.76rem;
+    font-size: 0.74rem;
   }
 }
 

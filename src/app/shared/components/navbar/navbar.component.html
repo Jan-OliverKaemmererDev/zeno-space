@@ -10,12 +10,8 @@
 
     <!-- Center: 3D Käserad of Worlds (Drag & Rotate in 3D) -->
     <div 
+      #wheelViewport
       class="wheel-viewport"
-      (pointerdown)="onPointerDown($event)"
-      (pointermove)="onPointerMove($event)"
-      (pointerup)="onPointerUp($event)"
-      (pointercancel)="onPointerUp($event)"
-      (wheel)="onWheel($event)"
       title="Ziehen zum Drehen des Weltenrads"
     >
       <!-- Käserad Horizon Glow Disc -->
@@ -23,19 +19,22 @@
 
       <!-- 3D Rotating Cylinder -->
       <div #wheelCylinder class="wheel-cylinder">
-        @for (world of worlds(); track world.id; let i = $index) {
+        @for (slot of tireSlots(); track $index; let i = $index) {
           <div 
             class="wheel-item"
-            [class.is-active]="activeWorldIndex() === i"
-            [style.transform]="getItemTransform(i)"
-            (click)="onWorldClick($event, world, i)"
+            [class.is-active]="activeSlotIndex() === i"
+            (click)="activeSlotIndex() === i ? onSlotClick($event, slot, i) : null"
           >
             <div class="world-capsule">
-              <span class="world-name">{{ world.title }}</span>
+              <span class="world-name">{{ slot.title }}</span>
             </div>
           </div>
         }
       </div>
+
+      <!-- Käserad Outer Blur Lenses: Blurs the receding edges of flanking pills -->
+      <div class="wheel-edge-blur wheel-edge-blur--left"></div>
+      <div class="wheel-edge-blur wheel-edge-blur--right"></div>
     </div>
 
     <!-- Right: Minimalist Sound Toggle Icon -->
