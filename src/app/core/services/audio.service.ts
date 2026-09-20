@@ -34,6 +34,68 @@ export class AudioService {
     880.00, // A5
   ];
 
+  // Waterdrop scroll-down sound buffer & preloading
+  private waterdropBuffer: AudioBuffer | null = null;
+  private waterdropArrayBuffer: ArrayBuffer | null = null;
+  private waterdropLoadingPromise: Promise<ArrayBuffer | null> | null = null;
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      this.preloadWaterdropSound();
+    }
+  }
+
+  private preloadWaterdropSound(): void {
+    const isTestEnv = !!(globalThis as unknown as { process?: { env?: Record<string, string> } })
+      ?.process?.env?.['VITEST'];
+
+    if (
+      typeof window === 'undefined' ||
+      !window.location ||
+      window.location.protocol.startsWith('about:') ||
+      isTestEnv ||
+      this.waterdropLoadingPromise
+    ) {
+      return;
+    }
+
+    const soundUrl =
+      window.location.origin &&
+      window.location.origin !== 'null' &&
+      !window.location.origin.startsWith('about:')
+        ? `${window.location.origin}/sounds/waterdrop-scroll-down.mp3`
+        : '/sounds/waterdrop-scroll-down.mp3';
+
+    this.waterdropLoadingPromise = fetch(soundUrl)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        return res.arrayBuffer();
+      })
+      .then((buf) => {
+        this.waterdropArrayBuffer = buf;
+        if (this.ctx) {
+          this.decodeWaterdropBuffer(buf);
+        }
+        return buf;
+      })
+      .catch((err) => {
+        console.warn('Could not preload waterdrop-scroll-down.mp3:', err);
+        return null;
+      });
+  }
+
+  private decodeWaterdropBuffer(arrayBuf: ArrayBuffer): void {
+    if (!this.ctx || this.waterdropBuffer) return;
+    this.ctx
+      .decodeAudioData(arrayBuf.slice(0))
+      .then((decoded) => {
+        this.waterdropBuffer = decoded;
+      })
+      .catch((err) => {
+        console.warn('decodeAudioData for waterdrop sound failed:', err);
+      });
+  }
+
   private initContext(): void {
     if (!this.ctx) {
       const AudioCtx =
@@ -48,6 +110,10 @@ export class AudioService {
       this.sfxGain = this.ctx.createGain();
       this.sfxGain.gain.setValueAtTime(0.35, this.ctx.currentTime);
       this.sfxGain.connect(this.ctx.destination);
+
+      if (this.waterdropArrayBuffer && !this.waterdropBuffer) {
+        this.decodeWaterdropBuffer(this.waterdropArrayBuffer);
+      }
     }
 
     if (this.ctx.state === 'suspended') {
@@ -338,5 +404,128 @@ export class AudioService {
 
     osc.start(now);
     osc.stop(now + 0.11);
+  }
+
+  /**
+   * Plays the waterdrop scroll-down sound (waterdrop-scroll-down.mp3).
+   * Gently fades out at the end for a peaceful, calming sensation.
+   */
+  playWaterdropScrollDown(volume = 0.75): void {
+    if (this.isMuted()) return;
+    this.initContext();
+
+    if (this.ctx && this.waterdropBuffer) {
+      this.playWaterdropBuffer(this.waterdropBuffer, volume);
+      return;
+    }
+
+    if (this.ctx && this.waterdropArrayBuffer) {
+      this.ctx
+        .decodeAudioData(this.waterdropArrayBuffer.slice(0))
+        .then((decoded) => {
+          this.waterdropBuffer = decoded;
+          this.playWaterdropBuffer(decoded, volume);
+        })
+        .catch(() => {
+          this.playWaterdropFallback(volume);
+        });
+      return;
+    }
+
+    if (this.waterdropLoadingPromise) {
+      this.waterdropLoadingPromise
+        .then((buf) => {
+          if (buf && this.ctx) {
+            this.ctx.decodeAudioData(buf.slice(0)).then((decoded) => {
+              this.waterdropBuffer = decoded;
+              this.playWaterdropBuffer(decoded, volume);
+            });
+          } else {
+            this.playWaterdropFallback(volume);
+          }
+        })
+        .catch(() => {
+          this.playWaterdropFallback(volume);
+        });
+      return;
+    }
+
+    this.playWaterdropFallback(volume);
+  }
+
+  /**
+   * Play waterdrop sound via Web Audio API with peaceful exponential fade-out at the end
+   */
+  private playWaterdropBuffer(buffer: AudioBuffer, targetVolume = 0.75): void {
+    if (!this.ctx || this.isMuted()) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+
+    const now = this.ctx.currentTime;
+    const duration = buffer.duration;
+    // Peaceful fade-out over the final ~0.85 seconds of the sound
+    const fadeDuration = Math.min(0.85, duration * 0.5);
+    const fadeStart = now + Math.max(0.01, duration - fadeDuration);
+    const stopTime = now + duration;
+
+    const source = this.ctx.createBufferSource();
+    source.buffer = buffer;
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(targetVolume, now);
+    gain.gain.setValueAtTime(targetVolume, fadeStart);
+    // Smooth exponential ramp down into silence
+    gain.gain.exponentialRampToValueAtTime(0.0001, stopTime);
+    gain.gain.setValueAtTime(0, stopTime);
+
+    source.connect(gain);
+    gain.connect(this.sfxGain || this.ctx.destination);
+
+    source.start(now);
+    source.stop(stopTime + 0.05);
+  }
+
+  /**
+   * Fallback using HTMLAudioElement with smooth end fade-out
+   */
+  private playWaterdropFallback(targetVolume = 0.5): void {
+    if (this.isMuted() || typeof window === 'undefined') return;
+    const audio = new Audio('/sounds/waterdrop-scroll-down.mp3');
+    audio.volume = targetVolume;
+
+    const fadeDuration = 0.85;
+    let fadeStarted = false;
+
+    const onTimeUpdate = () => {
+      if (!fadeStarted && audio.duration && audio.duration - audio.currentTime <= fadeDuration) {
+        fadeStarted = true;
+        const startVol = audio.volume;
+        const startTime = performance.now();
+        const fadeMs = fadeDuration * 1000;
+
+        const fadeStep = () => {
+          const elapsed = performance.now() - startTime;
+          const progress = Math.min(1, elapsed / fadeMs);
+          const factor = Math.pow(1 - progress, 1.8);
+          audio.volume = Math.max(0, startVol * factor);
+
+          if (progress < 1 && !audio.paused) {
+            requestAnimationFrame(fadeStep);
+          }
+        };
+        requestAnimationFrame(fadeStep);
+      }
+    };
+
+    audio.addEventListener('timeupdate', onTimeUpdate);
+    audio.addEventListener('ended', () => {
+      audio.removeEventListener('timeupdate', onTimeUpdate);
+    });
+
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {});
+    }
   }
 }

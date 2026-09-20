@@ -59,6 +59,8 @@
     <div 
       class="scroll-prompter hero-ui-fade" 
       (click)="scrollToHub()" 
+      (keydown.enter)="scrollToHub()"
+      (keydown.space)="scrollToHub(); $event.preventDefault()"
       (pointermove)="onPrompterPointerMove($event)"
       (pointerleave)="onPrompterPointerLeave()"
       (pointerup)="onPrompterPointerLeave()"

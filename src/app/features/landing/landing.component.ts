@@ -538,6 +538,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   }
 
   scrollToHub(): void {
+    this.audioService.playWaterdropScrollDown();
     const hubElement = document.getElementById('bubble-hub');
     if (hubElement) {
       hubElement.scrollIntoView({ behavior: 'smooth' });

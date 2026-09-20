@@ -31,4 +31,15 @@ describe('AudioService', () => {
       service.pauseAmbientMusic(true);
     }).not.toThrow();
   });
+
+  it('should not throw when calling playWaterdropScrollDown', () => {
+    expect(() => {
+      service.playWaterdropScrollDown();
+    }).not.toThrow();
+
+    service.isMuted.set(true);
+    expect(() => {
+      service.playWaterdropScrollDown();
+    }).not.toThrow();
+  });
 });
