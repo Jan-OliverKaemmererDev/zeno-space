@@ -58,7 +58,7 @@
   }
 }
 
-// Top-Right Circular Transparent Audio Button
+// Top-Right Circular Transparent Audio Button (Immediate visibility & sleek glassmorphism)
 .hero-sound-toggle {
   position: absolute;
   top: 28px;
@@ -70,20 +70,34 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.10);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.75);
   cursor: pointer;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: soundBtnEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  &.is-playing {
+    background: rgba(56, 189, 248, 0.16);
+    border-color: rgba(56, 189, 248, 0.45);
+    color: #ffffff;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 0 16px rgba(56, 189, 248, 0.35);
+
+    svg {
+      animation: soundPulse 2.4s ease-in-out infinite;
+      filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.6));
+    }
+  }
 
   &:hover {
     background: rgba(255, 255, 255, 0.22);
     border-color: rgba(255, 255, 255, 0.55);
     transform: scale(1.08) !important;
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35), 0 0 18px rgba(56, 189, 248, 0.45);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35), 0 0 20px rgba(56, 189, 248, 0.5);
+    color: #ffffff;
   }
 
   &:active {
@@ -91,7 +105,34 @@
   }
 
   svg {
-    transition: transform 0.2s ease;
+    transition: transform 0.2s ease, filter 0.3s ease;
+  }
+
+  @media (max-width: 640px) {
+    top: 18px;
+    right: 18px;
+    width: 44px;
+    height: 44px;
+  }
+}
+
+@keyframes soundBtnEntrance {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes soundPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.09);
   }
 }
 
@@ -581,3 +622,5 @@
     }
   }
 }
+
+

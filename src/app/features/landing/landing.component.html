@@ -7,10 +7,11 @@
     <!-- Top-Right: Transparent Circular Audio Mute / Unmute Toggle Button -->
     <button 
       type="button" 
-      class="hero-sound-toggle hero-ui-fade"
+      class="hero-sound-toggle"
+      [class.is-playing]="!audioService.isMuted()"
       (click)="toggleSound()"
-      [attr.aria-label]="audioService.isMuted() ? 'Ambient Sound aktivieren' : 'Ambient Sound stummschalten'"
-      [title]="audioService.isMuted() ? 'Chill Ambient Sound aktivieren' : 'Ambient Sound stummschalten'"
+      [attr.aria-label]="audioService.isMuted() ? 'Musik abspielen' : 'Musik stummschalten'"
+      [title]="audioService.isMuted() ? 'Musik abspielen (Space Ambient)' : 'Musik stummschalten (Space Ambient läuft)'"
     >
       @if (!audioService.isMuted()) {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -111,14 +112,14 @@
         </svg>
       </div>
       <p class="tip-text">
-        <strong>Tipp für maximale Entspannung:</strong> Aktiviere den <em>Chill Ambient Sound</em> oben rechts
-        auf der Startseite oder in der Navigationsleiste für schwebende Synthesizer-Drones und harmonische Glockentöne.
+        <strong>Tipp für maximale Entspannung:</strong> Genieße den <em>Space-Ambient-Soundtrack</em>
+        auf der Startseite oder schalte ihn über den Button oben rechts jederzeit stumm.
       </p>
     </div>
   </section>
 
   <!-- Cozy Sanctuary Section -->
-  <section class="cozy-sanctuary-section">
+  <section class="cozy-sanctuary-section" id="sanctuary">
     <div class="sanctuary-card">
       <div class="sanctuary-glow"></div>
       <div class="sanctuary-inner">
@@ -164,4 +165,12 @@
       <a routerLink="/game/soundscape-mixer">Soundscape</a>
     </div>
   </footer>
+
+  <!-- Three.js WebGL Liquid Glass Orbs Navigation -->
+  <app-liquid-nav
+    [activeIndex]="activeSectionIndex()"
+    [sections]="sections"
+    [isDragging]="isDragging()"
+    (sectionSelect)="scrollToSection($event)"
+  ></app-liquid-nav>
 </div>

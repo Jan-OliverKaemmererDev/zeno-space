@@ -46,8 +46,17 @@
 html {
   scroll-behavior: smooth;
   color-scheme: dark;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(56, 189, 248, 0.45) #08111e;
+  scrollbar-width: none; // Firefox
+  -ms-overflow-style: none; // IE/Edge
+}
+
+// Disable default browser scrollbar
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 
 body {
@@ -121,30 +130,7 @@ button {
   outline: none;
 }
 
-// Custom Smooth Sky-Cyan Scrollbar (Anime Cloud Theme)
-::-webkit-scrollbar {
-  width: 10px;
-}
 
-::-webkit-scrollbar-track {
-  background: v.$color-bg-deep;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(56, 189, 248, 0.4);
-  border-radius: 999px;
-  border: 2px solid v.$color-bg-deep;
-  transition: background 0.25s ease, box-shadow 0.25s ease;
-
-  &:hover {
-    background: rgba(56, 189, 248, 0.75);
-    box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
-  }
-
-  &:active {
-    background: #38bdf8;
-  }
-}
 
 // Selection Highlight
 ::selection {

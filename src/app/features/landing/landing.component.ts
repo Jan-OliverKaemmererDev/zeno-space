@@ -14,6 +14,7 @@ import * as THREE from 'three';
 import { GameRegistryService } from '../../core/services/game-registry.service';
 import { AudioService } from '../../core/services/audio.service';
 import { BubbleCardComponent } from '../../shared/components/bubble-card/bubble-card.component';
+import { LiquidNavComponent } from '../../shared/components/liquid-nav/liquid-nav.component';
 import { Minigame } from '../../core/models/minigame.model';
 
 export interface BubbleLetter {
@@ -31,7 +32,7 @@ export interface BubblePhrase {
 
 @Component({
   selector: 'app-landing',
-  imports: [RouterLink, BubbleCardComponent],
+  imports: [RouterLink, BubbleCardComponent, LiquidNavComponent],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss',
 })
@@ -40,6 +41,26 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   readonly audioService = inject(AudioService);
 
   @ViewChild('cloudCanvas') cloudCanvasRef!: ElementRef<HTMLCanvasElement>;
+
+  // Floating Glass Orbs with Fluid Water Navigation
+  readonly sections = [
+    { id: 'hero', label: 'Kosmos' },
+    { id: 'bubble-hub', label: 'Welten' },
+    { id: 'sanctuary', label: 'Zuflucht' },
+  ];
+  readonly activeSectionIndex = signal<number>(0);
+  readonly glideDirection = signal<'down' | 'up' | null>(null);
+  private glideTimeout: ReturnType<typeof setTimeout> | null = null;
+  readonly isDragging = signal<boolean>(false);
+  readonly scrollPercent = computed(() => {
+    if (typeof window === 'undefined') return 0;
+    const maxScroll =
+      typeof document !== 'undefined'
+        ? document.documentElement.scrollHeight - window.innerHeight
+        : 0;
+    if (maxScroll <= 0) return 0;
+    return Math.round(Math.min(100, Math.max(0, (this.scrollY / maxScroll) * 100)));
+  });
 
   // Structured phrases ("Willkommen im" and "Zeno-Space") for controlled responsive wrapping
   readonly textPhrases: BubblePhrase[] = (() => {
@@ -91,10 +112,17 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.initCloudScene();
     this.initPhraseSmoothWrapping();
+    this.audioService.playAmbientMusic();
+    this.updateActiveSection();
   }
 
   ngOnDestroy(): void {
     this.isDestroyed = true;
+    this.audioService.pauseAmbientMusic();
+    if (this.glideTimeout) {
+      clearTimeout(this.glideTimeout);
+      this.glideTimeout = null;
+    }
     if (this.phraseResizeObserver) {
       this.phraseResizeObserver.disconnect();
       this.phraseResizeObserver = null;
@@ -292,6 +320,136 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     if (this.material) {
       this.material.uniforms['u_scroll'].value = this.scrollY;
     }
+    this.updateActiveSection();
+  }
+
+  private updateActiveSection(): void {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+
+    const scrollY = window.scrollY;
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+
+    // Direct bounds check
+    if (scrollY <= 80) {
+      this.setSection(0);
+      return;
+    }
+    if (maxScroll > 0 && scrollY >= maxScroll - 60) {
+      this.setSection(2);
+      return;
+    }
+
+    const sanctuaryEl = document.getElementById('sanctuary');
+    const hubEl = document.getElementById('bubble-hub');
+
+    if (sanctuaryEl) {
+      const rect = sanctuaryEl.getBoundingClientRect();
+      if (rect.top <= window.innerHeight * 0.55) {
+        this.setSection(2);
+        return;
+      }
+    }
+
+    if (hubEl) {
+      const rect = hubEl.getBoundingClientRect();
+      if (rect.top <= window.innerHeight * 0.55) {
+        this.setSection(1);
+        return;
+      }
+    }
+
+    this.setSection(0);
+  }
+
+  setSection(index: number, playSound = false): void {
+    const current = this.activeSectionIndex();
+    if (current === index) return;
+
+    const direction: 'down' | 'up' = index > current ? 'down' : 'up';
+    this.activeSectionIndex.set(index);
+    this.triggerGlide(direction);
+
+    if (playSound) {
+      this.audioService.playChime(3, 0.12);
+    }
+  }
+
+  private triggerGlide(direction: 'down' | 'up'): void {
+    if (this.glideTimeout) {
+      clearTimeout(this.glideTimeout);
+      this.glideTimeout = null;
+    }
+    this.glideDirection.set(direction);
+    this.glideTimeout = setTimeout(() => {
+      this.glideDirection.set(null);
+      this.glideTimeout = null;
+    }, 740);
+  }
+
+  scrollToSection(index: number): void {
+    if (typeof document === 'undefined') return;
+    const section = this.sections[index];
+    if (!section) return;
+
+    this.setSection(index, true);
+
+    if (section.id === 'hero') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    const el = document.getElementById(section.id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
+  // ----------------------------------------------------
+  // Round Glass Orbs with Squeezing Jelly Drag & Click Handling
+  // ----------------------------------------------------
+  onPillPointerDown(event: PointerEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging.set(true);
+
+    const startY = event.clientY;
+    const startScrollY = window.scrollY;
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    let didDrag = false;
+
+    const onPointerMove = (moveEvent: PointerEvent) => {
+      const deltaY = moveEvent.clientY - startY;
+      if (Math.abs(deltaY) > 4) {
+        didDrag = true;
+      }
+      if (didDrag) {
+        moveEvent.preventDefault();
+        const scrollFactor = maxScroll / Math.max(1, window.innerHeight * 0.4);
+        const targetScroll = Math.max(0, Math.min(maxScroll, startScrollY + deltaY * scrollFactor));
+        window.scrollTo(0, targetScroll);
+      }
+    };
+
+    const onPointerUp = (upEvent: PointerEvent) => {
+      this.isDragging.set(false);
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
+
+      if (!didDrag) {
+        const targetBtn = (upEvent.target as HTMLElement)?.closest<HTMLElement>('.glass-orb');
+        if (targetBtn) {
+          const indexAttr = targetBtn.getAttribute('data-index');
+          if (indexAttr !== null) {
+            this.scrollToSection(parseInt(indexAttr, 10));
+          }
+        }
+      }
+    };
+
+    window.addEventListener('pointermove', onPointerMove, { passive: false });
+    window.addEventListener('pointerup', onPointerUp, { once: true });
+    window.addEventListener('pointercancel', onPointerUp, { once: true });
   }
 
   toggleSound(): void {

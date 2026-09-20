@@ -1,0 +1,26 @@
+<div 
+  class="liquid-nav-container"
+  [class.is-dragging]="isDragging()"
+  role="navigation"
+  aria-label="Glaskugeln-Navigation mit flüssigem Wasser"
+>
+  <!-- Three.js Liquid & Glass Canvas -->
+  <canvas #liquidCanvas class="liquid-canvas"></canvas>
+
+  <!-- Interactive Button Overlays for Accessibility & Tooltips -->
+  <div class="nav-buttons-overlay">
+    @for (sec of sections(); track sec.id) {
+      <button 
+        type="button"
+        [id]="'nav-orb-' + $index"
+        class="orb-target-btn"
+        [class.is-active]="activeIndex() === $index"
+        (click)="onSelect($index)"
+        [attr.aria-label]="sec.label + ' Sektion anspringen'"
+        [attr.aria-current]="activeIndex() === $index ? 'true' : null"
+      >
+        <span class="orb-tooltip">{{ sec.label }}</span>
+      </button>
+    }
+  </div>
+</div>

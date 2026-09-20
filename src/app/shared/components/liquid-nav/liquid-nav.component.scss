@@ -1,0 +1,151 @@
+:host {
+  display: block;
+}
+
+.liquid-nav-container {
+  position: fixed;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 70;
+  width: 64px;
+  height: 192px;
+  user-select: none;
+  touch-action: none;
+  pointer-events: auto;
+
+  // Synchronized entrance with "Nach unten schweben" (hero-ui-fade at 3.25s)
+  opacity: 0;
+  pointer-events: none;
+  animation: liquidNavEntrance 1.1s cubic-bezier(0.16, 1, 0.3, 1) 3.25s forwards;
+
+  &.is-dragging {
+    cursor: grabbing;
+  }
+
+  .liquid-canvas {
+    position: absolute;
+    inset: 0;
+    width: 64px;
+    height: 192px;
+    pointer-events: none;
+    display: block;
+    filter: 
+      drop-shadow(0 8px 18px rgba(0, 15, 40, 0.45)) 
+      drop-shadow(0 2px 5px rgba(0, 0, 0, 0.30));
+  }
+
+  .nav-buttons-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    box-sizing: border-box;
+    pointer-events: none;
+  }
+
+  .orb-target-btn {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow: 
+      0 5px 14px rgba(0, 15, 40, 0.30),
+      inset 0 1px 2px rgba(255, 255, 255, 0.25);
+    outline: none;
+    cursor: pointer;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+
+    &:hover {
+      transform: scale(1.08);
+      border-color: rgba(255, 255, 255, 0.65);
+      box-shadow: 
+        0 8px 22px rgba(0, 15, 40, 0.42),
+        0 0 14px rgba(56, 189, 248, 0.30),
+        inset 0 1px 2px rgba(255, 255, 255, 0.50);
+
+      .orb-tooltip {
+        opacity: 1;
+        transform: translateY(-50%) translateX(0);
+        pointer-events: auto;
+      }
+    }
+
+    &:focus-visible {
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.65);
+    }
+  }
+
+  .orb-tooltip {
+    position: absolute;
+    right: calc(100% + 14px);
+    top: 50%;
+    transform: translateY(-50%) translateX(6px);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: #f0f9ff;
+    background: rgba(15, 23, 42, 0.90);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 4px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.40);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+
+  @media (max-width: 640px) {
+    right: 12px;
+    transform-origin: right center;
+    animation-name: liquidNavEntranceMobile;
+
+    .orb-tooltip {
+      display: none;
+    }
+  }
+}
+
+@keyframes liquidNavEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(calc(-50% + 14px));
+    pointer-events: none;
+  }
+  99% {
+    pointer-events: none;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%);
+    pointer-events: auto;
+  }
+}
+
+@keyframes liquidNavEntranceMobile {
+  0% {
+    opacity: 0;
+    transform: translateY(calc(-50% + 14px)) scale(0.85);
+    pointer-events: none;
+  }
+  99% {
+    pointer-events: none;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%) scale(0.85);
+    pointer-events: auto;
+  }
+}
