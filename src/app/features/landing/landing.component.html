@@ -182,11 +182,22 @@
     </div>
   </footer>
 
-  <!-- Three.js WebGL Liquid Glass Orbs Navigation -->
-  <app-liquid-nav
+  <!-- 
+    [DEAKTIVIERT] Vorherige Glaskugeln-Navigation mit flüssigem Wasser.
+    Kann bei Bedarf jederzeit wieder aktiviert werden, indem dieser Block einkommentiert
+    und app-orb-nav auskommentiert wird:
+    <app-liquid-nav
+      [activeIndex]="activeSectionIndex()"
+      [sections]="sections"
+      [isDragging]="isDragging()"
+      (sectionSelect)="scrollToSection($event)"
+    ></app-liquid-nav>
+  -->
+
+  <!-- Neue Hex-Orb Seifenblasen Navigation (aus GIF) -->
+  <app-orb-nav
     [activeIndex]="activeSectionIndex()"
     [sections]="sections"
-    [isDragging]="isDragging()"
     (sectionSelect)="scrollToSection($event)"
-  ></app-liquid-nav>
+  ></app-orb-nav>
 </div>

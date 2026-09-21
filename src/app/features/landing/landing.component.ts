@@ -15,6 +15,7 @@ import { GameRegistryService } from '../../core/services/game-registry.service';
 import { AudioService } from '../../core/services/audio.service';
 import { BubbleCardComponent } from '../../shared/components/bubble-card/bubble-card.component';
 import { LiquidNavComponent } from '../../shared/components/liquid-nav/liquid-nav.component';
+import { OrbNavComponent } from '../../shared/components/orb-nav/orb-nav.component';
 import { Minigame } from '../../core/models/minigame.model';
 
 export interface BubbleLetter {
@@ -32,7 +33,12 @@ export interface BubblePhrase {
 
 @Component({
   selector: 'app-landing',
-  imports: [RouterLink, BubbleCardComponent, LiquidNavComponent],
+  imports: [
+    RouterLink,
+    BubbleCardComponent,
+    // LiquidNavComponent, // Vorerst deaktiviert - jederzeit wieder aktivierbar
+    OrbNavComponent,
+  ],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss',
 })
@@ -124,6 +130,10 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     if (this.glideTimeout) {
       clearTimeout(this.glideTimeout);
       this.glideTimeout = null;
+    }
+    if (this.programmaticScrollTimeout) {
+      clearTimeout(this.programmaticScrollTimeout);
+      this.programmaticScrollTimeout = null;
     }
     if (this.phraseResizeObserver) {
       this.phraseResizeObserver.disconnect();
@@ -390,13 +400,19 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  private isProgrammaticScroll = false;
+  private programmaticScrollTimeout: any = null;
+
   @HostListener('window:scroll')
   onScroll(): void {
     this.scrollY = window.scrollY;
     if (this.material) {
       this.material.uniforms['u_scroll'].value = this.scrollY;
     }
-    this.updateActiveSection();
+    // Only update active section during manual scroll, not during programmatic smooth scroll
+    if (!this.isProgrammaticScroll) {
+      this.updateActiveSection();
+    }
   }
 
   private updateActiveSection(): void {
@@ -466,6 +482,15 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     if (typeof document === 'undefined') return;
     const section = this.sections[index];
     if (!section) return;
+
+    this.isProgrammaticScroll = true;
+    if (this.programmaticScrollTimeout) {
+      clearTimeout(this.programmaticScrollTimeout);
+    }
+    this.programmaticScrollTimeout = setTimeout(() => {
+      this.isProgrammaticScroll = false;
+      this.programmaticScrollTimeout = null;
+    }, 850);
 
     this.setSection(index, true);
 

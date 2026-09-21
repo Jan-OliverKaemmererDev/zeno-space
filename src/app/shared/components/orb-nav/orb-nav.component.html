@@ -1,0 +1,64 @@
+<nav 
+  class="orb-3d-container hero-ui-fade"
+  role="navigation"
+  aria-label="3D Pixel-Orbs Navigation"
+  (pointermove)="onPointerMove($event)"
+  (pointerleave)="onPointerLeave()"
+>
+  <!-- Glassmorphic Plate Tray Background (Dezent & Transparent) -->
+  <div class="orb-glass-plate" aria-hidden="true">
+    <div class="orb-plate-dish orb-plate-dish-0"></div>
+    <div class="orb-plate-dish orb-plate-dish-1"></div>
+    <div class="orb-plate-dish orb-plate-dish-2"></div>
+  </div>
+
+  <!-- Three.js 3D WebGL Canvas -->
+  <canvas #orbCanvas class="orb-3d-canvas" width="76" height="260"></canvas>
+
+  <!-- Interactive Target Anchors for Accessibility, Tooltips & Clicks -->
+  <div class="orb-targets-overlay">
+    @for (sec of sections(); track sec.id; let idx = $index) {
+      <div 
+        class="orb-target-zone" 
+        [class.is-active]="activeIndex() === idx"
+        [style.top.px]="orbCenterY[idx]"
+      >
+        <button
+          type="button"
+          [id]="'orb-target-' + idx"
+          class="orb-target-btn"
+          [class.is-active]="activeIndex() === idx"
+          [class.is-hovered]="activeHoverIndex === idx"
+          (click)="onOrbClick(idx)"
+          [attr.aria-label]="sec.label + ' Sektion anspringen'"
+          [attr.aria-current]="activeIndex() === idx ? 'true' : null"
+        >
+          <span class="sr-only">{{ sec.label }}</span>
+        </button>
+
+        <!-- Tooltip -->
+        <span 
+          class="orb-tooltip" 
+          [class.is-visible]="activeHoverIndex === idx"
+        >
+          {{ sec.label }}
+        </span>
+
+        <!-- Subtle Click Sparks: 2 or 3 pixels shoot out and extinguish -->
+        @for (spark of getSparksForOrb(idx); track spark.id) {
+          <span 
+            class="orb-click-spark"
+            [style.--sx.px]="spark.startX"
+            [style.--sy.px]="spark.startY"
+            [style.--ex.px]="spark.endX"
+            [style.--ey.px]="spark.endY"
+            [style.width.px]="spark.size"
+            [style.height.px]="spark.size"
+            [style.background-color]="spark.color"
+            aria-hidden="true"
+          ></span>
+        }
+      </div>
+    }
+  </div>
+</nav>
