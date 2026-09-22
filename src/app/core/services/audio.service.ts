@@ -39,9 +39,15 @@ export class AudioService {
   private waterdropArrayBuffer: ArrayBuffer | null = null;
   private waterdropLoadingPromise: Promise<ArrayBuffer | null> | null = null;
 
+  // Particle orb scroll sound buffer & preloading (particle-orb-scroll.mp3)
+  private particleOrbBuffer: AudioBuffer | null = null;
+  private particleOrbArrayBuffer: ArrayBuffer | null = null;
+  private particleOrbLoadingPromise: Promise<ArrayBuffer | null> | null = null;
+
   constructor() {
     if (typeof window !== 'undefined') {
       this.preloadWaterdropSound();
+      this.preloadParticleOrbSound();
     }
   }
 
@@ -96,6 +102,57 @@ export class AudioService {
       });
   }
 
+  private preloadParticleOrbSound(): void {
+    const isTestEnv = !!(globalThis as unknown as { process?: { env?: Record<string, string> } })
+      ?.process?.env?.['VITEST'];
+
+    if (
+      typeof window === 'undefined' ||
+      !window.location ||
+      window.location.protocol.startsWith('about:') ||
+      isTestEnv ||
+      this.particleOrbLoadingPromise
+    ) {
+      return;
+    }
+
+    const soundUrl =
+      window.location.origin &&
+      window.location.origin !== 'null' &&
+      !window.location.origin.startsWith('about:')
+        ? `${window.location.origin}/sounds/particle-orb-scroll.mp3`
+        : '/sounds/particle-orb-scroll.mp3';
+
+    this.particleOrbLoadingPromise = fetch(soundUrl)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        return res.arrayBuffer();
+      })
+      .then((buf) => {
+        this.particleOrbArrayBuffer = buf;
+        if (this.ctx) {
+          this.decodeParticleOrbBuffer(buf);
+        }
+        return buf;
+      })
+      .catch((err) => {
+        console.warn('Could not preload particle-orb-scroll.mp3:', err);
+        return null;
+      });
+  }
+
+  private decodeParticleOrbBuffer(arrayBuf: ArrayBuffer): void {
+    if (!this.ctx || this.particleOrbBuffer) return;
+    this.ctx
+      .decodeAudioData(arrayBuf.slice(0))
+      .then((decoded) => {
+        this.particleOrbBuffer = decoded;
+      })
+      .catch((err) => {
+        console.warn('decodeAudioData for particle orb sound failed:', err);
+      });
+  }
+
   private initContext(): void {
     if (!this.ctx) {
       const AudioCtx =
@@ -114,11 +171,22 @@ export class AudioService {
       if (this.waterdropArrayBuffer && !this.waterdropBuffer) {
         this.decodeWaterdropBuffer(this.waterdropArrayBuffer);
       }
+      if (this.particleOrbArrayBuffer && !this.particleOrbBuffer) {
+        this.decodeParticleOrbBuffer(this.particleOrbArrayBuffer);
+      }
     }
 
     if (this.ctx.state === 'suspended') {
       this.ctx.resume().catch(() => {});
     }
+  }
+
+  /**
+   * Pre-warm AudioContext for instantaneous 0ms playback on interaction
+   */
+  warmupAudio(): void {
+    if (typeof window === 'undefined') return;
+    this.initContext();
   }
 
   /**
@@ -306,6 +374,8 @@ export class AudioService {
       window.removeEventListener('touchstart', onUserInteract);
       window.removeEventListener('scroll', onUserInteract);
       this.hasAutoplayFallbackListener = false;
+
+      this.initContext();
 
       if (!this.isMuted()) {
         this.playAmbientMusic();
@@ -527,5 +597,94 @@ export class AudioService {
     if (playPromise !== undefined) {
       playPromise.catch(() => {});
     }
+  }
+
+  /**
+   * Plays the particle orb scroll sound (particle-orb-scroll.mp3) directly and without delay.
+   * Leverages pre-decoded Web Audio API AudioBuffer for true 0ms latency playback.
+   */
+  playParticleOrbScroll(volume = 1.0): void {
+    if (this.isMuted()) return;
+    this.initContext();
+
+    if (this.ctx && this.particleOrbBuffer) {
+      this.playParticleOrbBuffer(this.particleOrbBuffer, volume);
+      return;
+    }
+
+    if (this.ctx && this.particleOrbArrayBuffer) {
+      this.ctx
+        .decodeAudioData(this.particleOrbArrayBuffer.slice(0))
+        .then((decoded) => {
+          this.particleOrbBuffer = decoded;
+          this.playParticleOrbBuffer(decoded, volume);
+        })
+        .catch(() => {
+          this.playParticleOrbFallback(volume);
+        });
+      return;
+    }
+
+    if (this.particleOrbLoadingPromise) {
+      this.particleOrbLoadingPromise
+        .then((buf) => {
+          if (buf && this.ctx) {
+            this.ctx
+              .decodeAudioData(buf.slice(0))
+              .then((decoded) => {
+                this.particleOrbBuffer = decoded;
+                this.playParticleOrbBuffer(decoded, volume);
+              })
+              .catch(() => {
+                this.playParticleOrbFallback(volume);
+              });
+          } else {
+            this.playParticleOrbFallback(volume);
+          }
+        })
+        .catch(() => {
+          this.playParticleOrbFallback(volume);
+        });
+      return;
+    }
+
+    this.playParticleOrbFallback(volume);
+  }
+
+  /**
+   * Play pre-decoded particle orb AudioBuffer via Web Audio API with zero latency
+   * Connected directly to destination at full fidelity (not dampened by sfxGain)
+   */
+  private playParticleOrbBuffer(buffer: AudioBuffer, targetVolume = 1.0): void {
+    if (!this.ctx || this.isMuted()) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+
+    const now = this.ctx.currentTime;
+    const duration = buffer.duration;
+
+    const source = this.ctx.createBufferSource();
+    source.buffer = buffer;
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(targetVolume, now);
+
+    source.connect(gain);
+    // Connect directly to master destination for clear, loud, crisp presence
+    gain.connect(this.ctx.destination);
+
+    source.start(now);
+    source.stop(now + duration + 0.05);
+  }
+
+  /**
+   * Immediate fallback playback using HTMLAudioElement if Web Audio is unavailable
+   */
+  private playParticleOrbFallback(targetVolume = 1.0): void {
+    if (this.isMuted() || typeof window === 'undefined') return;
+    const audio = new Audio('/sounds/particle-orb-scroll.mp3');
+    audio.volume = Math.min(1.0, Math.max(0, targetVolume));
+    audio.play().catch(() => {});
   }
 }

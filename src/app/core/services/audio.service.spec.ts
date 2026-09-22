@@ -42,4 +42,16 @@ describe('AudioService', () => {
       service.playWaterdropScrollDown();
     }).not.toThrow();
   });
+
+  it('should not throw when calling playParticleOrbScroll', () => {
+    service.isMuted.set(false);
+    expect(() => {
+      service.playParticleOrbScroll();
+    }).not.toThrow();
+
+    service.isMuted.set(true);
+    expect(() => {
+      service.playParticleOrbScroll();
+    }).not.toThrow();
+  });
 });

@@ -492,7 +492,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
       this.programmaticScrollTimeout = null;
     }, 850);
 
-    this.setSection(index, true);
+    this.setSection(index, false);
 
     if (section.id === 'hero') {
       window.scrollTo({ top: 0, behavior: 'smooth' });

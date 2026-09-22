@@ -29,6 +29,7 @@
           class="orb-target-btn"
           [class.is-active]="activeIndex() === idx"
           [class.is-hovered]="activeHoverIndex === idx"
+          (pointerdown)="onOrbPointerDown()"
           (click)="onOrbClick(idx)"
           [attr.aria-label]="sec.label + ' Sektion anspringen'"
           [attr.aria-current]="activeIndex() === idx ? 'true' : null"

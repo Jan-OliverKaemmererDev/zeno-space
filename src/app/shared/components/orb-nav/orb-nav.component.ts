@@ -15,6 +15,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import * as THREE from 'three';
+import { AudioService } from '../../../core/services/audio.service';
 
 export interface NavSection {
   id: string;
@@ -56,6 +57,7 @@ interface ParticleOrbData {
 })
 export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly ngZone = inject(NgZone);
+  private readonly audioService = inject(AudioService);
 
   readonly activeIndex = input<number>(0);
   readonly sections = input<NavSection[]>([
@@ -479,6 +481,7 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     this.raycaster.setFromCamera(this.mouseNDC, this.camera);
     this.raycaster.ray.intersectPlane(this.zPlane, this.mouseWorldPos);
     this.isPointerOver = true;
+    this.audioService.warmupAudio();
 
     let nearestIdx: number | null = null;
     let minDistance = Infinity;
@@ -512,6 +515,10 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     this.activeHoverIndex = null;
   }
 
+  onOrbPointerDown(): void {
+    this.audioService.warmupAudio();
+  }
+
   @HostListener('window:wheel', ['$event'])
   onWindowWheel(event: WheelEvent): void {
     if (Math.abs(event.deltaY) > 6) {
@@ -541,6 +548,8 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     // Trigger spin immediately without waiting for scroll completion
     this.triggerSpinBurst(index, speed);
     this.spawnClickSparks(index);
+    // Play particle-orb-scroll sound directly and without delay
+    this.audioService.playParticleOrbScroll();
     this.sectionSelect.emit(index);
   }
 
