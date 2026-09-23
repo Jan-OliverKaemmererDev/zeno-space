@@ -289,6 +289,16 @@
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
+  // Smooth fade-out when scrolling down or clicking middle/lower orbs (matching orb-3d-container exit)
+  &.is-hidden {
+    animation: prompterFadeExit 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+
+  // Smooth fade-in when returning completely to top (matching orb-3d-container wake)
+  &.is-waking {
+    animation: prompterFadeWake 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+
   &:hover {
     .prompter-text {
       text-shadow: 
@@ -298,11 +308,27 @@
     }
 
     .prompter-bubble {
-      border-color: #ffffff;
+      border-color: rgba(255, 255, 255, 0.35);
+      border-top-color: rgba(255, 255, 255, 0.60);
+      border-bottom-color: rgba(224, 242, 254, 0.22);
       box-shadow: 
-        0 6px 22px rgba(0, 0, 0, 0.55),
-        0 0 16px rgba(56, 189, 248, 0.50),
-        inset 0 1px 2px rgba(255, 255, 255, 0.60);
+        0 0 6px rgba(255, 255, 255, 0.38),
+        0 0 14px rgba(224, 242, 254, 0.30),
+        0 4px 18px rgba(186, 230, 253, 0.22),
+        0 6px 24px rgba(125, 211, 252, 0.12),
+        inset 0 1px 2px rgba(255, 255, 255, 0.45),
+        inset 0 -1px 2px rgba(224, 242, 254, 0.16);
+      transition: 
+        box-shadow 0.9s ease-in-out,
+        border-color 0.9s ease-in-out;
+    }
+
+    .prompter-dot {
+      box-shadow: 
+        0 0 2.5px #ffffff,
+        0 0 5px #7dd3fc,
+        0 0 8px rgba(56, 189, 248, 0.75);
+      transition: box-shadow 0.9s ease-in-out;
     }
   }
 
@@ -344,36 +370,108 @@
     will-change: transform;
   }
 
-  // Scroll pill floating independently from the text above
+  // Scroll pill with identical glass effect to orb-glass-plate
   .prompter-bubble {
-    width: 28px;
+    width: 26px;
     height: 44px;
-    border: 2px solid rgba(255, 255, 255, 0.85);
     border-radius: 999px;
-    display: flex;
-    justify-content: center;
-    padding-top: 8px;
-    background: rgba(8, 20, 42, 0.50);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    box-shadow: 
-      0 4px 18px rgba(0, 0, 0, 0.50),
-      0 0 14px rgba(56, 189, 248, 0.35),
-      inset 0 1px 2px rgba(255, 255, 255, 0.45);
-    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+
+    // Sheer frosted glass with elegant translucency matching orb-glass-plate
+    background: linear-gradient(
+      170deg,
+      rgba(255, 255, 255, 0.16) 0%,
+      rgba(14, 26, 48, 0.44) 40%,
+      rgba(8, 16, 32, 0.35) 100%
+    );
+
+    // Glassmorphism frosted blur
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+
+    // Fine translucent glass rim with specular light reflection on top
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-top-color: rgba(255, 255, 255, 0.34);
+    border-bottom-color: rgba(255, 255, 255, 0.10);
+
+    // Deep atmospheric shadow + subtle inner glass bevel (6 matching layers for fluid interpolation)
+    box-shadow:
+      0 12px 36px rgba(0, 8, 24, 0.42),
+      0 2px 8px rgba(0, 8, 24, 0.22),
+      0 0 0 0 rgba(186, 230, 253, 0),
+      0 0 0 0 rgba(125, 211, 252, 0),
+      inset 0 1px 1.5px rgba(255, 255, 255, 0.25),
+      inset 0 -1px 2px rgba(0, 0, 0, 0.32);
+
+    transition: 
+      box-shadow 0.9s ease-in-out,
+      border-color 0.9s ease-in-out,
+      transform 0.35s ease;
     will-change: transform;
     animation: prompterBubbleFloat 5.4s ease-in-out 1.3s infinite alternate;
 
-    // Matching serene anime sky blue dot
+    // Luminous Orb Particle Light Point (Delicate micro-point wie bei den Orbs)
     .prompter-dot {
-      width: 6px;
-      height: 8px;
-      border-radius: 4px;
-      background: #38bdf8;
-      box-shadow: 
-        0 0 10px #38bdf8,
-        0 0 4px #ffffff;
-      animation: scrollBounce 2s infinite ease-in-out;
+      position: absolute;
+      top: 5px;
+      left: 50%;
+      width: 2px;
+      height: 2px;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow:
+        0 0 2px #ffffff,
+        0 0 4px #7dd3fc,
+        0 0 7px rgba(56, 189, 248, 0.65);
+      transition: box-shadow 0.9s ease-in-out;
+      transform: translate3d(-50%, 0, 0);
+      will-change: transform, opacity;
+      animation: prompterParticleGlide 3.6s cubic-bezier(0.35, 0.05, 0.2, 1) infinite;
+
+      // Three finer trailing particle light points
+      .prompter-trail {
+        position: absolute;
+        left: 50%;
+        border-radius: 50%;
+        pointer-events: none;
+        will-change: transform, opacity;
+
+        &.trail-1 {
+          width: 1.5px;
+          height: 1.5px;
+          top: -3.5px;
+          background: #ffffff;
+          box-shadow:
+            0 0 1.5px #ffffff,
+            0 0 3px #7dd3fc;
+          opacity: 0.85;
+          animation: trailLag1 3.6s cubic-bezier(0.35, 0.05, 0.2, 1) infinite;
+        }
+
+        &.trail-2 {
+          width: 1.1px;
+          height: 1.1px;
+          top: -6.8px;
+          background: #7dd3fc;
+          box-shadow:
+            0 0 1px #7dd3fc,
+            0 0 2.5px rgba(56, 189, 248, 0.55);
+          opacity: 0.60;
+          animation: trailLag2 3.6s cubic-bezier(0.35, 0.05, 0.2, 1) infinite;
+        }
+
+        &.trail-3 {
+          width: 0.8px;
+          height: 0.8px;
+          top: -10px;
+          background: #38bdf8;
+          box-shadow:
+            0 0 1.5px rgba(56, 189, 248, 0.45);
+          opacity: 0.38;
+          animation: trailLag3 3.6s cubic-bezier(0.35, 0.05, 0.2, 1) infinite;
+        }
+      }
     }
   }
 }
@@ -402,10 +500,136 @@
   }
 }
 
-@keyframes scrollBounce {
-  0% { transform: translateY(0); opacity: 1; }
-  50% { transform: translateY(12px); opacity: 0.4; }
-  100% { transform: translateY(0); opacity: 1; }
+@keyframes prompterParticleGlide {
+  0% {
+    transform: translate3d(-50%, 0, 0);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  80% {
+    transform: translate3d(-50%, 28px, 0);
+    opacity: 1;
+  }
+  90% {
+    transform: translate3d(-50%, 33px, 0);
+    opacity: 0.7;
+  }
+  96% {
+    transform: translate3d(-50%, 35px, 0);
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes trailLag1 {
+  0% {
+    transform: translate3d(-50%, 0, 0);
+    opacity: 0.3;
+  }
+  8% {
+    opacity: 0.85;
+  }
+  45% {
+    transform: translate3d(-50%, -0.8px, 0);
+  }
+  80% {
+    transform: translate3d(-50%, 0.2px, 0);
+    opacity: 0.85;
+  }
+  92% {
+    opacity: 0.5;
+  }
+  96%, 100% {
+    transform: translate3d(-50%, 0, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes trailLag2 {
+  0% {
+    transform: translate3d(-50%, 0, 0);
+    opacity: 0.2;
+  }
+  10% {
+    opacity: 0.60;
+  }
+  45% {
+    transform: translate3d(-50%, -1.4px, 0);
+  }
+  80% {
+    transform: translate3d(-50%, 0.3px, 0);
+    opacity: 0.60;
+  }
+  92% {
+    opacity: 0.35;
+  }
+  96%, 100% {
+    transform: translate3d(-50%, 0, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes trailLag3 {
+  0% {
+    transform: translate3d(-50%, 0, 0);
+    opacity: 0.1;
+  }
+  12% {
+    opacity: 0.38;
+  }
+  45% {
+    transform: translate3d(-50%, -2px, 0);
+  }
+  80% {
+    transform: translate3d(-50%, 0.5px, 0);
+    opacity: 0.38;
+  }
+  92% {
+    opacity: 0.2;
+  }
+  96%, 100% {
+    transform: translate3d(-50%, 0, 0);
+    opacity: 0;
+  }
+}
+
+// Exit Fade: smoothly fade out when scrolling down or clicking lower orbs (matching orbNavExit)
+@keyframes prompterFadeExit {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+  99% {
+    pointer-events: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(16px);
+    pointer-events: none;
+  }
+}
+
+// Wake Fade: smoothly fade back in when returning completely to top (matching orbNavWake)
+@keyframes prompterFadeWake {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+    pointer-events: none;
+  }
+  99% {
+    pointer-events: none;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
 }
 
 // Mini-Game Hub Section

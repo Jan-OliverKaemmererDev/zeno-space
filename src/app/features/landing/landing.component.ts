@@ -86,6 +86,8 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   })();
 
   readonly prompterWords = ['Nach', 'unten', 'schweben'];
+  readonly isPrompterVisible = signal<boolean>(true);
+  readonly hasPrompterScrolledOnce = signal<boolean>(false);
 
   // Filters
   readonly activeFilter = signal<string>('all');
@@ -122,6 +124,13 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     this.initPhraseSmoothWrapping();
     this.audioService.playAmbientMusic();
     this.updateActiveSection();
+    if (typeof window !== 'undefined') {
+      const atTop = window.scrollY <= 15;
+      if (!atTop) {
+        this.hasPrompterScrolledOnce.set(true);
+        this.isPrompterVisible.set(false);
+      }
+    }
   }
 
   ngOnDestroy(): void {
@@ -409,6 +418,15 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     if (this.material) {
       this.material.uniforms['u_scroll'].value = this.scrollY;
     }
+
+    const atTop = this.scrollY <= 15;
+    if (atTop !== this.isPrompterVisible()) {
+      if (!atTop) {
+        this.hasPrompterScrolledOnce.set(true);
+      }
+      this.isPrompterVisible.set(atTop);
+    }
+
     // Only update active section during manual scroll, not during programmatic smooth scroll
     if (!this.isProgrammaticScroll) {
       this.updateActiveSection();
@@ -482,6 +500,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     if (typeof document === 'undefined') return;
     const section = this.sections[index];
     if (!section) return;
+
+    if (index > 0) {
+      this.hasPrompterScrolledOnce.set(true);
+      this.isPrompterVisible.set(false);
+    }
 
     this.isProgrammaticScroll = true;
     if (this.programmaticScrollTimeout) {
@@ -564,6 +587,8 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 
   scrollToHub(): void {
     this.audioService.playWaterdropScrollDown();
+    this.hasPrompterScrolledOnce.set(true);
+    this.isPrompterVisible.set(false);
     const hubElement = document.getElementById('bubble-hub');
     if (hubElement) {
       hubElement.scrollIntoView({ behavior: 'smooth' });

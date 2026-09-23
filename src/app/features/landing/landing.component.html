@@ -58,6 +58,8 @@
     <!-- Scroll Down Prompter (with blue dot matching the image) -->
     <div 
       class="scroll-prompter hero-ui-fade" 
+      [class.is-hidden]="hasPrompterScrolledOnce() && !isPrompterVisible()"
+      [class.is-waking]="hasPrompterScrolledOnce() && isPrompterVisible()"
       (click)="scrollToHub()" 
       (keydown.enter)="scrollToHub()"
       (keydown.space)="scrollToHub(); $event.preventDefault()"
@@ -75,7 +77,11 @@
         }
       </span>
       <div class="prompter-bubble">
-        <div class="prompter-dot"></div>
+        <div class="prompter-dot">
+          <span class="prompter-trail trail-1" aria-hidden="true"></span>
+          <span class="prompter-trail trail-2" aria-hidden="true"></span>
+          <span class="prompter-trail trail-3" aria-hidden="true"></span>
+        </div>
       </div>
     </div>
   </section>
