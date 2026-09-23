@@ -89,12 +89,32 @@
   <!-- Mini-Game Hub Section -->
   <section class="bubble-hub-section" id="bubble-hub">
     <div class="section-header">
-      <div class="zeno-badge">
-        <span>Interaktive Welten</span>
+      <div 
+        class="hub-title-container"
+        [class.is-visible]="isHubTitleVisible()"
+        (pointermove)="onHubHeadingPointerMove($event)"
+        (pointerleave)="onHubHeadingPointerLeave()"
+        (pointerup)="onHubHeadingPointerLeave()"
+      >
+        <h2 class="hub-bubble-heading" aria-label="Interaktive Welten">
+          @for (phrase of hubPhrases; track $index) {
+            <span class="hub-phrase">
+              @for (word of phrase.words; track $index) {
+                <span class="hub-word">
+                  @for (item of word.letters; track item.globalIndex) {
+                    <span 
+                      class="hub-letter-carrier" 
+                      [style.--bubble-index]="item.globalIndex"
+                    >
+                      <span class="hub-letter">{{ item.char }}</span>
+                    </span>
+                  }
+                </span>
+              }
+            </span>
+          }
+        </h2>
       </div>
-      <h2 class="section-title">
-        Schwebende <span class="gradient-text">Pastell-Welten</span>
-      </h2>
       <p class="section-subtitle">
         Jedes Mini-Game ruht in einem sanft schwebenden Glaskörper. Berühre sie mit der Maus,
         bringe sie zum Schwingen oder klicke, um einzutauchen.

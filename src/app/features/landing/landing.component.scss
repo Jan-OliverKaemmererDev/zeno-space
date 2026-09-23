@@ -187,8 +187,9 @@
   }
 }
 
-// Phrase blocks ("Willkommen im" and "Zeno-Space")
-.bubble-phrase {
+// Phrase blocks ("Willkommen im" and "Zeno-Space", "Interaktive Welten")
+.bubble-phrase,
+.hub-phrase {
   display: inline-flex;
   flex-wrap: nowrap;
   white-space: nowrap;
@@ -204,7 +205,8 @@
 }
 
 // Each word is kept strictly contiguous: never breaks individual letters!
-.bubble-word {
+.bubble-word,
+.hub-word {
   display: inline-flex;
   flex-wrap: nowrap;
   white-space: nowrap;
@@ -212,21 +214,24 @@
 }
 
 // Each letter carrier manages the sweeping horizontal Laola wave and ongoing floating
-.bubble-letter-carrier {
+.bubble-letter-carrier,
+.hub-letter-carrier {
   display: inline-block;
   position: relative;
   opacity: 0;
   transform: translate3d(0, 0, 0) scale(0.95);
   will-change: transform, opacity;
+}
 
-  // Staggered buttery-smooth horizontal Laola wave & continuous floating
+.bubble-letter-carrier {
   animation: 
     laolaWave 1.25s forwards calc(0.75s + var(--bubble-index, 0) * 0.052s),
     bubbleFloating 6s ease-in-out calc(2.0s + var(--bubble-index, 0) * 0.052s) infinite alternate;
 }
 
 // Inner letter span: text aesthetics + subtle soap bubble mouse evasion
-.bubble-letter {
+.bubble-letter,
+.hub-letter {
   display: inline-block;
   position: relative;
   background: linear-gradient(180deg, #ffffff 0%, #e0f2fe 55%, #bae6fd 100%);
@@ -647,17 +652,50 @@
   max-width: 720px;
   margin: 0 auto 50px;
 
-  .section-title {
-    font-size: clamp(2rem, 4vw, 3.2rem);
-    letter-spacing: -0.02em;
-    margin: 16px 0;
-    color: #fff;
+  .hub-title-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 14px auto 20px;
+    padding: 8px 0;
+    cursor: default;
 
-    .gradient-text {
-      background: linear-gradient(135deg, #bae6fd, #fed7aa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+    &.is-visible {
+      .hub-letter-carrier {
+        animation: 
+          laolaWave 1.25s forwards calc(0.12s + var(--bubble-index, 0) * 0.048s),
+          bubbleFloating 6s ease-in-out calc(1.37s + var(--bubble-index, 0) * 0.048s) infinite alternate;
+      }
     }
+  }
+
+  .hub-bubble-heading {
+    margin: 0;
+    padding: 0;
+    font-family: v.$font-family-bubble;
+    font-weight: 600;
+    font-size: clamp(2.3rem, 4.4vw, 3.4rem);
+    letter-spacing: 0.01em;
+    line-height: 1.25;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    column-gap: 0.44em;
+    row-gap: 0.22em;
+    user-select: none;
+
+    @media (max-width: 768px) {
+      font-size: clamp(2rem, 5.5vw, 2.7rem);
+      column-gap: 0.35em;
+    }
+
+    @media (max-width: 480px) {
+      font-size: 1.85rem;
+    }
+
   }
 
   .section-subtitle {

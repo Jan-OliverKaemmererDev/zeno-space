@@ -85,6 +85,26 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     }));
   })();
 
+  // Structured phrases ("Interaktive" and "Welten") with bubble letters & Sniglet font
+  readonly hubPhrases: BubblePhrase[] = (() => {
+    const rawPhrases = [
+      ['Interaktive'],
+      ['Welten'],
+    ];
+    let runningIndex = 0;
+    return rawPhrases.map((words) => ({
+      words: words.map((word) => ({
+        letters: Array.from(word).map((char) => ({
+          char,
+          globalIndex: runningIndex++,
+        })),
+      })),
+    }));
+  })();
+
+  readonly isHubTitleVisible = signal<boolean>(false);
+  private hubIntersectionObserver: IntersectionObserver | null = null;
+
   readonly prompterWords = ['Nach', 'unten', 'schweben'];
   readonly isPrompterVisible = signal<boolean>(true);
   readonly hasPrompterScrolledOnce = signal<boolean>(false);
@@ -122,6 +142,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.initCloudScene();
     this.initPhraseSmoothWrapping();
+    this.initHubTitleObserver();
     this.audioService.playAmbientMusic();
     this.updateActiveSection();
     if (typeof window !== 'undefined') {
@@ -157,6 +178,14 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     if (this.mouseEvadeRafId !== null) {
       cancelAnimationFrame(this.mouseEvadeRafId);
       this.mouseEvadeRafId = null;
+    }
+    if (this.hubEvadeRafId !== null) {
+      cancelAnimationFrame(this.hubEvadeRafId);
+      this.hubEvadeRafId = null;
+    }
+    if (this.hubIntersectionObserver) {
+      this.hubIntersectionObserver.disconnect();
+      this.hubIntersectionObserver = null;
     }
     if (this.prompterEvadeRafId !== null) {
       cancelAnimationFrame(this.prompterEvadeRafId);
@@ -274,6 +303,8 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   // ----------------------------------------------------
   private mouseEvadeRafId: number | null = null;
   private lastPointerEvent: PointerEvent | null = null;
+  private hubEvadeRafId: number | null = null;
+  private lastHubPointerEvent: PointerEvent | null = null;
 
   onHeadingPointerMove(event: PointerEvent): void {
     this.lastPointerEvent = event;
@@ -282,7 +313,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     this.mouseEvadeRafId = requestAnimationFrame(() => {
       this.mouseEvadeRafId = null;
       if (!this.lastPointerEvent || this.isDestroyed) return;
-      this.applyBubbleEvade(this.lastPointerEvent);
+      this.applyEvadeToLetters(this.lastPointerEvent, '.hero-center-container .bubble-letter');
     });
   }
 
@@ -292,18 +323,31 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
       this.mouseEvadeRafId = null;
     }
     this.lastPointerEvent = null;
+    this.resetLettersEvade('.hero-center-container .bubble-letter');
+  }
 
-    const letters = document.querySelectorAll<HTMLElement>('.bubble-letter');
-    letters.forEach((el) => {
-      el.style.setProperty('--evade-x', '0px');
-      el.style.setProperty('--evade-y', '0px');
-      el.style.setProperty('--evade-scale', '1');
-      el.style.setProperty('--evade-rot', '0deg');
+  onHubHeadingPointerMove(event: PointerEvent): void {
+    this.lastHubPointerEvent = event;
+    if (this.hubEvadeRafId !== null) return;
+
+    this.hubEvadeRafId = requestAnimationFrame(() => {
+      this.hubEvadeRafId = null;
+      if (!this.lastHubPointerEvent || this.isDestroyed) return;
+      this.applyEvadeToLetters(this.lastHubPointerEvent, '.hub-title-container .hub-letter');
     });
   }
 
-  private applyBubbleEvade(event: PointerEvent): void {
-    const letters = document.querySelectorAll<HTMLElement>('.bubble-letter');
+  onHubHeadingPointerLeave(): void {
+    if (this.hubEvadeRafId !== null) {
+      cancelAnimationFrame(this.hubEvadeRafId);
+      this.hubEvadeRafId = null;
+    }
+    this.lastHubPointerEvent = null;
+    this.resetLettersEvade('.hub-title-container .hub-letter');
+  }
+
+  private applyEvadeToLetters(event: PointerEvent, selector: string): void {
+    const letters = document.querySelectorAll<HTMLElement>(selector);
     const mouseX = event.clientX;
     const mouseY = event.clientY;
     const radius = 90; // Subtle sphere of influence around pointer
@@ -337,6 +381,43 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
         el.style.setProperty('--evade-rot', '0deg');
       }
     });
+  }
+
+  private resetLettersEvade(selector: string): void {
+    const letters = document.querySelectorAll<HTMLElement>(selector);
+    letters.forEach((el) => {
+      el.style.setProperty('--evade-x', '0px');
+      el.style.setProperty('--evade-y', '0px');
+      el.style.setProperty('--evade-scale', '1');
+      el.style.setProperty('--evade-rot', '0deg');
+    });
+  }
+
+  private initHubTitleObserver(): void {
+    if (typeof window === 'undefined') return;
+
+    if (!('IntersectionObserver' in window)) {
+      this.isHubTitleVisible.set(true);
+      return;
+    }
+
+    const hubTitle = document.querySelector<HTMLElement>('.hub-title-container');
+    if (!hubTitle) return;
+
+    this.hubIntersectionObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            this.isHubTitleVisible.set(true);
+            this.hubIntersectionObserver?.disconnect();
+            this.hubIntersectionObserver = null;
+            break;
+          }
+        }
+      },
+      { threshold: 0.15 }
+    );
+    this.hubIntersectionObserver.observe(hubTitle);
   }
 
   // ----------------------------------------------------
@@ -472,6 +553,9 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   }
 
   setSection(index: number, playSound = false): void {
+    if (index >= 1) {
+      this.isHubTitleVisible.set(true);
+    }
     const current = this.activeSectionIndex();
     if (current === index) return;
 
@@ -589,6 +673,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     this.audioService.playWaterdropScrollDown();
     this.hasPrompterScrolledOnce.set(true);
     this.isPrompterVisible.set(false);
+    this.isHubTitleVisible.set(true);
     const hubElement = document.getElementById('bubble-hub');
     if (hubElement) {
       hubElement.scrollIntoView({ behavior: 'smooth' });

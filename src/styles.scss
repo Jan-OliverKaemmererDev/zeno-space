@@ -17,6 +17,15 @@
 }
 
 @font-face {
+  font-family: 'Sniglet-Regular';
+  src: url('../public/fonts/Singlet/Sniglet-Regular.ttf') format('truetype'),
+       url('/fonts/Singlet/Sniglet-Regular.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
   font-family: 'Sniglet';
   src: url('../public/fonts/Singlet/Sniglet-ExtraBold.ttf') format('truetype'),
        url('/fonts/Singlet/Sniglet-ExtraBold.ttf') format('truetype');
