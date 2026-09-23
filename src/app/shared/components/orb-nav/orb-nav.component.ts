@@ -103,6 +103,17 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly diagonalSpinAxis = new THREE.Vector3(0.70, -1.0, 0.25).normalize();
   private previousActiveIndex = 0;
 
+  // Idle detection & resource saving
+  readonly isIdle = signal<boolean>(false);
+  readonly isWaking = signal<boolean>(false);
+  private hasInitialEntranceEnded = false;
+  private isRenderLoopRunning = false;
+  private idleTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private pauseRenderTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private initialEntranceTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private readonly IDLE_DELAY_MS = 5000;
+  private readonly FADE_DURATION_MS = 900;
+
   constructor() {
     effect(() => {
       const current = this.activeIndex();
@@ -120,16 +131,15 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
   ngAfterViewInit(): void {
     this.ngZone.runOutsideAngular(() => {
       this.initThree();
-      this.startRenderLoop();
+      this.resumeRenderLoop();
+      this.setupIdleDetection();
     });
   }
 
   ngOnDestroy(): void {
     this.isDestroyed = true;
-    if (this.animFrameId !== null) {
-      cancelAnimationFrame(this.animFrameId);
-      this.animFrameId = null;
-    }
+    this.pauseRenderLoop();
+    this.cleanupIdleDetection();
     this.disposeThree();
   }
 
@@ -318,13 +328,13 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   // ----------------------------------------------------
-  // 2. Render & Physics Loop
+  // 2. Render & Physics Loop (with resource-saving pause)
   // ----------------------------------------------------
   private startRenderLoop(): void {
     let lastTime = performance.now();
 
     const animate = (time: number) => {
-      if (this.isDestroyed) return;
+      if (this.isDestroyed || !this.isRenderLoopRunning) return;
 
       const dt = Math.min(0.1, (time - lastTime) / 1000.0);
       lastTime = time;
@@ -339,6 +349,20 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     };
 
     this.animFrameId = requestAnimationFrame(animate);
+  }
+
+  private resumeRenderLoop(): void {
+    if (this.isDestroyed || this.isRenderLoopRunning) return;
+    this.isRenderLoopRunning = true;
+    this.startRenderLoop();
+  }
+
+  private pauseRenderLoop(): void {
+    if (this.animFrameId !== null) {
+      cancelAnimationFrame(this.animFrameId);
+      this.animFrameId = null;
+    }
+    this.isRenderLoopRunning = false;
   }
 
   private updatePhysicsAndAnimation(sec: number, dt: number): void {
@@ -610,5 +634,92 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
       this.renderer.dispose();
       this.renderer = null;
     }
+  }
+
+  // ----------------------------------------------------
+  // 3. 5-Second Idle Detection (Fade-out & Resource Savings)
+  // ----------------------------------------------------
+  private readonly onUserActivity = (): void => {
+    this.handleActivity();
+  };
+
+  private setupIdleDetection(): void {
+    if (typeof window === 'undefined') return;
+
+    // Listen to user activity outside Angular to avoid CD thrashing
+    window.addEventListener('pointermove', this.onUserActivity, { passive: true });
+    window.addEventListener('scroll', this.onUserActivity, { passive: true });
+    window.addEventListener('wheel', this.onUserActivity, { passive: true });
+    window.addEventListener('touchstart', this.onUserActivity, { passive: true });
+    window.addEventListener('keydown', this.onUserActivity, { passive: true });
+
+    // Wait until the initial 3.25s + 1.1s entrance animation is completed
+    this.initialEntranceTimeoutId = setTimeout(() => {
+      this.hasInitialEntranceEnded = true;
+      this.resetIdleTimer();
+    }, 4400);
+  }
+
+  private cleanupIdleDetection(): void {
+    if (typeof window === 'undefined') return;
+    window.removeEventListener('pointermove', this.onUserActivity);
+    window.removeEventListener('scroll', this.onUserActivity);
+    window.removeEventListener('wheel', this.onUserActivity);
+    window.removeEventListener('touchstart', this.onUserActivity);
+    window.removeEventListener('keydown', this.onUserActivity);
+
+    if (this.initialEntranceTimeoutId !== null) {
+      clearTimeout(this.initialEntranceTimeoutId);
+      this.initialEntranceTimeoutId = null;
+    }
+    if (this.idleTimeoutId !== null) {
+      clearTimeout(this.idleTimeoutId);
+      this.idleTimeoutId = null;
+    }
+    if (this.pauseRenderTimeoutId !== null) {
+      clearTimeout(this.pauseRenderTimeoutId);
+      this.pauseRenderTimeoutId = null;
+    }
+  }
+
+  private handleActivity(): void {
+    // Cancel scheduled render pause if user interacted during fade
+    if (this.pauseRenderTimeoutId !== null) {
+      clearTimeout(this.pauseRenderTimeoutId);
+      this.pauseRenderTimeoutId = null;
+    }
+
+    // Wake up if currently idle
+    if (this.isIdle()) {
+      this.ngZone.run(() => {
+        this.isIdle.set(false);
+        this.isWaking.set(true);
+      });
+      this.resumeRenderLoop();
+    }
+
+    this.resetIdleTimer();
+  }
+
+  private resetIdleTimer(): void {
+    if (this.idleTimeoutId !== null) {
+      clearTimeout(this.idleTimeoutId);
+    }
+
+    this.idleTimeoutId = setTimeout(() => {
+      if (!this.hasInitialEntranceEnded || this.isDestroyed) return;
+
+      this.ngZone.run(() => {
+        this.isIdle.set(true);
+        this.isWaking.set(false);
+      });
+
+      // Pause WebGL rendering once the fade-out transition has completely finished
+      this.pauseRenderTimeoutId = setTimeout(() => {
+        if (this.isIdle() && !this.isDestroyed) {
+          this.pauseRenderLoop();
+        }
+      }, this.FADE_DURATION_MS);
+    }, this.IDLE_DELAY_MS);
   }
 }

@@ -20,9 +20,19 @@
   opacity: 0;
   pointer-events: none;
   animation: orbNavEntrance 1.1s cubic-bezier(0.16, 1, 0.3, 1) 3.25s forwards;
+
+  // Idle state: smoothly fade out after 5s of inactivity
+  &.is-idle {
+    animation: orbNavExit 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
+
+  // Waking state: smoothly fade back in upon user movement
+  &.is-waking {
+    animation: orbNavWake 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  }
 }
 
-// Floating Glassmorphic Plate Background (Ganz dezent & transparent)
+// Floating Glassmorphic Plate Background (Dezent & Transparent)
 .orb-glass-plate {
   position: absolute;
   left: 50%;
@@ -32,12 +42,12 @@
   height: 242px;
   border-radius: 999px;
   
-  // Sheer, dezent & ultra-transparent glass
+  // Sheer frosted glass with elegant translucency
   background: linear-gradient(
     170deg,
-    rgba(255, 255, 255, 0.09) 0%,
-    rgba(14, 26, 48, 0.28) 40%,
-    rgba(8, 16, 32, 0.20) 100%
+    rgba(255, 255, 255, 0.11) 0%,
+    rgba(14, 26, 48, 0.30) 40%,
+    rgba(8, 16, 32, 0.22) 100%
   );
   
   // Glassmorphism frosted blur
@@ -45,9 +55,9 @@
   -webkit-backdrop-filter: blur(14px);
   
   // Fine translucent glass rim with specular light reflection on top
-  border: 1px solid rgba(255, 255, 255, 0.13);
-  border-top-color: rgba(255, 255, 255, 0.26);
-  border-bottom-color: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-top-color: rgba(255, 255, 255, 0.28);
+  border-bottom-color: rgba(255, 255, 255, 0.07);
   
   // Deep atmospheric shadow + subtle inner glass bevel
   box-shadow:
@@ -241,8 +251,42 @@
   pointer-events: auto;
 }
 
-// Entrance Fade
+// Entrance Fade (Initial page load)
 @keyframes orbNavEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(calc(-50% + 16px));
+    pointer-events: none;
+  }
+  99% {
+    pointer-events: none;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(-50%);
+    pointer-events: auto;
+  }
+}
+
+// Exit Fade (when idle for 5s)
+@keyframes orbNavExit {
+  0% {
+    opacity: 1;
+    transform: translateY(-50%);
+    pointer-events: auto;
+  }
+  99% {
+    pointer-events: none;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(calc(-50% + 16px));
+    pointer-events: none;
+  }
+}
+
+// Wake Fade (when user moves mouse or scrolls)
+@keyframes orbNavWake {
   0% {
     opacity: 0;
     transform: translateY(calc(-50% + 16px));

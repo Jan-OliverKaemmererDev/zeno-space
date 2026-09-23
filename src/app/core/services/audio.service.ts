@@ -44,10 +44,16 @@ export class AudioService {
   private particleOrbArrayBuffer: ArrayBuffer | null = null;
   private particleOrbLoadingPromise: Promise<ArrayBuffer | null> | null = null;
 
+  // Waterdrop tone-on sound buffer & preloading (waterdrop-tone-on.mp3)
+  private waterdropToneOnBuffer: AudioBuffer | null = null;
+  private waterdropToneOnArrayBuffer: ArrayBuffer | null = null;
+  private waterdropToneOnLoadingPromise: Promise<ArrayBuffer | null> | null = null;
+
   constructor() {
     if (typeof window !== 'undefined') {
       this.preloadWaterdropSound();
       this.preloadParticleOrbSound();
+      this.preloadWaterdropToneOnSound();
     }
   }
 
@@ -153,6 +159,57 @@ export class AudioService {
       });
   }
 
+  private preloadWaterdropToneOnSound(): void {
+    const isTestEnv = !!(globalThis as unknown as { process?: { env?: Record<string, string> } })
+      ?.process?.env?.['VITEST'];
+
+    if (
+      typeof window === 'undefined' ||
+      !window.location ||
+      window.location.protocol.startsWith('about:') ||
+      isTestEnv ||
+      this.waterdropToneOnLoadingPromise
+    ) {
+      return;
+    }
+
+    const soundUrl =
+      window.location.origin &&
+      window.location.origin !== 'null' &&
+      !window.location.origin.startsWith('about:')
+        ? `${window.location.origin}/sounds/waterdrop-tone-on.mp3`
+        : '/sounds/waterdrop-tone-on.mp3';
+
+    this.waterdropToneOnLoadingPromise = fetch(soundUrl)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        return res.arrayBuffer();
+      })
+      .then((buf) => {
+        this.waterdropToneOnArrayBuffer = buf;
+        if (this.ctx) {
+          this.decodeWaterdropToneOnBuffer(buf);
+        }
+        return buf;
+      })
+      .catch((err) => {
+        console.warn('Could not preload waterdrop-tone-on.mp3:', err);
+        return null;
+      });
+  }
+
+  private decodeWaterdropToneOnBuffer(arrayBuf: ArrayBuffer): void {
+    if (!this.ctx || this.waterdropToneOnBuffer) return;
+    this.ctx
+      .decodeAudioData(arrayBuf.slice(0))
+      .then((decoded) => {
+        this.waterdropToneOnBuffer = decoded;
+      })
+      .catch((err) => {
+        console.warn('decodeAudioData for waterdrop tone on sound failed:', err);
+      });
+  }
+
   private initContext(): void {
     if (!this.ctx) {
       const AudioCtx =
@@ -173,6 +230,9 @@ export class AudioService {
       }
       if (this.particleOrbArrayBuffer && !this.particleOrbBuffer) {
         this.decodeParticleOrbBuffer(this.particleOrbArrayBuffer);
+      }
+      if (this.waterdropToneOnArrayBuffer && !this.waterdropToneOnBuffer) {
+        this.decodeWaterdropToneOnBuffer(this.waterdropToneOnArrayBuffer);
       }
     }
 
@@ -290,7 +350,7 @@ export class AudioService {
       this.pauseAmbientMusic();
     } else {
       this.playAmbientMusic();
-      this.playChime(4, 0.18);
+      this.playWaterdropToneOn(1.0);
     }
   }
 
@@ -685,6 +745,140 @@ export class AudioService {
     if (this.isMuted() || typeof window === 'undefined') return;
     const audio = new Audio('/sounds/particle-orb-scroll.mp3');
     audio.volume = Math.min(1.0, Math.max(0, targetVolume));
-    audio.play().catch(() => {});
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {});
+    }
+  }
+
+  /**
+   * Plays the waterdrop tone-on sound (waterdrop-tone-on.mp3) directly without delay.
+   * Plays at full clarity and fades out calmly at the end.
+   */
+  playWaterdropToneOn(volume = 1.0): void {
+    if (this.isMuted()) return;
+    this.initContext();
+
+    if (this.ctx && this.waterdropToneOnBuffer) {
+      this.playWaterdropToneOnBuffer(this.waterdropToneOnBuffer, volume);
+      return;
+    }
+
+    if (this.ctx && this.waterdropToneOnArrayBuffer) {
+      this.ctx
+        .decodeAudioData(this.waterdropToneOnArrayBuffer.slice(0))
+        .then((decoded) => {
+          this.waterdropToneOnBuffer = decoded;
+          this.playWaterdropToneOnBuffer(decoded, volume);
+        })
+        .catch(() => {
+          this.playWaterdropToneOnFallback(volume);
+        });
+      return;
+    }
+
+    if (this.waterdropToneOnLoadingPromise) {
+      this.waterdropToneOnLoadingPromise
+        .then((buf) => {
+          if (buf && this.ctx) {
+            this.ctx
+              .decodeAudioData(buf.slice(0))
+              .then((decoded) => {
+                this.waterdropToneOnBuffer = decoded;
+                this.playWaterdropToneOnBuffer(decoded, volume);
+              })
+              .catch(() => {
+                this.playWaterdropToneOnFallback(volume);
+              });
+          } else {
+            this.playWaterdropToneOnFallback(volume);
+          }
+        })
+        .catch(() => {
+          this.playWaterdropToneOnFallback(volume);
+        });
+      return;
+    }
+
+    this.playWaterdropToneOnFallback(volume);
+  }
+
+  /**
+   * Play pre-decoded waterdrop tone-on AudioBuffer via Web Audio API with 0ms latency.
+   * Connected directly to master destination for clear, crisp volume (not dampened by sfxGain),
+   * with a peaceful linear ramp decay over the sound tail.
+   */
+  private playWaterdropToneOnBuffer(buffer: AudioBuffer, targetVolume = 1.0): void {
+    if (!this.ctx || this.isMuted()) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+
+    const now = this.ctx.currentTime;
+    const duration = buffer.duration;
+    // Calm fade-out across the final 30% of the sound to preserve the full droplet tone
+    const fadeDuration = Math.min(0.3, duration * 0.3);
+    const fadeStart = now + Math.max(0.01, duration - fadeDuration);
+    const stopTime = now + duration;
+
+    const source = this.ctx.createBufferSource();
+    source.buffer = buffer;
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(targetVolume, now);
+    gain.gain.setValueAtTime(targetVolume, fadeStart);
+    // Smooth linear ramp down into silence
+    gain.gain.linearRampToValueAtTime(0, stopTime);
+
+    source.connect(gain);
+    // Direct connection to destination gives full, rich, audible presence
+    gain.connect(this.ctx.destination);
+
+    source.start(now);
+    source.stop(stopTime + 0.05);
+  }
+
+  /**
+   * Fallback using HTMLAudioElement with smooth end fade-out
+   */
+  private playWaterdropToneOnFallback(targetVolume = 1.0): void {
+    if (this.isMuted() || typeof window === 'undefined') return;
+    const audio = new Audio('/sounds/waterdrop-tone-on.mp3');
+    audio.volume = Math.min(1.0, Math.max(0, targetVolume));
+
+    const fadeDuration = 0.3;
+    let fadeStarted = false;
+
+    const onTimeUpdate = () => {
+      if (!fadeStarted && audio.duration && audio.duration - audio.currentTime <= fadeDuration) {
+        fadeStarted = true;
+        const startVol = audio.volume;
+        const startTime = performance.now();
+        const fadeMs = fadeDuration * 1000;
+
+        const fadeStep = () => {
+          const elapsed = performance.now() - startTime;
+          const progress = Math.min(1, elapsed / fadeMs);
+          const factor = Math.max(0, 1 - progress);
+          audio.volume = Math.max(0, startVol * factor);
+
+          if (progress < 1 && !audio.paused) {
+            requestAnimationFrame(fadeStep);
+          }
+        };
+        requestAnimationFrame(fadeStep);
+      }
+    };
+
+    audio.addEventListener('timeupdate', onTimeUpdate);
+    audio.addEventListener('ended', () => {
+      audio.removeEventListener('timeupdate', onTimeUpdate);
+    });
+
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(() => {});
+    }
   }
 }
+

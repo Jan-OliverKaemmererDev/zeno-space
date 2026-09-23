@@ -1,5 +1,7 @@
 <nav 
-  class="orb-3d-container hero-ui-fade"
+  class="orb-3d-container"
+  [class.is-idle]="isIdle()"
+  [class.is-waking]="isWaking()"
   role="navigation"
   aria-label="3D Pixel-Orbs Navigation"
   (pointermove)="onPointerMove($event)"

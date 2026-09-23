@@ -54,4 +54,16 @@ describe('AudioService', () => {
       service.playParticleOrbScroll();
     }).not.toThrow();
   });
+
+  it('should not throw when calling playWaterdropToneOn', () => {
+    service.isMuted.set(false);
+    expect(() => {
+      service.playWaterdropToneOn();
+    }).not.toThrow();
+
+    service.isMuted.set(true);
+    expect(() => {
+      service.playWaterdropToneOn();
+    }).not.toThrow();
+  });
 });
