@@ -30,7 +30,7 @@
           [id]="'orb-target-' + idx"
           class="orb-target-btn"
           [class.is-active]="activeIndex() === idx"
-          [class.is-hovered]="activeHoverIndex === idx"
+          [class.is-hovered]="activeHoverIndex() === idx"
           (pointerdown)="onOrbPointerDown()"
           (click)="onOrbClick(idx)"
           [attr.aria-label]="sec.label + ' Sektion anspringen'"
@@ -39,12 +39,20 @@
           <span class="sr-only">{{ sec.label }}</span>
         </button>
 
-        <!-- Tooltip -->
+        <!-- Tooltip (Transparent background, Sniglet bubble font & Laola wave) -->
         <span 
           class="orb-tooltip" 
-          [class.is-visible]="activeHoverIndex === idx"
+          [class.is-visible]="activeHoverIndex() === idx"
+          aria-hidden="true"
         >
-          {{ sec.label }}
+          @for (letter of getTooltipLetters(sec.label); track $index) {
+            <span 
+              class="tooltip-letter-carrier" 
+              [style.--char-from-right]="letter.fromRight"
+            >
+              <span class="tooltip-letter">{{ letter.char }}</span>
+            </span>
+          }
         </span>
 
         <!-- Subtle Click Sparks: 2 or 3 pixels shoot out and extinguish -->

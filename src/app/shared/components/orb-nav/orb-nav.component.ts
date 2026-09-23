@@ -33,6 +33,11 @@ export interface OrbClickSpark {
   size: number;
 }
 
+export interface TooltipLetter {
+  char: string;
+  fromRight: number;
+}
+
 interface ParticleOrbData {
   group: THREE.Group;
   tumbleGroup: THREE.Group;
@@ -92,7 +97,8 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
   private isPointerOver = false;
   private readonly zPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
   private hoveredOrbIndex: number | null = null;
-  activeHoverIndex: number | null = null;
+  readonly activeHoverIndex = signal<number | null>(null);
+  private readonly tooltipLettersCache = new Map<string, TooltipLetter[]>();
 
   // 3D Pixel Orbs
   private orbs: ParticleOrbData[] = [];
@@ -527,7 +533,7 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (this.hoveredOrbIndex !== nearestIdx) {
       this.hoveredOrbIndex = nearestIdx;
-      this.activeHoverIndex = nearestIdx;
+      this.activeHoverIndex.set(nearestIdx);
     }
   }
 
@@ -536,7 +542,21 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     this.mouseNDC.set(-999, -999);
     this.mouseWorldPos.set(-999, -999, -999);
     this.hoveredOrbIndex = null;
-    this.activeHoverIndex = null;
+    this.activeHoverIndex.set(null);
+  }
+
+  getTooltipLetters(label: string): TooltipLetter[] {
+    let cached = this.tooltipLettersCache.get(label);
+    if (!cached) {
+      const chars = Array.from(label);
+      const total = chars.length;
+      cached = chars.map((char, index) => ({
+        char,
+        fromRight: total - 1 - index,
+      }));
+      this.tooltipLettersCache.set(label, cached);
+    }
+    return cached;
   }
 
   onOrbPointerDown(): void {

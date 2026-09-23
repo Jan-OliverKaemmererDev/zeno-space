@@ -42,29 +42,29 @@
   height: 242px;
   border-radius: 999px;
   
-  // Sheer frosted glass with elegant translucency
+  // Sheer frosted glass with elegant translucency (subtly increased opacity for enhanced definition)
   background: linear-gradient(
     170deg,
-    rgba(255, 255, 255, 0.11) 0%,
-    rgba(14, 26, 48, 0.30) 40%,
-    rgba(8, 16, 32, 0.22) 100%
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(14, 26, 48, 0.44) 40%,
+    rgba(8, 16, 32, 0.35) 100%
   );
   
   // Glassmorphism frosted blur
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   
   // Fine translucent glass rim with specular light reflection on top
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-top-color: rgba(255, 255, 255, 0.28);
-  border-bottom-color: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-top-color: rgba(255, 255, 255, 0.34);
+  border-bottom-color: rgba(255, 255, 255, 0.10);
   
   // Deep atmospheric shadow + subtle inner glass bevel
   box-shadow:
-    0 12px 36px rgba(0, 8, 24, 0.38),
-    0 2px 8px rgba(0, 8, 24, 0.20),
-    inset 0 1px 1.5px rgba(255, 255, 255, 0.22),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.28);
+    0 12px 36px rgba(0, 8, 24, 0.42),
+    0 2px 8px rgba(0, 8, 24, 0.22),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.25),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.32);
     
   pointer-events: none;
   z-index: 0;
@@ -81,12 +81,12 @@
   border-radius: 50%;
   background: radial-gradient(
     circle,
-    rgba(255, 255, 255, 0.05) 0%,
-    rgba(255, 255, 255, 0.01) 65%,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(255, 255, 255, 0.02) 65%,
     transparent 100%
   );
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.08);
   pointer-events: none;
 
   &-0 { top: 40px; }
@@ -210,45 +210,107 @@
   border: 0;
 }
 
-// Tooltip
+// Tooltip: Free-floating transparent Sniglet typography with right-to-left Laola wave & gentle floating
 .orb-tooltip {
   position: absolute;
   right: calc(100% + 14px);
   top: 50%;
-  transform: translateY(-50%) translateX(6px);
+  transform: translateY(-50%);
   z-index: 100;
-  font-family: v.$font-family-body;
-  font-size: 0.78rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  color: #f8fafc;
-  background: rgba(14, 26, 46, 0.90);
-  border: 1px solid rgba(255, 255, 255, 0.28);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  padding: 5px 12px;
-  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
   white-space: nowrap;
   pointer-events: none;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 0;
   opacity: 0;
-  box-shadow: 
-    0 6px 18px rgba(0, 10, 30, 0.45),
-    0 0 12px rgba(56, 189, 248, 0.25);
-  transition: 
-    opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  visibility: hidden;
+  transition: opacity 0.22s ease-out, visibility 0.22s ease-out;
 
   &.is-visible {
     opacity: 1;
-    transform: translateY(-50%) translateX(0);
+    visibility: visible;
     pointer-events: auto;
+
+    .tooltip-letter-carrier {
+      animation: 
+        tooltipLaolaWave 0.95s cubic-bezier(0.25, 1, 0.4, 1) forwards calc(var(--char-from-right, 0) * 0.075s),
+        tooltipFloating 3.8s ease-in-out calc(0.95s + var(--char-from-right, 0) * 0.075s) infinite alternate;
+    }
   }
 }
 
 .orb-target-zone:hover .orb-tooltip {
   opacity: 1;
-  transform: translateY(-50%) translateX(0);
+  visibility: visible;
   pointer-events: auto;
+
+  .tooltip-letter-carrier {
+    animation: 
+      tooltipLaolaWave 0.95s cubic-bezier(0.25, 1, 0.4, 1) forwards calc(var(--char-from-right, 0) * 0.075s),
+      tooltipFloating 3.8s ease-in-out calc(0.95s + var(--char-from-right, 0) * 0.075s) infinite alternate;
+  }
+}
+
+// Staggered letter carrier (animates right-to-left via --char-from-right)
+.tooltip-letter-carrier {
+  display: inline-block;
+  position: relative;
+  opacity: 0;
+  transform: translate3d(0, 0, 0) scale(0.96);
+  will-change: transform, opacity;
+}
+
+// Inner letter span: Sniglet bubble-font styling & luminous depth drop-shadow
+.tooltip-letter {
+  display: inline-block;
+  position: relative;
+  font-family: v.$font-family-sniglet;
+  font-size: 1.08rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  background: linear-gradient(180deg, #ffffff 0%, #e0f2fe 55%, #bae6fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: 
+    drop-shadow(0 2px 4px rgba(0, 8, 24, 0.95))
+    drop-shadow(0 4px 14px rgba(0, 0, 0, 0.70))
+    drop-shadow(0 0 12px rgba(56, 189, 248, 0.55));
+}
+
+// Flatter, slower horizontal Laola wave sweeping right to left (from the orb outward)
+@keyframes tooltipLaolaWave {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.96);
+  }
+  42% {
+    opacity: 1;
+    // Gentle, flat wave crest (-4px, subtle scale)
+    transform: translate3d(0, -4px, 0) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+// Calming, gentle floating motion matching "Willkommen im Zeno-Space"
+@keyframes tooltipFloating {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -3px, 0) scale(1.01);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
 }
 
 // Entrance Fade (Initial page load)

@@ -696,7 +696,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
         proceduralSky = mix(proceduralSky, colSkyTop, smoothstep(0.62, 1.15, skyGradY));
 
         // -----------------------------------------------------------------
-        // 2. Texture Background Cover & Living Wind Advection
+        // 2. Texture Background Cover, Meditative Breathing & Living Wind
         // -----------------------------------------------------------------
         vec2 texUv = uv;
         if (screenAspect > imgAspect) {
@@ -709,10 +709,15 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
           texUv.x = (uv.x - 0.5) * scale + 0.5;
         }
 
+        // Harmonischer Mittelweg für das Ein- und Ausatmen (~25s Zyklus, ca. 2.6% sanfter Hub)
+        float breath = sin(u_time * 0.255);
+        float breatheZoom = 1.018 + breath * 0.013;
+        texUv = (texUv - 0.5) / breatheZoom + 0.5;
+
         // Parallax vertical drift on scroll (clouds ascend gently)
         texUv.y += scroll * 0.35;
 
-        // Living cloud wind & breathing (fluid, organic drift - NOT smoke curls)
+        // Living cloud wind (fluid, organic micro-drift)
         vec2 wind = vec2(
           sin(texUv.y * 3.5 + u_time * 0.16) * 0.0030 + cos(texUv.x * 2.8 + u_time * 0.12) * 0.0020,
           cos(texUv.x * 3.2 + u_time * 0.14) * 0.0025
