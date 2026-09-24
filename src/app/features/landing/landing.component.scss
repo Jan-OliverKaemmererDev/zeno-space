@@ -1,3 +1,4 @@
+@use 'sass:math';
 @use 'styles/variables' as v;
 @use 'styles/mixins' as m;
 
@@ -68,12 +69,189 @@
   }
 }
 
-// Top-Right Circular Transparent Audio Button (Immediate visibility & sleek glassmorphism)
-.hero-sound-toggle {
+// Top-Right Sound Activation Experience (Lichtpartikel-Orbit, Cosmic Beacon & Toggle)
+.hero-sound-container {
   position: absolute;
   top: 28px;
   right: 28px;
   z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: auto;
+
+  @media (max-width: 640px) {
+    top: 18px;
+    right: 18px;
+  }
+}
+
+// Floating "Sound an?" Tooltip (Identische Typografie & Laola-Wave wie bei orb-tooltip, rein informativ & nicht klickbar)
+.sound-invite-tooltip {
+  position: absolute;
+  right: calc(100% + 14px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  pointer-events: none; // Nicht klickbar - nur der Button mit Icon reagiert auf Klick!
+  user-select: none;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 0;
+  margin: 0;
+  cursor: default;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.22s ease-out;
+
+  .tooltip-letter-carrier {
+    display: inline-block;
+    position: relative;
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.96);
+    will-change: transform, opacity;
+    animation: 
+      soundTooltipLaolaWave 0.95s cubic-bezier(0.25, 1, 0.4, 1) forwards calc(var(--char-from-right, 0) * 0.075s),
+      soundTooltipFloating 3.8s ease-in-out calc(0.95s + var(--char-from-right, 0) * 0.075s) infinite alternate;
+  }
+
+  .tooltip-letter {
+    display: inline-block;
+    position: relative;
+    font-family: v.$font-family-bubble;
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    background: linear-gradient(180deg, #ffffff 0%, #e0f2fe 55%, #bae6fd 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: 
+      drop-shadow(0 2px 4px rgba(0, 8, 24, 0.95))
+      drop-shadow(0 4px 14px rgba(0, 0, 0, 0.70))
+      drop-shadow(0 0 12px rgba(56, 189, 248, 0.55));
+  }
+
+  @media (max-width: 640px) {
+    right: calc(100% + 10px);
+
+    .tooltip-letter {
+      font-size: 0.95rem;
+    }
+  }
+}
+
+.hero-sound-container.is-bursting .sound-invite-tooltip {
+  .tooltip-letter-carrier {
+    animation: soundTooltipExitBurst 0.45s cubic-bezier(0.12, 0.9, 0.28, 1) forwards calc(var(--char-from-right, 0) * 0.025s) !important;
+  }
+}
+
+// Sound Button Anchor (Perfect origin center for micro-particles & shockwave sparks)
+.sound-button-anchor {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 640px) {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+// Ethereal Pulsing Beacon Halo (Feine, zarte Aura & Schockwelle)
+.sound-beacon-halo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 0.75px solid rgba(56, 189, 248, 0.25);
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, rgba(56, 189, 248, 0.01) 65%, transparent 100%);
+  animation: beaconBreatheFine 3s ease-in-out infinite;
+}
+
+.hero-sound-container.is-bursting .sound-beacon-halo {
+  animation: beaconShockwaveFine 0.62s cubic-bezier(0.12, 0.9, 0.28, 1) forwards !important;
+}
+
+// Orbiting Fine Stardust Particles (12 zarte Mikropunkte auf 2 ruhigen Bahnen)
+.orbit-particles-system {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+
+  .orbit-particle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-radius: 50%;
+    pointer-events: none;
+    will-change: transform, opacity;
+    transition: opacity 0.25s ease;
+  }
+
+  // 12 Particles on 2 Calm, Harmonious Orbital Tracks (6 per track)
+  @for $i from 0 through 11 {
+    $track: $i % 2;
+    $step: math.floor(math.div($i, 2)); // 0..5
+    .p-#{$i} {
+      @if $track == 0 {
+        width: 1.4px;
+        height: 1.4px;
+        margin: -0.7px 0 0 -0.7px;
+        background: #ffffff;
+        box-shadow: 0 0 3px rgba(255, 255, 255, 0.9), 0 0 5px rgba(56, 189, 248, 0.7);
+        animation: orbitTrack1 5.4s linear infinite (-0.9s * $step);
+      } @else {
+        width: 1.2px;
+        height: 1.2px;
+        margin: -0.6px 0 0 -0.6px;
+        background: #7dd3fc;
+        box-shadow: 0 0 3px rgba(125, 211, 252, 0.95), 0 0 5px rgba(56, 189, 248, 0.6);
+        animation: orbitTrack2 7.2s linear infinite (-1.2s * $step);
+      }
+    }
+  }
+}
+
+.hero-sound-container.is-bursting .orbit-particle {
+  opacity: 0 !important;
+}
+
+// Click Wave Explosive Scatter Sparks (14 feine Lichtpunkte wie bei den orb-click-sparks)
+.sound-click-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 15;
+  box-shadow: 
+    0 0 4px rgba(125, 211, 252, 0.95),
+    0 0 2px rgba(255, 255, 255, 0.85);
+  animation: sparkShootOut 0.62s cubic-bezier(0.12, 0.9, 0.28, 1) forwards;
+}
+
+// Circular Transparent Audio Button
+.hero-sound-toggle {
+  position: relative;
+  z-index: 2;
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -89,6 +267,17 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   animation: soundBtnEntrance 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+
+  &.has-orbit-pulse {
+    border-color: rgba(56, 189, 248, 0.45);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 0 16px rgba(56, 189, 248, 0.3);
+    color: #e0f2fe;
+
+    svg {
+      animation: soundPulse 2.4s ease-in-out infinite;
+      filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.6));
+    }
+  }
 
   &.is-playing {
     background: rgba(56, 189, 248, 0.16);
@@ -119,13 +308,12 @@
   }
 
   @media (max-width: 640px) {
-    top: 18px;
-    right: 18px;
     width: 44px;
     height: 44px;
   }
 }
 
+// Keyframes: Entrance & Ambient Motion
 @keyframes soundBtnEntrance {
   0% {
     opacity: 0;
@@ -143,6 +331,125 @@
   }
   50% {
     transform: scale(1.09);
+  }
+}
+
+@keyframes beaconBreatheFine {
+  0%, 100% {
+    transform: scale(1.06);
+    opacity: 0.35;
+    border-color: rgba(56, 189, 248, 0.2);
+  }
+  50% {
+    transform: scale(1.28);
+    opacity: 0.7;
+    border-color: rgba(56, 189, 248, 0.45);
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+  }
+}
+
+@keyframes beaconShockwaveFine {
+  0% {
+    transform: scale(1);
+    opacity: 0.65;
+    border-width: 0.75px;
+    border-color: rgba(125, 211, 252, 0.7);
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+    border-width: 0.25px;
+    border-color: rgba(56, 189, 248, 0);
+  }
+}
+
+// Keyframes: Micro-Pixel Spark Explosion
+@keyframes sparkShootOut {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) translate(var(--sx), var(--sy)) scale(1.1);
+  }
+  35% {
+    opacity: 0.95;
+    filter: brightness(1.6) drop-shadow(0 0 3px #ffffff);
+  }
+  75% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(var(--ex), var(--ey)) scale(0.3);
+  }
+}
+
+// Keyframes: Sound Tooltip Laola Wave & Floating (Matching orb-tooltip)
+@keyframes soundTooltipLaolaWave {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.96);
+  }
+  42% {
+    opacity: 1;
+    transform: translate3d(0, -4px, 0) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes soundTooltipFloating {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -3px, 0) scale(1.01);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes soundTooltipExitBurst {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-12px, -3px, 0) scale(0.88);
+    filter: blur(3px);
+  }
+}
+
+// Keyframes: 2 Calm, Serene Orbital Tracks for the Fine Stardust Particles
+@keyframes orbitTrack1 {
+  0% {
+    transform: rotate(0deg) translateX(29px) rotate(0deg);
+    opacity: 0.75;
+  }
+  50% {
+    transform: rotate(180deg) translateX(31px) rotate(-180deg);
+    opacity: 0.95;
+  }
+  100% {
+    transform: rotate(360deg) translateX(29px) rotate(-360deg);
+    opacity: 0.75;
+  }
+}
+
+@keyframes orbitTrack2 {
+  0% {
+    transform: rotate(60deg) translateX(35px) rotate(-60deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: rotate(-120deg) translateX(33px) rotate(120deg);
+    opacity: 0.55;
+  }
+  100% {
+    transform: rotate(-300deg) translateX(35px) rotate(300deg);
+    opacity: 0.8;
   }
 }
 

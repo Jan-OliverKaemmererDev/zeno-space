@@ -66,4 +66,39 @@ describe('AudioService', () => {
       service.playWaterdropToneOn();
     }).not.toThrow();
   });
+
+  it('should initialize isAwaitingUserGesture to false and activate sound with waterdrop-tone-on upon first toggleSound', () => {
+    expect(service.isAwaitingUserGesture()).toBe(false);
+    service.isAwaitingUserGesture.set(true);
+    expect(service.isAwaitingUserGesture()).toBe(true);
+
+    const playWaterdropSpy = vi.spyOn(service, 'playWaterdropToneOn');
+    service.toggleSound();
+    expect(service.isAwaitingUserGesture()).toBe(false);
+    expect(service.isMuted()).toBe(false);
+    expect(playWaterdropSpy).toHaveBeenCalledWith(1.0);
+  });
+
+  it('should activate sound, unmute, and play waterdrop-tone-on via activateSoundFromUserGesture', () => {
+    service.isAwaitingUserGesture.set(true);
+    const playWaterdropSpy = vi.spyOn(service, 'playWaterdropToneOn');
+    const playAmbientSpy = vi.spyOn(service, 'playAmbientMusic');
+
+    service.activateSoundFromUserGesture();
+
+    expect(service.isAwaitingUserGesture()).toBe(false);
+    expect(service.isMuted()).toBe(false);
+    expect(playWaterdropSpy).toHaveBeenCalledWith(1.0);
+    expect(playAmbientSpy).toHaveBeenCalled();
+  });
+
+  it('should prevent muting if toggleSound is triggered immediately after first gesture activation', () => {
+    service.isAwaitingUserGesture.set(true);
+    service.activateSoundFromUserGesture();
+    expect(service.isMuted()).toBe(false);
+
+    // Immediate button click right after pointerdown activation (<600ms)
+    service.toggleSound();
+    expect(service.isMuted()).toBe(false);
+  });
 });

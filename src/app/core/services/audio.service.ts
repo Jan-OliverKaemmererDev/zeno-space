@@ -12,6 +12,7 @@ export class AudioService {
   private fadeIntervalId: number | null = null;
   private isFadingToPause = false;
   private hasAutoplayFallbackListener = false;
+  private lastActivationTime = 0;
   private readonly targetVolume = 0.45;
   private readonly fadeInDuration = 2.5; // seconds to fade in
   private readonly fadeOutDuration = 4.0; // seconds to fade out at end of track
@@ -19,6 +20,7 @@ export class AudioService {
   // Signals for state - defaults to false (unmuted) so it plays on landing page load
   readonly isMuted = signal<boolean>(false);
   readonly isAmbientPlaying = signal<boolean>(false);
+  readonly isAwaitingUserGesture = signal<boolean>(false);
 
   // Pentatonic Celestial Scale (Hz)
   private readonly pentatonicScale = [
@@ -180,6 +182,13 @@ export class AudioService {
         ? `${window.location.origin}/sounds/waterdrop-tone-on.mp3`
         : '/sounds/waterdrop-tone-on.mp3';
 
+    try {
+      const preAudio = new Audio(soundUrl);
+      preAudio.preload = 'auto';
+    } catch {
+      // Audio element creation may not be supported in certain test environments
+    }
+
     this.waterdropToneOnLoadingPromise = fetch(soundUrl)
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP error ${res.status}`);
@@ -282,14 +291,22 @@ export class AudioService {
 
     const playPromise = this.bgAudio.play();
     if (playPromise !== undefined) {
+      if (!this.isAmbientPlaying()) {
+        this.setupAutoplayFallback();
+      }
       playPromise
         .then(() => {
           this.isAmbientPlaying.set(true);
+          this.isAwaitingUserGesture.set(false);
+          this.cleanupAutoplayFallback();
           this.startFadeMonitoring();
         })
         .catch((err) => {
           // Autoplay policy prevented playback without prior user interaction
           this.isAmbientPlaying.set(false);
+          if (!this.isMuted()) {
+            this.isAwaitingUserGesture.set(true);
+          }
           this.setupAutoplayFallback();
         });
     }
@@ -299,6 +316,9 @@ export class AudioService {
    * Pause ambient music with a quick gentle micro-fade (150ms) to prevent audio clicks
    */
   pauseAmbientMusic(immediate = false): void {
+    this.isAwaitingUserGesture.set(false);
+    this.cleanupAutoplayFallback();
+
     if (!this.bgAudio) {
       this.isAmbientPlaying.set(false);
       return;
@@ -343,14 +363,27 @@ export class AudioService {
    * When muted, the song is also paused/stopped as requested.
    */
   toggleSound(): void {
+    if (this.isAwaitingUserGesture()) {
+      // First click on sound button activates sound and plays waterdrop-tone-on.mp3
+      this.activateSoundFromUserGesture();
+      return;
+    }
+
+    // Debounce to prevent race condition when pointerdown/click on window just activated sound
+    if (Date.now() - this.lastActivationTime < 600) {
+      return;
+    }
+
     const nextMuted = !this.isMuted();
     this.isMuted.set(nextMuted);
+    this.isAwaitingUserGesture.set(false);
+    this.cleanupAutoplayFallback();
 
     if (nextMuted) {
       this.pauseAmbientMusic();
     } else {
-      this.playAmbientMusic();
       this.playWaterdropToneOn(1.0);
+      this.playAmbientMusic();
     }
   }
 
@@ -418,35 +451,59 @@ export class AudioService {
     }
   }
 
+  private autoplayFallbackHandler: (() => void) | null = null;
+
+  /**
+   * Activates audio on first user gesture (click / touch / key anywhere on page or sound button).
+   * Plays waterdrop-tone-on.mp3 immediately and starts ambient music with smooth fade-in.
+   */
+  activateSoundFromUserGesture(): void {
+    if (this.isMuted()) return;
+    this.lastActivationTime = Date.now();
+    this.isAwaitingUserGesture.set(false);
+    this.cleanupAutoplayFallback();
+    this.initContext();
+    this.playWaterdropToneOn(1.0);
+    this.playAmbientMusic();
+  }
+
+  /**
+   * Safely detach any pending autoplay fallback gesture listeners
+   */
+  private cleanupAutoplayFallback(): void {
+    if (this.autoplayFallbackHandler && typeof window !== 'undefined') {
+      const opts = { capture: true };
+      window.removeEventListener('click', this.autoplayFallbackHandler, opts);
+      window.removeEventListener('pointerdown', this.autoplayFallbackHandler, opts);
+      window.removeEventListener('keydown', this.autoplayFallbackHandler, opts);
+      window.removeEventListener('touchstart', this.autoplayFallbackHandler, opts);
+      window.removeEventListener('click', this.autoplayFallbackHandler);
+      window.removeEventListener('pointerdown', this.autoplayFallbackHandler);
+      window.removeEventListener('keydown', this.autoplayFallbackHandler);
+      window.removeEventListener('touchstart', this.autoplayFallbackHandler);
+      this.autoplayFallbackHandler = null;
+    }
+    this.hasAutoplayFallbackListener = false;
+  }
+
   /**
    * If autoplay is blocked by browser policy on initial page load,
-   * attach a one-time gesture listener on any interaction (click, touch, key, scroll)
-   * to immediately and smoothly start playback.
+   * attach a one-time gesture listener on any interaction (click, pointerdown, keydown, touchstart)
+   * to immediately play waterdrop-tone-on.mp3 and start ambient music.
    */
   private setupAutoplayFallback(): void {
     if (this.hasAutoplayFallbackListener || typeof window === 'undefined') return;
     this.hasAutoplayFallbackListener = true;
 
-    const onUserInteract = () => {
-      window.removeEventListener('click', onUserInteract);
-      window.removeEventListener('pointerdown', onUserInteract);
-      window.removeEventListener('keydown', onUserInteract);
-      window.removeEventListener('touchstart', onUserInteract);
-      window.removeEventListener('scroll', onUserInteract);
-      this.hasAutoplayFallbackListener = false;
-
-      this.initContext();
-
-      if (!this.isMuted()) {
-        this.playAmbientMusic();
-      }
+    this.autoplayFallbackHandler = () => {
+      this.activateSoundFromUserGesture();
     };
 
-    window.addEventListener('click', onUserInteract, { once: true, passive: true });
-    window.addEventListener('pointerdown', onUserInteract, { once: true, passive: true });
-    window.addEventListener('keydown', onUserInteract, { once: true, passive: true });
-    window.addEventListener('touchstart', onUserInteract, { once: true, passive: true });
-    window.addEventListener('scroll', onUserInteract, { once: true, passive: true });
+    const opts = { capture: true, once: true, passive: true };
+    window.addEventListener('click', this.autoplayFallbackHandler, opts);
+    window.addEventListener('pointerdown', this.autoplayFallbackHandler, opts);
+    window.addEventListener('keydown', this.autoplayFallbackHandler, opts);
+    window.addEventListener('touchstart', this.autoplayFallbackHandler, opts);
   }
 
   /**
@@ -764,42 +821,12 @@ export class AudioService {
       return;
     }
 
-    if (this.ctx && this.waterdropToneOnArrayBuffer) {
-      this.ctx
-        .decodeAudioData(this.waterdropToneOnArrayBuffer.slice(0))
-        .then((decoded) => {
-          this.waterdropToneOnBuffer = decoded;
-          this.playWaterdropToneOnBuffer(decoded, volume);
-        })
-        .catch(() => {
-          this.playWaterdropToneOnFallback(volume);
-        });
-      return;
+    // Pre-decode buffer in background for subsequent zero-latency plays
+    if (this.waterdropToneOnArrayBuffer && this.ctx && !this.waterdropToneOnBuffer) {
+      this.decodeWaterdropToneOnBuffer(this.waterdropToneOnArrayBuffer);
     }
 
-    if (this.waterdropToneOnLoadingPromise) {
-      this.waterdropToneOnLoadingPromise
-        .then((buf) => {
-          if (buf && this.ctx) {
-            this.ctx
-              .decodeAudioData(buf.slice(0))
-              .then((decoded) => {
-                this.waterdropToneOnBuffer = decoded;
-                this.playWaterdropToneOnBuffer(decoded, volume);
-              })
-              .catch(() => {
-                this.playWaterdropToneOnFallback(volume);
-              });
-          } else {
-            this.playWaterdropToneOnFallback(volume);
-          }
-        })
-        .catch(() => {
-          this.playWaterdropToneOnFallback(volume);
-        });
-      return;
-    }
-
+    // Play immediately via HTML5 Audio fallback right now without waiting for async decode
     this.playWaterdropToneOnFallback(volume);
   }
 
@@ -843,41 +870,24 @@ export class AudioService {
    */
   private playWaterdropToneOnFallback(targetVolume = 1.0): void {
     if (this.isMuted() || typeof window === 'undefined') return;
-    const audio = new Audio('/sounds/waterdrop-tone-on.mp3');
-    audio.volume = Math.min(1.0, Math.max(0, targetVolume));
+    const soundUrl =
+      window.location.origin &&
+      window.location.origin !== 'null' &&
+      !window.location.origin.startsWith('about:')
+        ? `${window.location.origin}/sounds/waterdrop-tone-on.mp3`
+        : '/sounds/waterdrop-tone-on.mp3';
 
-    const fadeDuration = 0.3;
-    let fadeStarted = false;
-
-    const onTimeUpdate = () => {
-      if (!fadeStarted && audio.duration && audio.duration - audio.currentTime <= fadeDuration) {
-        fadeStarted = true;
-        const startVol = audio.volume;
-        const startTime = performance.now();
-        const fadeMs = fadeDuration * 1000;
-
-        const fadeStep = () => {
-          const elapsed = performance.now() - startTime;
-          const progress = Math.min(1, elapsed / fadeMs);
-          const factor = Math.max(0, 1 - progress);
-          audio.volume = Math.max(0, startVol * factor);
-
-          if (progress < 1 && !audio.paused) {
-            requestAnimationFrame(fadeStep);
-          }
-        };
-        requestAnimationFrame(fadeStep);
+    try {
+      const audio = new Audio(soundUrl);
+      audio.volume = Math.min(1.0, Math.max(0, targetVolume));
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn('Fallback playWaterdropToneOn failed:', err);
+        });
       }
-    };
-
-    audio.addEventListener('timeupdate', onTimeUpdate);
-    audio.addEventListener('ended', () => {
-      audio.removeEventListener('timeupdate', onTimeUpdate);
-    });
-
-    const playPromise = audio.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(() => {});
+    } catch (err) {
+      console.warn('Could not instantiate Audio for waterdrop-tone-on:', err);
     }
   }
 }

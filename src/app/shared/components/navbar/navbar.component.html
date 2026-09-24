@@ -42,12 +42,12 @@
       <button 
         type="button" 
         class="nav-sound-toggle"
-        [class.is-playing]="!audioService.isMuted()" 
+        [class.is-playing]="audioService.isAmbientPlaying()" 
         (click)="onToggleAudio()"
-        [attr.aria-label]="audioService.isMuted() ? 'Sound aktivieren' : 'Sound stummschalten'"
-        [title]="audioService.isMuted() ? 'Sound aktivieren (Space Ambient)' : 'Sound stummschalten (Space Ambient läuft)'"
+        [attr.aria-label]="audioService.isAmbientPlaying() ? 'Sound stummschalten' : 'Sound aktivieren'"
+        [title]="audioService.isAmbientPlaying() ? 'Sound stummschalten (Space Ambient läuft)' : 'Sound aktivieren (Space Ambient)'"
       >
-        @if (!audioService.isMuted()) {
+        @if (audioService.isAmbientPlaying()) {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
             <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />

@@ -3,6 +3,7 @@ import {
   inject,
   signal,
   computed,
+  effect,
   ElementRef,
   ViewChild,
   AfterViewInit,
@@ -30,6 +31,22 @@ export interface BubbleWord {
 
 export interface BubblePhrase {
   words: BubbleWord[];
+}
+
+export interface TooltipLetter {
+  char: string;
+  fromRight: number;
+}
+
+export interface SoundBurstSpark {
+  id: number;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  color: string;
+  size: number;
+  delayMs: number;
 }
 
 @Component({
@@ -61,6 +78,78 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   readonly glideDirection = signal<'down' | 'up' | null>(null);
   private glideTimeout: ReturnType<typeof setTimeout> | null = null;
   readonly isDragging = signal<boolean>(false);
+
+  // Audio activation state & fine stardust particles
+  readonly isBursting = signal<boolean>(false);
+  private wasAwaitingGesture = false;
+  private burstTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  // Staggered letter wave for "Sound an?" tooltip matching orb-tooltip
+  readonly soundTooltipLetters: TooltipLetter[] = (() => {
+    const text = 'Sound an?';
+    const chars = Array.from(text);
+    const total = chars.length;
+    return chars.map((char, index) => ({
+      char: char === ' ' ? '\u00A0' : char,
+      fromRight: total - 1 - index,
+    }));
+  })();
+
+  // 12 fine micro-particles orbiting calmly on 2 tracks (6 per track)
+  readonly orbitParticleIndices = Array.from({ length: 12 }, (_, i) => i);
+
+  // Explosive micro-sparks on click (14 delicate light points scattering outward)
+  readonly burstSparks = signal<SoundBurstSpark[]>([]);
+
+  constructor() {
+    effect(() => {
+      const awaiting = this.audioService.isAwaitingUserGesture();
+      if (awaiting) {
+        this.wasAwaitingGesture = true;
+      } else if (this.wasAwaitingGesture) {
+        this.wasAwaitingGesture = false;
+        this.triggerParticleBurst();
+      }
+    });
+  }
+
+  private triggerParticleBurst(): void {
+    if (this.burstTimeout) {
+      clearTimeout(this.burstTimeout);
+    }
+    this.isBursting.set(true);
+
+    // Spawn 14 fine micro-sparks shooting outward like the orb click sparks
+    const count = 14;
+    const sparks: SoundBurstSpark[] = [];
+    const baseAngle = Math.random() * Math.PI * 2;
+
+    for (let i = 0; i < count; i++) {
+      const angle = baseAngle + (i * ((Math.PI * 2) / count)) + (Math.random() - 0.5) * 0.22;
+      const startDist = 22 + Math.random() * 3; // Start near button edge
+      const endDist = startDist + 32 + Math.random() * 45; // Explode outward ~32-77px
+      const isBlue = Math.random() < 0.5;
+
+      sparks.push({
+        id: i + 1,
+        startX: Math.round(Math.cos(angle) * startDist * 10) / 10,
+        startY: Math.round(Math.sin(angle) * startDist * 10) / 10,
+        endX: Math.round(Math.cos(angle) * endDist * 10) / 10,
+        endY: Math.round(Math.sin(angle) * endDist * 10) / 10,
+        color: isBlue ? '#7dd3fc' : '#ffffff',
+        size: Math.random() < 0.6 ? 1.5 : 2,
+        delayMs: Math.round(Math.random() * 50),
+      });
+    }
+
+    this.burstSparks.set(sparks);
+
+    this.burstTimeout = setTimeout(() => {
+      this.isBursting.set(false);
+      this.burstSparks.set([]);
+      this.burstTimeout = null;
+    }, 680);
+  }
   readonly scrollPercent = computed(() => {
     if (typeof window === 'undefined') return 0;
     const maxScroll =
@@ -169,6 +258,10 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     if (this.programmaticScrollTimeout) {
       clearTimeout(this.programmaticScrollTimeout);
       this.programmaticScrollTimeout = null;
+    }
+    if (this.burstTimeout) {
+      clearTimeout(this.burstTimeout);
+      this.burstTimeout = null;
     }
     if (this.phraseResizeObserver) {
       this.phraseResizeObserver.disconnect();
@@ -669,6 +762,9 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   }
 
   toggleSound(): void {
+    if (this.audioService.isAwaitingUserGesture()) {
+      this.triggerParticleBurst();
+    }
     this.audioService.toggleSound();
   }
 
