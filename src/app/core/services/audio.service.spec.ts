@@ -67,6 +67,18 @@ describe('AudioService', () => {
     }).not.toThrow();
   });
 
+  it('should not throw when calling playCraneFolding', () => {
+    service.isMuted.set(false);
+    expect(() => {
+      service.playCraneFolding();
+    }).not.toThrow();
+
+    service.isMuted.set(true);
+    expect(() => {
+      service.playCraneFolding();
+    }).not.toThrow();
+  });
+
   it('should initialize isAwaitingUserGesture to false and activate sound with waterdrop-tone-on upon first toggleSound', () => {
     expect(service.isAwaitingUserGesture()).toBe(false);
     service.isAwaitingUserGesture.set(true);

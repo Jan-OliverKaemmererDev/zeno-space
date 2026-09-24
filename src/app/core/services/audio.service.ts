@@ -51,11 +51,17 @@ export class AudioService {
   private waterdropToneOnArrayBuffer: ArrayBuffer | null = null;
   private waterdropToneOnLoadingPromise: Promise<ArrayBuffer | null> | null = null;
 
+  // Crane folding sound buffer & preloading (crane-folding.mp3)
+  private craneFoldingBuffer: AudioBuffer | null = null;
+  private craneFoldingArrayBuffer: ArrayBuffer | null = null;
+  private craneFoldingLoadingPromise: Promise<ArrayBuffer | null> | null = null;
+
   constructor() {
     if (typeof window !== 'undefined') {
       this.preloadWaterdropSound();
       this.preloadParticleOrbSound();
       this.preloadWaterdropToneOnSound();
+      this.preloadCraneFoldingSound();
     }
   }
 
@@ -242,6 +248,9 @@ export class AudioService {
       }
       if (this.waterdropToneOnArrayBuffer && !this.waterdropToneOnBuffer) {
         this.decodeWaterdropToneOnBuffer(this.waterdropToneOnArrayBuffer);
+      }
+      if (this.craneFoldingArrayBuffer && !this.craneFoldingBuffer) {
+        this.decodeCraneFoldingBuffer(this.craneFoldingArrayBuffer);
       }
     }
 
@@ -888,6 +897,203 @@ export class AudioService {
       }
     } catch (err) {
       console.warn('Could not instantiate Audio for waterdrop-tone-on:', err);
+    }
+  }
+
+  /**
+   * Preload crane folding sound (crane-folding.mp3)
+   */
+  private preloadCraneFoldingSound(): void {
+    const isTestEnv = !!(globalThis as unknown as { process?: { env?: Record<string, string> } })
+      ?.process?.env?.['VITEST'];
+
+    if (
+      typeof window === 'undefined' ||
+      !window.location ||
+      window.location.protocol.startsWith('about:') ||
+      isTestEnv ||
+      this.craneFoldingLoadingPromise
+    ) {
+      return;
+    }
+
+    const soundUrl =
+      window.location.origin &&
+      window.location.origin !== 'null' &&
+      !window.location.origin.startsWith('about:')
+        ? `${window.location.origin}/sounds/crane-folding.mp3`
+        : '/sounds/crane-folding.mp3';
+
+    try {
+      const preAudio = new Audio(soundUrl);
+      preAudio.preload = 'auto';
+    } catch {
+      // Audio element creation may fail in headless test environments
+    }
+
+    this.craneFoldingLoadingPromise = fetch(soundUrl)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+        return res.arrayBuffer();
+      })
+      .then((buf) => {
+        this.craneFoldingArrayBuffer = buf;
+        if (this.ctx) {
+          this.decodeCraneFoldingBuffer(buf);
+        }
+        return buf;
+      })
+      .catch((err) => {
+        console.warn('Could not preload crane-folding.mp3:', err);
+        return null;
+      });
+  }
+
+  private decodeCraneFoldingBuffer(arrayBuf: ArrayBuffer): void {
+    if (!this.ctx || this.craneFoldingBuffer) return;
+    this.ctx
+      .decodeAudioData(arrayBuf.slice(0))
+      .then((decoded) => {
+        this.craneFoldingBuffer = decoded;
+      })
+      .catch((err) => {
+        console.warn('decodeAudioData for crane folding sound failed:', err);
+      });
+  }
+
+  /**
+   * Plays the origami crane folding sound (crane-folding.mp3) with an organic, gentle fade-out at the end.
+   */
+  playCraneFolding(volume = 0.85): void {
+    if (this.isMuted()) return;
+    this.initContext();
+
+    if (this.ctx && this.craneFoldingBuffer) {
+      this.playCraneFoldingBuffer(this.craneFoldingBuffer, volume);
+      return;
+    }
+
+    if (this.craneFoldingArrayBuffer && this.ctx) {
+      this.ctx
+        .decodeAudioData(this.craneFoldingArrayBuffer.slice(0))
+        .then((decoded) => {
+          this.craneFoldingBuffer = decoded;
+          this.playCraneFoldingBuffer(decoded, volume);
+        })
+        .catch(() => {
+          this.playCraneFoldingFallback(volume);
+        });
+      return;
+    }
+
+    if (this.craneFoldingLoadingPromise) {
+      this.craneFoldingLoadingPromise
+        .then((buf) => {
+          if (buf && this.ctx) {
+            this.ctx.decodeAudioData(buf.slice(0)).then((decoded) => {
+              this.craneFoldingBuffer = decoded;
+              this.playCraneFoldingBuffer(decoded, volume);
+            });
+          } else {
+            this.playCraneFoldingFallback(volume);
+          }
+        })
+        .catch(() => {
+          this.playCraneFoldingFallback(volume);
+        });
+      return;
+    }
+
+    this.playCraneFoldingFallback(volume);
+  }
+
+  /**
+   * Play pre-decoded crane folding AudioBuffer via Web Audio API with a gentle fade-out curve.
+   */
+  private playCraneFoldingBuffer(buffer: AudioBuffer, targetVolume = 0.85): void {
+    if (!this.ctx || this.isMuted()) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+
+    const now = this.ctx.currentTime;
+    const duration = buffer.duration;
+    // Smoothly fade out across the final 0.6 seconds (or up to 40% of duration)
+    const fadeDuration = Math.min(0.65, duration * 0.45);
+    const fadeStart = now + Math.max(0.01, duration - fadeDuration);
+    const stopTime = now + duration;
+
+    const source = this.ctx.createBufferSource();
+    source.buffer = buffer;
+
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(targetVolume, now);
+    gain.gain.setValueAtTime(targetVolume, fadeStart);
+    // Smooth exponential ramp down into silence for a soft, natural acoustic fade
+    gain.gain.exponentialRampToValueAtTime(0.0001, stopTime);
+    gain.gain.setValueAtTime(0, stopTime);
+
+    source.connect(gain);
+    // Direct connection to master destination for clear, crisp audible presence
+    gain.connect(this.ctx.destination);
+
+    source.start(now);
+    source.stop(stopTime + 0.05);
+  }
+
+  /**
+   * Fallback using HTMLAudioElement with smooth end fade-out
+   */
+  private playCraneFoldingFallback(targetVolume = 0.85): void {
+    if (this.isMuted() || typeof window === 'undefined') return;
+    const soundUrl =
+      window.location.origin &&
+      window.location.origin !== 'null' &&
+      !window.location.origin.startsWith('about:')
+        ? `${window.location.origin}/sounds/crane-folding.mp3`
+        : '/sounds/crane-folding.mp3';
+
+    try {
+      const audio = new Audio(soundUrl);
+      audio.volume = Math.min(1.0, Math.max(0, targetVolume));
+
+      const fadeDuration = 0.65;
+      let fadeStarted = false;
+
+      const onTimeUpdate = () => {
+        if (!fadeStarted && audio.duration && audio.duration - audio.currentTime <= fadeDuration) {
+          fadeStarted = true;
+          const startVol = audio.volume;
+          const startTime = performance.now();
+          const fadeMs = fadeDuration * 1000;
+
+          const fadeStep = () => {
+            const elapsed = performance.now() - startTime;
+            const progress = Math.min(1, elapsed / fadeMs);
+            const factor = Math.pow(1 - progress, 1.8);
+            audio.volume = Math.max(0, startVol * factor);
+
+            if (progress < 1 && !audio.paused) {
+              requestAnimationFrame(fadeStep);
+            }
+          };
+          requestAnimationFrame(fadeStep);
+        }
+      };
+
+      audio.addEventListener('timeupdate', onTimeUpdate);
+      audio.addEventListener('ended', () => {
+        audio.removeEventListener('timeupdate', onTimeUpdate);
+      });
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          console.warn('Fallback playCraneFolding failed:', err);
+        });
+      }
+    } catch (err) {
+      console.warn('Could not instantiate Audio for crane-folding:', err);
     }
   }
 }

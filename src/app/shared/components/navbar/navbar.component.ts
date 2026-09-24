@@ -2,24 +2,27 @@ import {
   Component,
   inject,
   signal,
-  computed,
   HostListener,
-  ViewChild,
-  ElementRef,
   NgZone,
   AfterViewInit,
   OnDestroy,
+  ElementRef,
 } from '@angular/core';
 import { RouterLink, Router, NavigationEnd } from '@angular/router';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { filter } from 'rxjs/operators';
 import { AudioService } from '../../../core/services/audio.service';
-import { GameRegistryService } from '../../../core/services/game-registry.service';
+import { SmoothScrollService } from '../../../core/services/smooth-scroll.service';
 
-export interface WorldItem {
+export interface CategoryItem {
   id: string;
   title: string;
-  fullTitle: string;
-  route: string;
+  subtitle: string;
+  description: string;
+  badge: 'Aktiv' | 'In Erforschung' | 'In Entwicklung';
+  route?: string;
+  iconSvg: SafeHtml;
+  tags: string[];
 }
 
 @Component({
@@ -30,60 +33,127 @@ export interface WorldItem {
 })
 export class NavbarComponent implements AfterViewInit, OnDestroy {
   readonly audioService = inject(AudioService);
-  private readonly gameRegistry = inject(GameRegistryService);
+  private readonly smoothScroll = inject(SmoothScrollService);
   private readonly router = inject(Router);
   private readonly ngZone = inject(NgZone);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly elementRef = inject(ElementRef);
 
   readonly isVisible = signal<boolean>(false);
   private isLandingPage = signal<boolean>(true);
 
-  @ViewChild('wheelViewport')
-  private wheelViewportRef?: ElementRef<HTMLElement>;
+  // Origami Crane State
+  readonly flightState = signal<'flying' | 'landed'>('flying');
+  readonly isFlapping = signal<boolean>(false);
+  readonly isDropdownOpen = signal<boolean>(false);
+  readonly isDropdownClosing = signal<boolean>(false);
 
-  @ViewChild('wheelCylinder')
-  private wheelCylinderRef?: ElementRef<HTMLElement>;
-
-  // Dynamically registered worlds (clean display titles, no emojis)
-  readonly worlds = computed<WorldItem[]>(() => {
-    return this.gameRegistry.games().map((game) => ({
-      id: game.id,
-      title: this.cleanWorldTitle(game.title),
-      fullTitle: game.title,
-      route: game.route,
-    }));
-  });
-
-  // 8 tire slots repeating the 4 worlds around the tire circumference
-  readonly tireSlots = computed<WorldItem[]>(() => {
-    const w = this.worlds();
-    if (w.length === 0) return [];
-    return [...w, ...w];
-  });
-
-  readonly angleStep = computed(() => {
-    const count = Math.max(1, this.tireSlots().length);
-    return 360 / count; // 45 degrees per slot for 8 slots
-  });
-
-  readonly activeSlotIndex = signal<number>(0);
-  readonly activeWorldIndex = computed(() => {
-    const count = this.worlds().length;
-    if (count === 0) return 0;
-    return this.activeSlotIndex() % count;
-  });
-
-  // 3D physics state
-  private currentAngle = 0;
-  private targetAngle = 0;
-  private velocity = 0;
-  private isDragging = false;
-  private startX = 0;
-  private lastX = 0;
-  private lastTime = 0;
-  private dragDistance = 0;
-  private hasDragged = false;
-  private animFrameId: number | null = null;
+  private flapTimeoutId: number | null = null;
+  private flightTimeoutId: number | null = null;
+  private closeTimeoutId: number | null = null;
+  private lastScrollY = 0;
+  private dropdownOpenScrollY = 0;
   private isDestroyed = false;
+
+  readonly categories: CategoryItem[] = [
+    {
+      id: 'mathematik',
+      title: 'Mathematik',
+      subtitle: 'Geometrie & Kosmische Ordnung',
+      description: 'Erforsche fraktale Harmonien, physikalische Bahnkurven und die mathematische Symmetrie des Raumes.',
+      badge: 'In Erforschung',
+      tags: ['Geometrie', 'Fraktale', 'Gleichungen'],
+      iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9" opacity="0.35"/>
+          <polygon points="12 4 20 18 4 18"/>
+          <circle cx="12" cy="13" r="2.5"/>
+          <line x1="12" y1="4" x2="12" y2="18" stroke-dasharray="1.5 2"/>
+        </svg>
+      `),
+    },
+    {
+      id: 'astronomie',
+      title: 'Astronomie',
+      subtitle: 'Cosmic Zen Sculptor',
+      description: 'Erschaffe leuchtende Himmelskörper in einem interaktiven 3D-Universum mit sanften Gravitations-Orbits.',
+      badge: 'Aktiv',
+      route: '/game/cosmic-sculptor',
+      tags: ['3D WebGL', 'Kosmos', 'Gravitation'],
+      iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <ellipse cx="12" cy="12" rx="10" ry="3.5" transform="rotate(-25 12 12)"/>
+          <path d="M19 5 L20 7 L22 7.5 L20 8.5 L19 10.5 L18 8.5 L16 7.5 L18 7 Z" fill="currentColor" stroke="none"/>
+        </svg>
+      `),
+    },
+    {
+      id: 'natur',
+      title: 'Natur',
+      subtitle: 'Zen Sand & Ripple',
+      description: 'Ziehe beruhigende Linien in feinen Sand, platziere glatte Kiesel und beobachte schwebende Sternenblüten.',
+      badge: 'Aktiv',
+      route: '/game/zen-sand',
+      tags: ['Sandgarten', 'Wellen', 'Meditation'],
+      iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2C6.5 7 4 12 6 16.5C8 21 16 21 18 16.5C20 12 17.5 7 12 2Z"/>
+          <path d="M12 7V19"/>
+          <path d="M12 12C9.5 13 8 14.5 8 16"/>
+          <path d="M12 10C14.5 11 16 12.5 16 14"/>
+        </svg>
+      `),
+    },
+    {
+      id: 'geraeusche',
+      title: 'Geräusche',
+      subtitle: 'Cozy Soundscape',
+      description: 'Binauraler Ambient-Raum mit sanftem Weltraumregen, Kaminfeuer und beruhigenden Synth-Klangflächen.',
+      badge: 'Aktiv',
+      route: '/game/soundscape-mixer',
+      tags: ['Binaural', 'Soundscape', 'Fokus'],
+      iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 14h3l3.5-7 3.5 14 3.5-9 2 4h3"/>
+          <circle cx="3" cy="14" r="1.5" fill="currentColor"/>
+          <circle cx="21" cy="16" r="1.5" fill="currentColor"/>
+        </svg>
+      `),
+    },
+    {
+      id: 'relax',
+      title: 'Relax',
+      subtitle: 'Bubble Harmony',
+      description: 'Puste schimmernde Seifenblasen in den Raum und bringe sie mit harmonischen pentatonischen Akkorden zum Klingen.',
+      badge: 'Aktiv',
+      route: '/game/bubble-harmony',
+      tags: ['Zen Audio', 'Seifenblasen', 'Harmonie'],
+      iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="10" cy="14" r="6"/>
+          <circle cx="17" cy="8" r="4" opacity="0.75"/>
+          <circle cx="17.5" cy="16.5" r="2.5" opacity="0.6"/>
+          <path d="M7.5 11.5a3 3 0 0 1 3-3" stroke-linecap="round"/>
+        </svg>
+      `),
+    },
+    {
+      id: 'abenteuer',
+      title: 'Abenteuer',
+      subtitle: 'Kosmische Quests & Mysterien',
+      description: 'Verbinde alle Welten, entschlüssele geheime Resonanzen und entdecke verborgene Origami-Pfade.',
+      badge: 'In Entwicklung',
+      tags: ['Quests', 'Geheimnisse', 'Erkundung'],
+      iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/>
+          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor" fill-opacity="0.2"/>
+          <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+        </svg>
+      `),
+    },
+  ];
 
   constructor() {
     this.router.events
@@ -93,36 +163,77 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
         const isLanding = url === '/' || url === '';
         this.isLandingPage.set(isLanding);
         this.checkVisibility();
-        this.alignToCurrentRoute(url);
+        this.closeDropdown(true);
       });
+
+    // Automatically collapse dropdown when switching sections via Orbs or smooth scroll
+    this.smoothScroll.programmaticScroll$.subscribe(() => {
+      if (this.isDropdownOpen()) {
+        this.closeDropdown();
+      }
+    });
   }
 
   ngAfterViewInit(): void {
-    this.setupViewportEvents();
-    this.startAnimationLoop();
-    this.alignToCurrentRoute(this.router.url);
+    this.checkVisibility();
+    this.startCraneFlight();
+    this.scheduleNextFlap();
   }
 
   ngOnDestroy(): void {
     this.isDestroyed = true;
-    if (this.animFrameId !== null) {
-      cancelAnimationFrame(this.animFrameId);
+    if (this.flapTimeoutId !== null) {
+      clearTimeout(this.flapTimeoutId);
     }
-    const el = this.wheelViewportRef?.nativeElement;
-    if (el) {
-      el.removeEventListener('pointerdown', this.handlePointerDown);
-      el.removeEventListener('wheel', this.handleWheel);
+    if (this.flightTimeoutId !== null) {
+      clearTimeout(this.flightTimeoutId);
     }
-    if (typeof window !== 'undefined') {
-      window.removeEventListener('pointermove', this.handlePointerMove);
-      window.removeEventListener('pointerup', this.handlePointerUp);
-      window.removeEventListener('pointercancel', this.handlePointerUp);
+    if (this.closeTimeoutId !== null) {
+      clearTimeout(this.closeTimeoutId);
+    }
+  }
+
+  @HostListener('window:wheel', ['$event'])
+  onWindowWheel(event: WheelEvent): void {
+    // Immediately collapse dropdown on upward scroll gesture
+    if (this.isDropdownOpen() && event.deltaY < -1) {
+      this.closeDropdown();
     }
   }
 
   @HostListener('window:scroll')
   onScroll(): void {
+    const currentScrollY = typeof window !== 'undefined' ? window.scrollY : 0;
+    const isScrollingUp = currentScrollY < this.lastScrollY - 2;
+    const wasVisible = this.isVisible();
     this.checkVisibility();
+
+    // Close dropdown on scroll up, or when scrolling away from open point
+    if (this.isDropdownOpen()) {
+      if (isScrollingUp || Math.abs(currentScrollY - this.dropdownOpenScrollY) > 25) {
+        this.closeDropdown();
+      }
+    }
+
+    if (!wasVisible && this.isVisible()) {
+      this.startCraneFlight();
+    }
+
+    this.lastScrollY = currentScrollY;
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeDropdown();
+  }
+
+  @HostListener('document:pointerdown', ['$event'])
+  onDocumentPointerDown(event: PointerEvent): void {
+    if (!this.isDropdownOpen() && !this.isDropdownClosing()) return;
+    const target = event.target as HTMLElement | null;
+    if (target && !this.elementRef.nativeElement.contains(target)) {
+      this.closeDropdown();
+    }
   }
 
   private checkVisibility(): void {
@@ -136,230 +247,104 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     this.isVisible.set(window.scrollY >= threshold);
   }
 
-  getItemTransform(index: number): string {
-    const step = this.angleStep();
-    const itemAngle = index * step;
-    const relAngle = (((itemAngle + this.currentAngle) % 360) + 540) % 360 - 180;
-    const rad = (relAngle * Math.PI) / 180;
-    const R = 168;
-    const x = Math.sin(rad) * R;
-    const z = (Math.cos(rad) - 1) * R;
-    const rotY = relAngle;
-    const scale = 0.92 + 0.08 * Math.max(0, Math.cos(rad));
-    return `translate3d(${x.toFixed(1)}px, 0px, ${z.toFixed(1)}px) rotateY(${rotY.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
-  }
-
-  private cleanWorldTitle(title: string): string {
-    return title
-      .replace('Zen Sculptor', 'Sculptor')
-      .replace(' & Ripple', '')
-      .replace('Cozy ', '')
-      .trim();
-  }
-
-  private alignToCurrentRoute(url: string): void {
-    const worlds = this.worlds();
-    const foundIndex = worlds.findIndex((w) => url.startsWith(w.route));
-    if (foundIndex !== -1) {
-      this.rotateToWorldIndex(foundIndex);
+  private startCraneFlight(): void {
+    if (this.flightTimeoutId !== null) {
+      clearTimeout(this.flightTimeoutId);
     }
+    this.flightState.set('flying');
+
+    this.flightTimeoutId = window.setTimeout(() => {
+      if (this.isDestroyed) return;
+      this.flightState.set('landed');
+      this.flightTimeoutId = null;
+    }, 2500);
   }
 
-  private rotateToWorldIndex(worldIndex: number): void {
-    const step = this.angleStep();
-    const count = Math.max(1, this.tireSlots().length);
-    const currentFrontSlot = ((-Math.round(this.targetAngle / step) % count) + count) % count;
-    const opt1 = worldIndex;
-    const opt2 = worldIndex + 4;
-    let diff1 = opt1 - currentFrontSlot;
-    if (diff1 > count / 2) diff1 -= count;
-    if (diff1 < -count / 2) diff1 += count;
-    let diff2 = opt2 - currentFrontSlot;
-    if (diff2 > count / 2) diff2 -= count;
-    if (diff2 < -count / 2) diff2 += count;
-    const bestDiff = Math.abs(diff1) <= Math.abs(diff2) ? diff1 : diff2;
-    this.targetAngle -= bestDiff * step;
-  }
+  /**
+   * Periodically triggers a brief 1-2 wing flap idle motion
+   * matching public/images/1C3E8D36-FF53-4C56-90B4-35DF073A0B54.gif
+   */
+  private scheduleNextFlap(): void {
+    if (this.isDestroyed) return;
 
-  private rotateToSlotIndex(slotIndex: number): void {
-    const step = this.angleStep();
-    const count = Math.max(1, this.tireSlots().length);
-    const currentFrontSlot = ((-Math.round(this.targetAngle / step) % count) + count) % count;
-    let diff = slotIndex - currentFrontSlot;
-    if (diff > count / 2) diff -= count;
-    if (diff < -count / 2) diff += count;
-    this.targetAngle -= diff * step;
-  }
+    // Random delay between 3.5s and 6.5s
+    const delay = 3500 + Math.random() * 3000;
 
-  private setupViewportEvents(): void {
-    const el = this.wheelViewportRef?.nativeElement;
-    if (!el) return;
+    this.flapTimeoutId = window.setTimeout(() => {
+      if (this.isDestroyed) return;
 
-    this.ngZone.runOutsideAngular(() => {
-      el.addEventListener('pointerdown', this.handlePointerDown);
-      if (typeof window !== 'undefined') {
-        window.addEventListener('pointermove', this.handlePointerMove);
-        window.addEventListener('pointerup', this.handlePointerUp);
-        window.addEventListener('pointercancel', this.handlePointerUp);
+      // Flap when perched peacefully, uninterrupted whether menu is open or closed
+      if (this.flightState() === 'landed') {
+        this.ngZone.run(() => {
+          this.isFlapping.set(true);
+        });
+
+        window.setTimeout(() => {
+          if (this.isDestroyed) return;
+          this.ngZone.run(() => {
+            this.isFlapping.set(false);
+          });
+          this.scheduleNextFlap();
+        }, 900);
+      } else {
+        this.scheduleNextFlap();
       }
-      el.addEventListener('wheel', this.handleWheel, { passive: false });
-    });
+    }, delay);
   }
 
-  private handlePointerDown = (event: PointerEvent): void => {
-    if (event.button !== 0) return;
-    this.isDragging = true;
-    this.startX = event.clientX;
-    this.lastX = event.clientX;
-    this.lastTime = performance.now();
-    this.dragDistance = 0;
-    this.hasDragged = false;
-    this.velocity = 0;
-  };
-
-  private handlePointerMove = (event: PointerEvent): void => {
-    if (!this.isDragging) return;
-
-    const now = performance.now();
-    const dt = Math.max(1, now - this.lastTime);
-    const dx = event.clientX - this.lastX;
-
-    this.dragDistance += Math.abs(dx);
-    if (this.dragDistance > 5) {
-      this.hasDragged = true;
+  toggleDropdown(): void {
+    if (this.isDropdownOpen()) {
+      this.closeDropdown();
+    } else {
+      if (this.closeTimeoutId !== null) {
+        clearTimeout(this.closeTimeoutId);
+        this.closeTimeoutId = null;
+      }
+      this.isDropdownClosing.set(false);
+      this.dropdownOpenScrollY = typeof window !== 'undefined' ? window.scrollY : 0;
+      this.isDropdownOpen.set(true);
+      this.audioService.playCraneFolding(1.0);
     }
+  }
 
-    const sensitivity = 0.36;
-    this.targetAngle += dx * sensitivity;
+  closeDropdown(immediate = false): void {
+    if (!this.isDropdownOpen() && !this.isDropdownClosing()) return;
 
-    const currentVelocity = (dx / dt) * 16 * sensitivity;
-    this.velocity = this.velocity * 0.4 + currentVelocity * 0.6;
-
-    this.lastX = event.clientX;
-    this.lastTime = now;
-  };
-
-  private handlePointerUp = (_event: PointerEvent): void => {
-    if (!this.isDragging) return;
-    this.isDragging = false;
-
-    if (this.hasDragged) {
-      setTimeout(() => {
-        this.hasDragged = false;
-      }, 120);
-    }
-  };
-
-  private handleWheel = (event: WheelEvent): void => {
-    event.preventDefault();
-    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
-    this.targetAngle += delta * -0.22;
-    this.velocity = delta * -0.15;
-  };
-
-  onSlotClick(event: MouseEvent, slot: WorldItem, index: number): void {
-    if (this.hasDragged || this.activeSlotIndex() !== index) {
-      event.preventDefault();
-      event.stopPropagation();
+    if (immediate) {
+      if (this.closeTimeoutId !== null) {
+        clearTimeout(this.closeTimeoutId);
+        this.closeTimeoutId = null;
+      }
+      this.isDropdownOpen.set(false);
+      this.isDropdownClosing.set(false);
       return;
     }
 
-    this.router.navigateByUrl(slot.route);
+    if (this.isDropdownClosing()) return;
+
+    this.isDropdownOpen.set(false);
+    this.isDropdownClosing.set(true);
+    this.audioService.playCraneFolding(1.0);
+
+    if (this.closeTimeoutId !== null) {
+      clearTimeout(this.closeTimeoutId);
+    }
+
+    this.closeTimeoutId = window.setTimeout(() => {
+      if (this.isDestroyed) return;
+      this.isDropdownClosing.set(false);
+      this.closeTimeoutId = null;
+    }, 1450);
+  }
+
+  onCategoryClick(cat: CategoryItem): void {
+    if (cat.route) {
+      this.closeDropdown(true);
+      this.router.navigateByUrl(cat.route);
+    }
   }
 
   onToggleAudio(): void {
     this.audioService.toggleSound();
-  }
-
-  private startAnimationLoop(): void {
-    const loop = () => {
-      if (this.isDestroyed) return;
-
-      const step = this.angleStep();
-      const count = Math.max(1, this.tireSlots().length);
-
-      if (!this.isDragging) {
-        this.velocity *= 0.92;
-        if (Math.abs(this.velocity) > 0.01) {
-          this.targetAngle += this.velocity;
-        }
-
-        // Snap smoothly to nearest tire slot when coasting down
-        if (Math.abs(this.velocity) < 0.12) {
-          const snapSlot = Math.round(this.targetAngle / step);
-          const snapTarget = snapSlot * step;
-          if (Math.abs(snapTarget - this.targetAngle) < 0.02) {
-            this.targetAngle = snapTarget;
-          } else {
-            this.targetAngle += (snapTarget - this.targetAngle) * 0.12;
-          }
-        }
-      }
-
-      // Smooth lerp with zero-jitter standstill threshold
-      if (Math.abs(this.targetAngle - this.currentAngle) < 0.02) {
-        this.currentAngle = this.targetAngle;
-      } else {
-        this.currentAngle += (this.targetAngle - this.currentAngle) * 0.16;
-      }
-
-      // Update 3D tire positioning: pills glued onto the outer circumference of a horizontal tire
-      const cylinder = this.wheelCylinderRef?.nativeElement;
-      if (cylinder) {
-        const viewport = cylinder.parentElement;
-        const viewportWidth = viewport?.clientWidth || 390;
-        const R = Math.min(168, Math.round(viewportWidth * 0.42));
-
-        const items = cylinder.querySelectorAll<HTMLElement>('.wheel-item');
-        items.forEach((el, i) => {
-          const itemAngle = i * step;
-          const relAngle = (((itemAngle + this.currentAngle) % 360) + 540) % 360 - 180;
-          const rad = (relAngle * Math.PI) / 180;
-
-          // Pure circular tire math: center at (0, 0, -R)
-          const x = Math.sin(rad) * R;
-          const z = (Math.cos(rad) - 1) * R;
-          // Tangent to cylinder surface: tilted backwards into depth
-          const rotY = relAngle;
-          const scale = 0.92 + 0.08 * Math.max(0, Math.cos(rad));
-          const depthFactor = (1 + Math.cos(rad)) / 2;
-
-          // Render visible front half and flanks; hide back of the tire
-          if (Math.cos(rad) > -0.2) {
-            el.style.transform = `translate3d(${x.toFixed(1)}px, 0px, ${z.toFixed(1)}px) rotateY(${rotY.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
-            const isCenterPill = Math.abs(relAngle) < 12 && i === this.activeSlotIndex();
-            el.style.pointerEvents = isCenterPill ? 'auto' : 'none';
-            el.style.cursor = isCenterPill ? 'pointer' : 'grab';
-            el.style.visibility = 'visible';
-
-            // Depth blur: center pill is crisp, outer curving ends get blur
-            const blurAmount = Math.pow(1 - depthFactor, 1.35) * 3.6;
-            el.style.filter = blurAmount > 0.15 ? `blur(${blurAmount.toFixed(1)}px)` : 'none';
-
-            el.classList.toggle('is-side-left', relAngle < -15);
-            el.classList.toggle('is-side-right', relAngle > 15);
-          } else {
-            el.style.opacity = '0';
-            el.style.visibility = 'hidden';
-            el.style.pointerEvents = 'none';
-            el.style.filter = 'none';
-            el.classList.remove('is-side-left', 'is-side-right');
-          }
-        });
-
-        const normalizedSlot = ((-Math.round(this.currentAngle / step) % count) + count) % count;
-        if (normalizedSlot !== this.activeSlotIndex()) {
-          this.ngZone.run(() => {
-            this.activeSlotIndex.set(normalizedSlot);
-          });
-        }
-      }
-
-      this.animFrameId = requestAnimationFrame(loop);
-    };
-
-    this.ngZone.runOutsideAngular(() => {
-      this.animFrameId = requestAnimationFrame(loop);
-    });
   }
 }

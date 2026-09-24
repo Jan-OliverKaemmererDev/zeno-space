@@ -1,4 +1,5 @@
 import { Injectable, NgZone, signal, computed, inject } from '@angular/core';
+import { Subject } from 'rxjs';
 
 export interface SmoothScrollOptions {
   friction?: number;
@@ -14,7 +15,8 @@ export interface SmoothScrollOptions {
 export class SmoothScrollService {
   private readonly ngZone = inject(NgZone);
 
-  // Reactive state signals
+  // Reactive state signals and streams
+  readonly programmaticScroll$ = new Subject<number>();
   readonly overscrollOffset = signal<number>(0);
   readonly isOverscrolling = computed(() => Math.abs(this.overscrollOffset()) > 0.5);
   readonly currentScrollY = signal<number>(0);
@@ -95,6 +97,7 @@ export class SmoothScrollService {
     const maxScroll = this.getMaxScroll();
     const clampedDest = Math.max(0, Math.min(maxScroll, destinationY));
 
+    this.programmaticScroll$.next(clampedDest);
     this.isProgrammatic = true;
     this.targetY = clampedDest;
     this.targetOverscroll = 0;
