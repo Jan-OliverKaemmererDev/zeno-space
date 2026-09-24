@@ -2,211 +2,214 @@
   <!-- Living WebGL Procedural Anime Cloud Canvas -->
   <canvas #cloudCanvas class="cloud-canvas"></canvas>
 
-  <!-- Hero Section with transparent view into living anime sky -->
-  <section class="hero-section" id="hero">
-    <!-- Top-Right: Transparent Circular Audio Mute / Unmute Toggle Button -->
-    <button 
-      type="button" 
-      class="hero-sound-toggle"
-      [class.is-playing]="!audioService.isMuted()"
-      (click)="toggleSound()"
-      [attr.aria-label]="audioService.isMuted() ? 'Musik abspielen' : 'Musik stummschalten'"
-      [title]="audioService.isMuted() ? 'Musik abspielen (Space Ambient)' : 'Musik stummschalten (Space Ambient läuft)'"
-    >
-      @if (!audioService.isMuted()) {
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-          <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-          <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
-        </svg>
-      } @else {
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-          <line x1="23" y1="9" x2="17" y2="15" />
-          <line x1="17" y1="9" x2="23" y2="15" />
-        </svg>
-      }
-    </button>
-
-    <!-- Center: "Willkommen im Zeno-Space" without pill, letters emerging like air bubbles -->
-    <div 
-      class="hero-center-container"
-      (pointermove)="onHeadingPointerMove($event)"
-      (pointerleave)="onHeadingPointerLeave()"
-      (pointerup)="onHeadingPointerLeave()"
-    >
-      <h1 class="bubble-letters-heading" aria-label="Willkommen im Zeno-Space">
-        @for (phrase of textPhrases; track $index) {
-          <span class="bubble-phrase">
-            @for (word of phrase.words; track $index) {
-              <span class="bubble-word">
-                @for (item of word.letters; track item.globalIndex) {
-                  <span 
-                    class="bubble-letter-carrier" 
-                    [style.--bubble-index]="item.globalIndex"
-                  >
-                    <span class="bubble-letter">{{ item.char }}</span>
-                  </span>
-                }
-              </span>
-            }
-          </span>
-        }
-      </h1>
-    </div>
-
-    <!-- Scroll Down Prompter (with blue dot matching the image) -->
-    <div 
-      class="scroll-prompter hero-ui-fade" 
-      [class.is-hidden]="hasPrompterScrolledOnce() && !isPrompterVisible()"
-      [class.is-waking]="hasPrompterScrolledOnce() && isPrompterVisible()"
-      (click)="scrollToHub()" 
-      (keydown.enter)="scrollToHub()"
-      (keydown.space)="scrollToHub(); $event.preventDefault()"
-      (pointermove)="onPrompterPointerMove($event)"
-      (pointerleave)="onPrompterPointerLeave()"
-      (pointerup)="onPrompterPointerLeave()"
-      role="button" 
-      tabindex="0"
-    >
-      <span class="prompter-text" aria-label="Nach unten schweben">
-        @for (word of prompterWords; track $index) {
-          <span class="prompter-word-carrier" [style.--word-index]="$index">
-            <span class="prompter-word">{{ word }}</span>
-          </span>
-        }
-      </span>
-      <div class="prompter-bubble">
-        <div class="prompter-dot">
-          <span class="prompter-trail trail-1" aria-hidden="true"></span>
-          <span class="prompter-trail trail-2" aria-hidden="true"></span>
-          <span class="prompter-trail trail-3" aria-hidden="true"></span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Mini-Game Hub Section -->
-  <section class="bubble-hub-section" id="bubble-hub">
-    <div class="section-header">
-      <div 
-        class="hub-title-container"
-        [class.is-visible]="isHubTitleVisible()"
-        (pointermove)="onHubHeadingPointerMove($event)"
-        (pointerleave)="onHubHeadingPointerLeave()"
-        (pointerup)="onHubHeadingPointerLeave()"
+  <!-- Content Body receiving the elastic rubber-band transform -->
+  <div #scrollBody class="landing-scroll-body">
+    <!-- Hero Section with transparent view into living anime sky -->
+    <section class="hero-section" id="hero">
+      <!-- Top-Right: Transparent Circular Audio Mute / Unmute Toggle Button -->
+      <button 
+        type="button" 
+        class="hero-sound-toggle"
+        [class.is-playing]="!audioService.isMuted()"
+        (click)="toggleSound()"
+        [attr.aria-label]="audioService.isMuted() ? 'Musik abspielen' : 'Musik stummschalten'"
+        [title]="audioService.isMuted() ? 'Musik abspielen (Space Ambient)' : 'Musik stummschalten (Space Ambient läuft)'"
       >
-        <h2 class="hub-bubble-heading" aria-label="Interaktive Welten">
-          @for (phrase of hubPhrases; track $index) {
-            <span class="hub-phrase">
+        @if (!audioService.isMuted()) {
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+          </svg>
+        } @else {
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <line x1="23" y1="9" x2="17" y2="15" />
+            <line x1="17" y1="9" x2="23" y2="15" />
+          </svg>
+        }
+      </button>
+
+      <!-- Center: "Willkommen im Zeno-Space" without pill, letters emerging like air bubbles -->
+      <div 
+        class="hero-center-container"
+        (pointermove)="onHeadingPointerMove($event)"
+        (pointerleave)="onHeadingPointerLeave()"
+        (pointerup)="onHeadingPointerLeave()"
+      >
+        <h1 class="bubble-letters-heading" aria-label="Willkommen im Zeno-Space">
+          @for (phrase of textPhrases; track $index) {
+            <span class="bubble-phrase">
               @for (word of phrase.words; track $index) {
-                <span class="hub-word">
+                <span class="bubble-word">
                   @for (item of word.letters; track item.globalIndex) {
                     <span 
-                      class="hub-letter-carrier" 
+                      class="bubble-letter-carrier" 
                       [style.--bubble-index]="item.globalIndex"
                     >
-                      <span class="hub-letter">{{ item.char }}</span>
+                      <span class="bubble-letter">{{ item.char }}</span>
                     </span>
                   }
                 </span>
               }
             </span>
           }
-        </h2>
+        </h1>
       </div>
-      <p class="section-subtitle">
-        Jedes Mini-Game ruht in einem sanft schwebenden Glaskörper. Berühre sie mit der Maus,
-        bringe sie zum Schwingen oder klicke, um einzutauchen.
-      </p>
 
-      <!-- Category Filter Pills -->
-      <div class="filter-pills">
-        @for (f of filters; track f.value) {
-          <button 
-            type="button" 
-            class="filter-pill"
-            [class.active]="activeFilter() === f.value"
-            (click)="setFilter(f.value)"
-          >
-            {{ f.label }}
-          </button>
+      <!-- Scroll Down Prompter (with blue dot matching the image) -->
+      <div 
+        class="scroll-prompter hero-ui-fade" 
+        [class.is-hidden]="hasPrompterScrolledOnce() && !isPrompterVisible()"
+        [class.is-waking]="hasPrompterScrolledOnce() && isPrompterVisible()"
+        (click)="scrollToHub()" 
+        (keydown.enter)="scrollToHub()"
+        (keydown.space)="scrollToHub(); $event.preventDefault()"
+        (pointermove)="onPrompterPointerMove($event)"
+        (pointerleave)="onPrompterPointerLeave()"
+        (pointerup)="onPrompterPointerLeave()"
+        role="button" 
+        tabindex="0"
+      >
+        <span class="prompter-text" aria-label="Nach unten schweben">
+          @for (word of prompterWords; track $index) {
+            <span class="prompter-word-carrier" [style.--word-index]="$index">
+              <span class="prompter-word">{{ word }}</span>
+            </span>
+          }
+        </span>
+        <div class="prompter-bubble">
+          <div class="prompter-dot">
+            <span class="prompter-trail trail-1" aria-hidden="true"></span>
+            <span class="prompter-trail trail-2" aria-hidden="true"></span>
+            <span class="prompter-trail trail-3" aria-hidden="true"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mini-Game Hub Section -->
+    <section class="bubble-hub-section" id="bubble-hub">
+      <div class="section-header">
+        <div 
+          class="hub-title-container"
+          [class.is-visible]="isHubTitleVisible()"
+          (pointermove)="onHubHeadingPointerMove($event)"
+          (pointerleave)="onHubHeadingPointerLeave()"
+          (pointerup)="onHubHeadingPointerLeave()"
+        >
+          <h2 class="hub-bubble-heading" aria-label="Interaktive Welten">
+            @for (phrase of hubPhrases; track $index) {
+              <span class="hub-phrase">
+                @for (word of phrase.words; track $index) {
+                  <span class="hub-word">
+                    @for (item of word.letters; track item.globalIndex) {
+                      <span 
+                        class="hub-letter-carrier" 
+                        [style.--bubble-index]="item.globalIndex"
+                      >
+                        <span class="hub-letter">{{ item.char }}</span>
+                      </span>
+                    }
+                  </span>
+                }
+              </span>
+            }
+          </h2>
+        </div>
+        <p class="section-subtitle">
+          Jedes Mini-Game ruht in einem sanft schwebenden Glaskörper. Berühre sie mit der Maus,
+          bringe sie zum Schwingen oder klicke, um einzutauchen.
+        </p>
+
+        <!-- Category Filter Pills -->
+        <div class="filter-pills">
+          @for (f of filters; track f.value) {
+            <button 
+              type="button" 
+              class="filter-pill"
+              [class.active]="activeFilter() === f.value"
+              (click)="setFilter(f.value)"
+            >
+              {{ f.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Cards Playground -->
+      <div class="bubbles-playground">
+        @for (game of filteredGames(); track game.id) {
+          <div class="bubble-slot" [class]="'slot-' + game.id">
+            <app-bubble-card [game]="game"></app-bubble-card>
+          </div>
         }
       </div>
-    </div>
 
-    <!-- Cards Playground -->
-    <div class="bubbles-playground">
-      @for (game of filteredGames(); track game.id) {
-        <div class="bubble-slot" [class]="'slot-' + game.id">
-          <app-bubble-card [game]="game"></app-bubble-card>
+      <!-- Sound Tip Banner -->
+      <div class="sound-tip-banner">
+        <div class="tip-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18h6"/>
+            <path d="M10 22h4"/>
+            <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
+          </svg>
         </div>
-      }
-    </div>
-
-    <!-- Sound Tip Banner -->
-    <div class="sound-tip-banner">
-      <div class="tip-icon">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M9 18h6"/>
-          <path d="M10 22h4"/>
-          <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
-        </svg>
-      </div>
-      <p class="tip-text">
-        <strong>Tipp für maximale Entspannung:</strong> Genieße den <em>Space-Ambient-Soundtrack</em>
-        auf der Startseite oder schalte ihn über den Button oben rechts jederzeit stumm.
-      </p>
-    </div>
-  </section>
-
-  <!-- Cozy Sanctuary Section -->
-  <section class="cozy-sanctuary-section" id="sanctuary">
-    <div class="sanctuary-card">
-      <div class="sanctuary-glow"></div>
-      <div class="sanctuary-inner">
-        <span class="sanctuary-badge">Das zeno-space Manifest</span>
-        <h3 class="sanctuary-title">Warum gemütlich & entschleunigt?</h3>
-        <p class="sanctuary-text">
-          Das Internet ist oft laut, hektisch und voller endloser Feeds. <strong>zeno-space</strong>
-          ist ein bewusstes Gegenstück: Ein digitaler Wohlfühlort ohne Highscores, ohne Hektik und ohne Werbung.
-          Hier geht es einzig um das beruhigende Gefühl von sanften physikalischen Bewegungen, wunderschönen
-          Farben und spielerischer Achtsamkeit.
+        <p class="tip-text">
+          <strong>Tipp für maximale Entspannung:</strong> Genieße den <em>Space-Ambient-Soundtrack</em>
+          auf der Startseite oder schalte ihn über den Button oben rechts jederzeit stumm.
         </p>
-        <div class="sanctuary-stats">
-          <div class="stat-pill">
-            <span class="stat-value">60 FPS</span>
-            <span class="stat-label">Flüssiges Schweben</span>
-          </div>
-          <div class="stat-pill">
-            <span class="stat-value">WebGL</span>
-            <span class="stat-label">Hardware-3D</span>
-          </div>
-          <div class="stat-pill">
-            <span class="stat-value">WebAudio</span>
-            <span class="stat-label">Synthesizer</span>
+      </div>
+    </section>
+
+    <!-- Cozy Sanctuary Section -->
+    <section class="cozy-sanctuary-section" id="sanctuary">
+      <div class="sanctuary-card">
+        <div class="sanctuary-glow"></div>
+        <div class="sanctuary-inner">
+          <span class="sanctuary-badge">Das zeno-space Manifest</span>
+          <h3 class="sanctuary-title">Warum gemütlich & entschleunigt?</h3>
+          <p class="sanctuary-text">
+            Das Internet ist oft laut, hektisch und voller endloser Feeds. <strong>zeno-space</strong>
+            ist ein bewusstes Gegenstück: Ein digitaler Wohlfühlort ohne Highscores, ohne Hektik und ohne Werbung.
+            Hier geht es einzig um das beruhigende Gefühl von sanften physikalischen Bewegungen, wunderschönen
+            Farben und spielerischer Achtsamkeit.
+          </p>
+          <div class="sanctuary-stats">
+            <div class="stat-pill">
+              <span class="stat-value">60 FPS</span>
+              <span class="stat-label">Flüssiges Schweben</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-value">WebGL</span>
+              <span class="stat-label">Hardware-3D</span>
+            </div>
+            <div class="stat-pill">
+              <span class="stat-value">WebAudio</span>
+              <span class="stat-label">Synthesizer</span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- Cozy Footer -->
-  <footer class="cozy-footer">
-    <div class="footer-orb"></div>
-    <p class="footer-text">
-      Erschaffen für gemütliche Momente & Entspannung in deinem Wohlfühlort. Mit Liebe gebaut für <strong>zeno-space</strong>.
-    </p>
-    <div class="footer-links">
-      <a routerLink="/game/cosmic-sculptor">3D Cosmos</a>
-      <span>•</span>
-      <a routerLink="/game/bubble-harmony">Bubble Harmony</a>
-      <span>•</span>
-      <a routerLink="/game/zen-sand">Zen Sand</a>
-      <span>•</span>
-      <a routerLink="/game/soundscape-mixer">Soundscape</a>
-    </div>
-  </footer>
+    <!-- Cozy Footer -->
+    <footer class="cozy-footer">
+      <div class="footer-orb"></div>
+      <p class="footer-text">
+        Erschaffen für gemütliche Momente & Entspannung in deinem Wohlfühlort. Mit Liebe gebaut für <strong>zeno-space</strong>.
+      </p>
+      <div class="footer-links">
+        <a routerLink="/game/cosmic-sculptor">3D Cosmos</a>
+        <span>•</span>
+        <a routerLink="/game/bubble-harmony">Bubble Harmony</a>
+        <span>•</span>
+        <a routerLink="/game/zen-sand">Zen Sand</a>
+        <span>•</span>
+        <a routerLink="/game/soundscape-mixer">Soundscape</a>
+      </div>
+    </footer>
+  </div>
 
   <!-- 
     [DEAKTIVIERT] Vorherige Glaskugeln-Navigation mit flüssigem Wasser.

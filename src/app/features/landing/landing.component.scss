@@ -9,6 +9,16 @@
   background-color: v.$color-bg-deep;
 }
 
+// Content Body receiving the elastic rubber-band transform
+.landing-scroll-body {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  min-height: 100vh;
+  will-change: transform;
+  transform-origin: center top;
+}
+
 // Living WebGL Anime Cloud Canvas (Fixed in background across whole page)
 .cloud-canvas {
   position: fixed;

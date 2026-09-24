@@ -71,7 +71,8 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
+  overscroll-behavior-y: none;
   color-scheme: dark;
   scrollbar-width: none; // Firefox
   -ms-overflow-style: none; // IE/Edge

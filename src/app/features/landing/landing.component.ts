@@ -13,6 +13,7 @@ import { RouterLink } from '@angular/router';
 import * as THREE from 'three';
 import { GameRegistryService } from '../../core/services/game-registry.service';
 import { AudioService } from '../../core/services/audio.service';
+import { SmoothScrollService } from '../../core/services/smooth-scroll.service';
 import { BubbleCardComponent } from '../../shared/components/bubble-card/bubble-card.component';
 import { LiquidNavComponent } from '../../shared/components/liquid-nav/liquid-nav.component';
 import { OrbNavComponent } from '../../shared/components/orb-nav/orb-nav.component';
@@ -45,8 +46,10 @@ export interface BubblePhrase {
 export class LandingComponent implements AfterViewInit, OnDestroy {
   readonly gameRegistry = inject(GameRegistryService);
   readonly audioService = inject(AudioService);
+  readonly smoothScroll = inject(SmoothScrollService);
 
   @ViewChild('cloudCanvas') cloudCanvasRef!: ElementRef<HTMLCanvasElement>;
+  @ViewChild('scrollBody') scrollBodyRef!: ElementRef<HTMLElement>;
 
   // Floating Glass Orbs with Fluid Water Navigation
   readonly sections = [
@@ -140,6 +143,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   private isDestroyed = false;
 
   ngAfterViewInit(): void {
+    this.smoothScroll.registerContainer(this.scrollBodyRef?.nativeElement ?? null);
     this.initCloudScene();
     this.initPhraseSmoothWrapping();
     this.initHubTitleObserver();
@@ -156,6 +160,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.isDestroyed = true;
+    this.smoothScroll.registerContainer(null);
     this.audioService.pauseAmbientMusic();
     if (this.glideTimeout) {
       clearTimeout(this.glideTimeout);
@@ -602,13 +607,14 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     this.setSection(index, false);
 
     if (section.id === 'hero') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      this.smoothScroll.smoothScrollTo(0);
       return;
     }
 
     const el = document.getElementById(section.id);
     if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      const targetY = el.getBoundingClientRect().top + window.scrollY;
+      this.smoothScroll.smoothScrollTo(targetY);
     }
   }
 
@@ -635,11 +641,13 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
         const scrollFactor = maxScroll / Math.max(1, window.innerHeight * 0.4);
         const targetScroll = Math.max(0, Math.min(maxScroll, startScrollY + deltaY * scrollFactor));
         window.scrollTo(0, targetScroll);
+        this.smoothScroll.syncWithCurrentScroll();
       }
     };
 
     const onPointerUp = (upEvent: PointerEvent) => {
       this.isDragging.set(false);
+      this.smoothScroll.syncWithCurrentScroll();
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerUp);
@@ -676,7 +684,8 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     this.isHubTitleVisible.set(true);
     const hubElement = document.getElementById('bubble-hub');
     if (hubElement) {
-      hubElement.scrollIntoView({ behavior: 'smooth' });
+      const targetY = hubElement.getBoundingClientRect().top + window.scrollY;
+      this.smoothScroll.smoothScrollTo(targetY);
     }
   }
 
@@ -978,6 +987,9 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     const animate = () => {
       if (this.material) {
         this.material.uniforms['u_time'].value = this.clock.getElapsedTime();
+        // Subtle organic reaction to rubber-band bounce
+        const bounce = this.smoothScroll.overscrollOffset();
+        this.material.uniforms['u_scroll'].value = this.scrollY - bounce * 0.25;
       }
       if (this.renderer && this.scene && this.camera) {
         this.renderer.render(this.scene, this.camera);
