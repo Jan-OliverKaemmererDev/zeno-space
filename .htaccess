@@ -1,0 +1,156 @@
+# ==============================================================================
+# ZENO-SPACE APACHE CONFIGURATION (.htaccess)
+# Host: Netcup Webhosting (Plesk / Apache 2.4+)
+# Domain: zeno-space.jan-oliver-kaemmerer.de
+# Directory: httpdocs
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. CHARACTER ENCODING & SECURITY OPTIONS
+# ------------------------------------------------------------------------------
+AddDefaultCharset UTF-8
+Options -Indexes -MultiViews
+
+# Block access to hidden files and directories (e.g. .git, .env)
+# Allows .well-known for SSL certificates (Let's Encrypt on Netcup)
+<FilesMatch "^\.(?!well-known)">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# ------------------------------------------------------------------------------
+# 2. MIME TYPES (Modern Web Standards, WebGL & Audio Assets)
+# ------------------------------------------------------------------------------
+<IfModule mod_mime.c>
+    AddType application/javascript              js mjs
+    AddType application/json                    json
+    AddType application/wasm                    wasm
+    AddType image/svg+xml                       svg svgz
+    AddType image/webp                          webp
+    AddType image/x-icon                        ico
+    AddType font/woff                           woff
+    AddType font/woff2                          woff2
+    AddType font/ttf                            ttf
+    AddType font/otf                            otf
+    AddType audio/mpeg                          mp3
+    AddType audio/wav                           wav
+    AddType audio/ogg                           oga ogg
+    AddType audio/webm                          weba
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 3. GZIP / DEFLATE COMPRESSION (Performance & Fast Loading)
+# ------------------------------------------------------------------------------
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE application/javascript \
+                                  application/json \
+                                  application/rss+xml \
+                                  application/vnd.ms-fontobject \
+                                  application/x-font \
+                                  application/x-font-opentype \
+                                  application/x-font-otf \
+                                  application/x-font-truetype \
+                                  application/x-font-ttf \
+                                  application/x-javascript \
+                                  application/xhtml+xml \
+                                  application/xml \
+                                  font/opentype \
+                                  font/otf \
+                                  font/ttf \
+                                  font/woff \
+                                  font/woff2 \
+                                  image/svg+xml \
+                                  image/x-icon \
+                                  text/css \
+                                  text/html \
+                                  text/javascript \
+                                  text/plain \
+                                  text/xml
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 4. HTTP SECURITY HEADERS
+# ------------------------------------------------------------------------------
+<IfModule mod_headers.c>
+    # Prevent MIME type sniffing
+    Header always set X-Content-Type-Options "nosniff"
+
+    # Clickjacking protection
+    Header always set X-Frame-Options "SAMEORIGIN"
+
+    # Referrer policy
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+    # XSS Protection for legacy browsers
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 5. BROWSER CACHING (mod_expires & Cache-Control)
+# ------------------------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 1 month"
+
+    # HTML: Do NOT cache index.html so updates are visible immediately on deploy
+    ExpiresByType text/html "access plus 0 seconds"
+
+    # CSS & JavaScript: Angular uses unique content hashes for each build
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType text/javascript "access plus 1 year"
+
+    # Media, Audio & Images
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/x-icon "access plus 1 year"
+    ExpiresByType audio/mpeg "access plus 1 year"
+    ExpiresByType audio/wav "access plus 1 year"
+    ExpiresByType audio/ogg "access plus 1 year"
+
+    # Webfonts
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/ttf "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+    # index.html must revalidate immediately to prevent caching stale chunk bundles
+    <FilesMatch "^index\.html$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+
+    # Immutable caching for hashed chunks (e.g. main-*.js, styles-*.css)
+    <FilesMatch "\.([0-9a-f]{8,})\.(js|css|svg|png|webp|woff2)$">
+        Header set Cache-Control "max-age=31536000, public, immutable"
+    </FilesMatch>
+</IfModule>
+
+# ------------------------------------------------------------------------------
+# 6. ROUTING & SPA FALLBACK (mod_rewrite)
+# ------------------------------------------------------------------------------
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # HTTPS Enforcement: Redirect HTTP to HTTPS
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # If the requested file or directory exists, serve it directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Fallback to index.html for Angular HTML5 client-side routes (e.g. /game/...)
+    RewriteRule ^ index.html [L]
+</IfModule>

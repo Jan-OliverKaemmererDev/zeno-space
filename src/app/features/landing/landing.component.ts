@@ -235,7 +235,19 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     const all = this.gameRegistry.games();
 
     if (selectedCategory && selectedCategory !== 'all') {
-      return all.filter((g) => g.category?.toLowerCase() === selectedCategory.toLowerCase());
+      const target = selectedCategory.toLowerCase();
+      return all.filter((g) => {
+        const catMatch = g.category?.toLowerCase() === target;
+        const tagMatch = g.tags?.some((t) => {
+          const norm = t
+            .toLowerCase()
+            .replace('ä', 'ae')
+            .replace('ö', 'oe')
+            .replace('ü', 'ue');
+          return norm === target || t.toLowerCase() === target;
+        });
+        return catMatch || tagMatch;
+      });
     }
 
     return all;
@@ -801,10 +813,18 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     this.audioService.toggleSound();
   }
 
-  setFilter(filterValue: string, event?: MouseEvent): void {
+  setFilter(filterValue: string, event?: MouseEvent, targetEl?: HTMLElement): void {
     this.gameRegistry.setSelectedCategory(filterValue === 'all' ? null : filterValue);
     this.audioService.playChime(3, 0.15);
-    this.triggerPillParticleBurst(filterValue, event?.currentTarget as HTMLElement | undefined);
+    const pillElement = targetEl ?? (event?.currentTarget as HTMLElement | undefined);
+    this.triggerPillParticleBurst(filterValue, pillElement);
+  }
+
+  onCardCategorySelect(categoryValue: string): void {
+    const pillBtn = typeof document !== 'undefined'
+      ? (document.querySelector(`.filter-pill[data-category="${categoryValue}"]`) as HTMLElement | null)
+      : null;
+    this.setFilter(categoryValue, undefined, pillBtn ?? undefined);
   }
 
   private triggerPillParticleBurst(pillValue: string, pillEl?: HTMLElement): void {

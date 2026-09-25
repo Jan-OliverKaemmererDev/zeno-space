@@ -184,6 +184,7 @@
             <button 
               type="button" 
               class="filter-pill"
+              [attr.data-category]="f.value"
               [class.active]="activeFilter() === f.value"
               (click)="setFilter(f.value, $event)"
             >
@@ -213,7 +214,10 @@
       <div class="bubbles-playground">
         @for (game of filteredGames(); track game.id) {
           <div class="bubble-slot" [class]="'slot-' + game.id">
-            <app-bubble-card [game]="game"></app-bubble-card>
+            <app-bubble-card 
+              [game]="game"
+              (categorySelect)="onCardCategorySelect($event)"
+            ></app-bubble-card>
           </div>
         } @empty {
           <div class="empty-category-card">

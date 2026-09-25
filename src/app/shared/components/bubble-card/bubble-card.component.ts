@@ -1,7 +1,16 @@
-import { Component, Input, inject, ElementRef, HostListener } from '@angular/core';
+import {
+  Component,
+  Input,
+  inject,
+  ElementRef,
+  HostListener,
+  output,
+  computed,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { Minigame } from '../../../core/models/minigame.model';
 import { AudioService } from '../../../core/services/audio.service';
+import { GameRegistryService } from '../../../core/services/game-registry.service';
 
 @Component({
   selector: 'app-bubble-card',
@@ -11,9 +20,14 @@ import { AudioService } from '../../../core/services/audio.service';
 export class BubbleCardComponent {
   @Input({ required: true }) game!: Minigame;
 
+  readonly categorySelect = output<string>();
+
   private readonly router = inject(Router);
   private readonly audioService = inject(AudioService);
+  private readonly gameRegistry = inject(GameRegistryService);
   private readonly el = inject(ElementRef);
+
+  readonly activeCategory = computed(() => this.gameRegistry.selectedCategory());
 
   isHovered = false;
   isPopping = false;
@@ -44,7 +58,38 @@ export class BubbleCardComponent {
     this.tiltY = (x / (rect.width / 2)) * 2;
   }
 
-  openGame(): void {
+  normalizeTagToCategory(tag: string): string {
+    const lower = tag.trim().toLowerCase();
+    const map: Record<string, string> = {
+      mathematik: 'mathematik',
+      astronomie: 'astronomie',
+      natur: 'natur',
+      geräusche: 'geraeusche',
+      geraeusche: 'geraeusche',
+      relax: 'relax',
+      abenteuer: 'abenteuer',
+    };
+    return map[lower] ?? lower;
+  }
+
+  isTagActive(tag: string): boolean {
+    const active = this.activeCategory();
+    if (!active || active === 'all') return false;
+    return this.normalizeTagToCategory(tag) === active.toLowerCase();
+  }
+
+  onTagClick(tag: string, event: MouseEvent): void {
+    event.stopPropagation();
+    const cat = this.normalizeTagToCategory(tag);
+    this.gameRegistry.setSelectedCategory(cat);
+    this.audioService.playChime(3, 0.15);
+    this.categorySelect.emit(cat);
+  }
+
+  openGame(event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
     if (this.isPopping) return;
     this.isPopping = true;
     this.audioService.playBubblePop();
