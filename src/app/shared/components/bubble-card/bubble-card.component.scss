@@ -116,10 +116,18 @@
       inset 0 1px 0 rgba(255, 255, 255, 0.45);
 
     .card-cta {
-      background: rgba(255, 255, 255, 0.22);
-      border-color: rgba(255, 255, 255, 0.45);
+      background: linear-gradient(
+        135deg,
+        rgba(224, 242, 254, 0.35) 0%,
+        rgba(56, 189, 248, 0.45) 50%,
+        rgba(96, 165, 250, 0.48) 100%
+      );
+      border-color: rgba(224, 242, 254, 0.7);
       color: #ffffff;
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+      box-shadow: 
+        0 6px 20px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(56, 189, 248, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
 
       .cta-arrow {
         transform: translateX(4px);
@@ -232,13 +240,17 @@
     color: #ffffff;
     background: linear-gradient(
       135deg,
-      rgba(255, 255, 255, 0.15) 0%,
-      rgba(14, 26, 48, 0.4) 100%
+      rgba(186, 230, 253, 0.22) 0%,
+      rgba(56, 189, 248, 0.28) 50%,
+      rgba(96, 165, 250, 0.34) 100%
     );
-    border: 1px solid rgba(255, 255, 255, 0.26);
+    border: 1px solid rgba(147, 197, 253, 0.42);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+    box-shadow: 
+      0 4px 14px rgba(14, 116, 144, 0.22),
+      0 0 12px rgba(56, 189, 248, 0.15),
+      inset 0 1px 0 rgba(255, 255, 255, 0.35);
     padding: 5px 13px;
     border-radius: 999px;
     letter-spacing: 0.02em;
@@ -248,9 +260,17 @@
     transition: all 0.25s ease;
 
     &:hover {
-      background: rgba(255, 255, 255, 0.22);
-      border-color: rgba(255, 255, 255, 0.45);
-      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+      background: linear-gradient(
+        135deg,
+        rgba(224, 242, 254, 0.34) 0%,
+        rgba(56, 189, 248, 0.42) 50%,
+        rgba(96, 165, 250, 0.46) 100%
+      );
+      border-color: rgba(224, 242, 254, 0.7);
+      box-shadow: 
+        0 4px 18px rgba(56, 189, 248, 0.35),
+        0 0 16px rgba(56, 189, 248, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
       transform: translateY(-1px);
     }
   }
@@ -273,10 +293,11 @@
   border-radius: 999px;
   background: linear-gradient(
     135deg,
-    rgba(255, 255, 255, 0.15) 0%,
-    rgba(14, 26, 48, 0.4) 100%
+    rgba(186, 230, 253, 0.24) 0%,
+    rgba(56, 189, 248, 0.30) 50%,
+    rgba(96, 165, 250, 0.36) 100%
   );
-  border: 1px solid rgba(255, 255, 255, 0.26);
+  border: 1px solid rgba(147, 197, 253, 0.45);
   color: #ffffff;
   font-size: 0.94rem;
   font-weight: 500;
@@ -284,11 +305,28 @@
   text-shadow: 
     0 1px 4px rgba(7, 20, 50, 0.95),
     0 2px 8px rgba(0, 0, 0, 0.7);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  box-shadow: 
+    0 4px 14px rgba(14, 116, 144, 0.24),
+    0 0 14px rgba(56, 189, 248, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
   transition: all 0.25s ease;
 
   .cta-arrow {
     transition: transform 0.25s ease;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+  }
+
+  &:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(224, 242, 254, 0.36) 0%,
+      rgba(56, 189, 248, 0.46) 50%,
+      rgba(96, 165, 250, 0.5) 100%
+    );
+    border-color: rgba(224, 242, 254, 0.7);
+    box-shadow: 
+      0 6px 20px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(56, 189, 248, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
   }
 }
