@@ -174,8 +174,8 @@
           </h2>
         </div>
         <p class="section-subtitle">
-          Jedes Mini-Game ruht in einem sanft schwebenden Glaskörper. Berühre sie mit der Maus,
-          bringe sie zum Schwingen oder klicke, um einzutauchen.
+          Wähle eine Kategorie oder erforsche alle schwebenden Sphären. Berühre die Glaskörper mit der Maus,
+          bringe sie zum Schwingen oder klicke, um in die jeweilige Welt einzutauchen.
         </p>
 
         <!-- Category Filter Pills -->
@@ -185,9 +185,25 @@
               type="button" 
               class="filter-pill"
               [class.active]="activeFilter() === f.value"
-              (click)="setFilter(f.value)"
+              (click)="setFilter(f.value, $event)"
             >
-              {{ f.label }}
+              <span>{{ f.label }}</span>
+              @if (activePillSparkTarget() === f.value) {
+                @for (spark of pillSparks(); track spark.id) {
+                  <span 
+                    class="pill-click-spark"
+                    [style.--sx.px]="spark.startX"
+                    [style.--sy.px]="spark.startY"
+                    [style.--ex.px]="spark.endX"
+                    [style.--ey.px]="spark.endY"
+                    [style.width.px]="spark.size"
+                    [style.height.px]="spark.size"
+                    [style.background-color]="spark.color"
+                    [style.animation-delay.ms]="spark.delayMs"
+                    aria-hidden="true"
+                  ></span>
+                }
+              }
             </button>
           }
         </div>
@@ -199,23 +215,33 @@
           <div class="bubble-slot" [class]="'slot-' + game.id">
             <app-bubble-card [game]="game"></app-bubble-card>
           </div>
+        } @empty {
+          <div class="empty-category-card">
+            <div class="empty-sparkle-halo"></div>
+            <div class="empty-category-inner">
+              <div class="empty-gem-icon">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <polygon points="12 2 22 12 12 22 2 12" fill="rgba(255, 255, 255, 0.12)" stroke="#bae6fd"/>
+                  <circle cx="12" cy="12" r="3" fill="#38bdf8"/>
+                </svg>
+              </div>
+              <h3 class="empty-heading">Neue Sphäre in Entstehung</h3>
+              <p class="empty-desc">
+                Für diese Kategorie werden aktuell neue interaktive Welten erschaffen.
+              </p>
+              <button type="button" class="empty-action-btn" (click)="resetCategory()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24"/>
+                  <polyline points="21 3 21 9 15 9"/>
+                </svg>
+                <span>Alle Welten anzeigen</span>
+              </button>
+            </div>
+          </div>
         }
       </div>
 
-      <!-- Sound Tip Banner -->
-      <div class="sound-tip-banner">
-        <div class="tip-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9 18h6"/>
-            <path d="M10 22h4"/>
-            <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
-          </svg>
-        </div>
-        <p class="tip-text">
-          <strong>Tipp für maximale Entspannung:</strong> Genieße den <em>Space-Ambient-Soundtrack</em>
-          auf der Startseite oder schalte ihn über den Button oben rechts jederzeit stumm.
-        </p>
-      </div>
+
     </section>
 
     <!-- Cozy Sanctuary Section -->

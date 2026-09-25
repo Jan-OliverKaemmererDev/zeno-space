@@ -91,6 +91,51 @@ describe('NavbarComponent', () => {
 
     component.onCategoryClick(cosmicCat);
     expect(component.isDropdownOpen()).toBe(false);
+    expect(component.gameRegistry.selectedCategory()).toBe('astronomie');
+    expect(component.selectedCategory()?.title).toBe('Astronomie');
+  });
+
+  it('should display category title in crane-trigger-btn when a category is selected and show Alle Welten button', () => {
+    // Default: no category selected
+    expect(component.selectedCategory()).toBeNull();
+    const labelText = fixture.nativeElement.querySelector('.crane-label-text');
+    expect(labelText.textContent.trim()).toBe('Kategorien');
+    expect(fixture.nativeElement.querySelector('.dropdown-all-worlds-btn')).toBeNull();
+
+    // Select a category
+    component.gameRegistry.setSelectedCategory('natur');
+    fixture.detectChanges();
+
+    expect(component.selectedCategory()?.title).toBe('Natur');
+    expect(labelText.textContent.trim()).toBe('Natur');
+
+    // Open dropdown to see Alle Welten button
+    component.toggleDropdown();
+    fixture.detectChanges();
+    const allWorldsBtn = fixture.nativeElement.querySelector('.dropdown-all-worlds-btn');
+    expect(allWorldsBtn).not.toBeNull();
+    expect(allWorldsBtn.textContent.trim()).toContain('Alle Welten anzeigen');
+
+    // Click Alle Welten button
+    component.resetCategory();
+    fixture.detectChanges();
+    expect(component.gameRegistry.selectedCategory()).toBeNull();
+    expect(labelText.textContent.trim()).toBe('Kategorien');
+    expect(fixture.nativeElement.querySelector('.dropdown-all-worlds-btn')).toBeNull();
+  });
+
+  it('should render category-card with category-title inside category-header and no badge or footer', () => {
+    const card = fixture.nativeElement.querySelector('.category-card');
+    expect(card).toBeTruthy();
+
+    const header = card.querySelector('.category-header');
+    expect(header).toBeTruthy();
+    expect(header.querySelector('.category-icon-wrapper')).toBeTruthy();
+    expect(header.querySelector('.category-title')).toBeTruthy();
+
+    // Badges and footer must be removed
+    expect(card.querySelector('.category-badge')).toBeNull();
+    expect(card.querySelector('.category-footer')).toBeNull();
   });
 
   it('should close dropdown when clicking outside the navbar', () => {

@@ -4,6 +4,7 @@ export interface Minigame {
   subtitle: string;
   description: string;
   badge: '3D WebGL' | 'Zen Audio' | 'Chill Sandbox' | 'Creative';
+  category?: string;
   route: string;
   icon: string;
   primaryColor: string;

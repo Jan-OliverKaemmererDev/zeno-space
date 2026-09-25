@@ -2,6 +2,7 @@ import {
   Component,
   inject,
   signal,
+  computed,
   HostListener,
   NgZone,
   AfterViewInit,
@@ -13,16 +14,17 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { filter } from 'rxjs/operators';
 import { AudioService } from '../../../core/services/audio.service';
 import { SmoothScrollService } from '../../../core/services/smooth-scroll.service';
+import { GameRegistryService } from '../../../core/services/game-registry.service';
 
 export interface CategoryItem {
   id: string;
   title: string;
   subtitle: string;
   description: string;
-  badge: 'Aktiv' | 'In Erforschung' | 'In Entwicklung';
+  badge?: string;
   route?: string;
   iconSvg: SafeHtml;
-  tags: string[];
+  tags?: string[];
 }
 
 @Component({
@@ -33,6 +35,7 @@ export interface CategoryItem {
 })
 export class NavbarComponent implements AfterViewInit, OnDestroy {
   readonly audioService = inject(AudioService);
+  readonly gameRegistry = inject(GameRegistryService);
   private readonly smoothScroll = inject(SmoothScrollService);
   private readonly router = inject(Router);
   private readonly ngZone = inject(NgZone);
@@ -55,14 +58,18 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   private dropdownOpenScrollY = 0;
   private isDestroyed = false;
 
+  readonly selectedCategory = computed(() => {
+    const id = this.gameRegistry.selectedCategory();
+    if (!id) return null;
+    return this.categories.find((c) => c.id.toLowerCase() === id.toLowerCase()) ?? null;
+  });
+
   readonly categories: CategoryItem[] = [
     {
       id: 'mathematik',
       title: 'Mathematik',
       subtitle: 'Geometrie & Kosmische Ordnung',
-      description: 'Erforsche fraktale Harmonien, physikalische Bahnkurven und die mathematische Symmetrie des Raumes.',
-      badge: 'In Erforschung',
-      tags: ['Geometrie', 'Fraktale', 'Gleichungen'],
+      description: 'Erforsche fraktale Harmonien, geometrische Muster und die mathematische Symmetrie des Raumes.',
       iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="9" opacity="0.35"/>
@@ -75,11 +82,8 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     {
       id: 'astronomie',
       title: 'Astronomie',
-      subtitle: 'Cosmic Zen Sculptor',
-      description: 'Erschaffe leuchtende Himmelskörper in einem interaktiven 3D-Universum mit sanften Gravitations-Orbits.',
-      badge: 'Aktiv',
-      route: '/game/cosmic-sculptor',
-      tags: ['3D WebGL', 'Kosmos', 'Gravitation'],
+      subtitle: 'Sterne, Kosmos & Himmelskörper',
+      description: 'Erkunde die unendlichen Weiten des Weltalls, ferne Galaxien und die Gravitation kosmischer Sphären.',
       iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="5"/>
@@ -91,11 +95,8 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     {
       id: 'natur',
       title: 'Natur',
-      subtitle: 'Zen Sand & Ripple',
-      description: 'Ziehe beruhigende Linien in feinen Sand, platziere glatte Kiesel und beobachte schwebende Sternenblüten.',
-      badge: 'Aktiv',
-      route: '/game/zen-sand',
-      tags: ['Sandgarten', 'Wellen', 'Meditation'],
+      subtitle: 'Organische Welten & Elemente',
+      description: 'Erlebe die beruhigende Kraft der Natur, von sanft fließendem Wasser bis zu lebendigen floralen Strukturen.',
       iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 2C6.5 7 4 12 6 16.5C8 21 16 21 18 16.5C20 12 17.5 7 12 2Z"/>
@@ -108,11 +109,8 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     {
       id: 'geraeusche',
       title: 'Geräusche',
-      subtitle: 'Cozy Soundscape',
-      description: 'Binauraler Ambient-Raum mit sanftem Weltraumregen, Kaminfeuer und beruhigenden Synth-Klangflächen.',
-      badge: 'Aktiv',
-      route: '/game/soundscape-mixer',
-      tags: ['Binaural', 'Soundscape', 'Fokus'],
+      subtitle: 'Klanglandschaften & Akustik',
+      description: 'Tauche ein in meditative Frequenzen, atmosphärische Klangflächen und beruhigende akustische Räume.',
       iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 14h3l3.5-7 3.5 14 3.5-9 2 4h3"/>
@@ -124,11 +122,8 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     {
       id: 'relax',
       title: 'Relax',
-      subtitle: 'Bubble Harmony',
-      description: 'Puste schimmernde Seifenblasen in den Raum und bringe sie mit harmonischen pentatonischen Akkorden zum Klingen.',
-      badge: 'Aktiv',
-      route: '/game/bubble-harmony',
-      tags: ['Zen Audio', 'Seifenblasen', 'Harmonie'],
+      subtitle: 'Achtsamkeit & Entschleunigung',
+      description: 'Finde innere Ruhe und Balance durch sanfte Interaktionen, meditative Momente und stressfreie Sphären.',
       iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="10" cy="14" r="6"/>
@@ -141,10 +136,8 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     {
       id: 'abenteuer',
       title: 'Abenteuer',
-      subtitle: 'Kosmische Quests & Mysterien',
-      description: 'Verbinde alle Welten, entschlüssele geheime Resonanzen und entdecke verborgene Origami-Pfade.',
-      badge: 'In Entwicklung',
-      tags: ['Quests', 'Geheimnisse', 'Erkundung'],
+      subtitle: 'Erkundung & Kosmische Mysterien',
+      description: 'Begib dich auf intuitive Entdeckungsreisen, entschlüssele Geheimnisse und erforsche verborgene Pfade.',
       iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="9"/>
@@ -338,9 +331,37 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   }
 
   onCategoryClick(cat: CategoryItem): void {
-    if (cat.route) {
-      this.closeDropdown(true);
-      this.router.navigateByUrl(cat.route);
+    this.gameRegistry.setSelectedCategory(cat.id);
+    this.closeDropdown();
+    this.audioService.playChime(3, 0.15);
+
+    if (this.isLandingPage()) {
+      const hubElement = document.getElementById('bubble-hub');
+      if (hubElement) {
+        const targetY = hubElement.getBoundingClientRect().top + window.scrollY;
+        this.smoothScroll.smoothScrollTo(targetY);
+      }
+    } else {
+      this.router.navigate(['/'], { fragment: 'bubble-hub' });
+    }
+  }
+
+  resetCategory(event?: MouseEvent): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.gameRegistry.setSelectedCategory(null);
+    this.closeDropdown();
+    this.audioService.playChime(2, 0.15);
+
+    if (this.isLandingPage()) {
+      const hubElement = document.getElementById('bubble-hub');
+      if (hubElement) {
+        const targetY = hubElement.getBoundingClientRect().top + window.scrollY;
+        this.smoothScroll.smoothScrollTo(targetY);
+      }
+    } else {
+      this.router.navigate(['/'], { fragment: 'bubble-hub' });
     }
   }
 

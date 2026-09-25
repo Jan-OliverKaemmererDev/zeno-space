@@ -49,6 +49,17 @@ export interface SoundBurstSpark {
   delayMs: number;
 }
 
+export interface PillSpark {
+  id: number;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+  color: string;
+  size: number;
+  delayMs: number;
+}
+
 @Component({
   selector: 'app-landing',
   imports: [
@@ -100,6 +111,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 
   // Explosive micro-sparks on click (14 delicate light points scattering outward)
   readonly burstSparks = signal<SoundBurstSpark[]>([]);
+
+  // Subtle explosive micro-particles on filter-pill click (8 subtle light points)
+  readonly activePillSparkTarget = signal<string | null>(null);
+  readonly pillSparks = signal<PillSpark[]>([]);
+  private pillSparkTimeout: ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
     effect(() => {
@@ -201,20 +217,28 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   readonly isPrompterVisible = signal<boolean>(true);
   readonly hasPrompterScrolledOnce = signal<boolean>(false);
 
-  // Filters
-  readonly activeFilter = signal<string>('all');
+  // Filters matching the dropdown categories
   readonly filters = [
     { label: 'Alle Welten', value: 'all' },
-    { label: '3D WebGL', value: '3D WebGL' },
-    { label: 'Zen Audio', value: 'Zen Audio' },
-    { label: 'Chill Sandbox', value: 'Chill Sandbox' },
+    { label: 'Mathematik', value: 'mathematik' },
+    { label: 'Astronomie', value: 'astronomie' },
+    { label: 'Natur', value: 'natur' },
+    { label: 'Geräusche', value: 'geraeusche' },
+    { label: 'Relax', value: 'relax' },
+    { label: 'Abenteuer', value: 'abenteuer' },
   ];
 
+  readonly activeFilter = computed(() => this.gameRegistry.selectedCategory() ?? 'all');
+
   readonly filteredGames = computed(() => {
-    const filter = this.activeFilter();
+    const selectedCategory = this.gameRegistry.selectedCategory();
     const all = this.gameRegistry.games();
-    if (filter === 'all') return all;
-    return all.filter((g) => g.badge === filter);
+
+    if (selectedCategory && selectedCategory !== 'all') {
+      return all.filter((g) => g.category?.toLowerCase() === selectedCategory.toLowerCase());
+    }
+
+    return all;
   });
 
   scrollY = 0;
@@ -244,6 +268,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
         this.hasPrompterScrolledOnce.set(true);
         this.isPrompterVisible.set(false);
       }
+      if (window.location.hash === '#bubble-hub' || this.gameRegistry.selectedCategory()) {
+        setTimeout(() => {
+          this.scrollToHub();
+        }, 150);
+      }
     }
   }
 
@@ -262,6 +291,10 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     if (this.burstTimeout) {
       clearTimeout(this.burstTimeout);
       this.burstTimeout = null;
+    }
+    if (this.pillSparkTimeout) {
+      clearTimeout(this.pillSparkTimeout);
+      this.pillSparkTimeout = null;
     }
     if (this.phraseResizeObserver) {
       this.phraseResizeObserver.disconnect();
@@ -768,9 +801,66 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     this.audioService.toggleSound();
   }
 
-  setFilter(filterValue: string): void {
-    this.activeFilter.set(filterValue);
+  setFilter(filterValue: string, event?: MouseEvent): void {
+    this.gameRegistry.setSelectedCategory(filterValue === 'all' ? null : filterValue);
     this.audioService.playChime(3, 0.15);
+    this.triggerPillParticleBurst(filterValue, event?.currentTarget as HTMLElement | undefined);
+  }
+
+  private triggerPillParticleBurst(pillValue: string, pillEl?: HTMLElement): void {
+    if (this.pillSparkTimeout) {
+      clearTimeout(this.pillSparkTimeout);
+    }
+
+    const rect = pillEl?.getBoundingClientRect();
+    const rx = rect ? rect.width / 2 : 46;
+    const ry = rect ? rect.height / 2 : 16;
+
+    // Spawn 8 delicate micro-sparks shooting gently outward (dezenter als sound-burst)
+    const count = 8;
+    const sparks: PillSpark[] = [];
+    const baseAngle = Math.random() * Math.PI * 2;
+    const colors = ['#ffffff', '#93c5fd', '#bae6fd', '#fed7aa'];
+
+    for (let i = 0; i < count; i++) {
+      const angle = baseAngle + (i * ((Math.PI * 2) / count)) + (Math.random() - 0.5) * 0.25;
+      const cosA = Math.cos(angle);
+      const sinA = Math.sin(angle);
+
+      // Start gently along the pill contour
+      const startX = Math.round(cosA * rx * 0.84 * 10) / 10;
+      const startY = Math.round(sinA * ry * 0.84 * 10) / 10;
+
+      // Subtle outward dispersion (~14-26px)
+      const dist = 14 + Math.random() * 12;
+      const endX = Math.round((startX + cosA * dist) * 10) / 10;
+      const endY = Math.round((startY + sinA * dist) * 10) / 10;
+
+      sparks.push({
+        id: i + 1,
+        startX,
+        startY,
+        endX,
+        endY,
+        color: colors[i % colors.length],
+        size: Math.random() < 0.6 ? 1.4 : 1.8,
+        delayMs: Math.round(Math.random() * 30),
+      });
+    }
+
+    this.activePillSparkTarget.set(pillValue);
+    this.pillSparks.set(sparks);
+
+    this.pillSparkTimeout = setTimeout(() => {
+      this.activePillSparkTarget.set(null);
+      this.pillSparks.set([]);
+      this.pillSparkTimeout = null;
+    }, 550);
+  }
+
+  resetCategory(): void {
+    this.gameRegistry.setSelectedCategory(null);
+    this.audioService.playChime(2, 0.15);
   }
 
   scrollToHub(): void {

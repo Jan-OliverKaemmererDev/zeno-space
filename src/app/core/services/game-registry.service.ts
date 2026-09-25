@@ -5,6 +5,8 @@ import { Minigame } from '../models/minigame.model';
   providedIn: 'root',
 })
 export class GameRegistryService {
+  readonly selectedCategory = signal<string | null>(null);
+
   readonly games = signal<Minigame[]>([
     {
       id: 'cosmic-sculptor',
@@ -12,6 +14,7 @@ export class GameRegistryService {
       subtitle: '3D Gravitations-Kosmos',
       description: 'Erschaffe leuchtende Himmelskörper in einem interaktiven 3D-Universum mit Three.js, sanften Umlaufbahnen und leuchtenden Sternenschweifen.',
       badge: '3D WebGL',
+      category: 'astronomie',
       route: '/game/cosmic-sculptor',
       icon: 'cosmos',
       primaryColor: '#c4b5fd',
@@ -27,6 +30,7 @@ export class GameRegistryService {
       subtitle: 'Pentatonisches Seifenblasen-Popping',
       description: 'Puste schimmernde Seifenblasen in den Raum, lass sie sanft kollidieren und zum Klingen bringen mit harmonischen pentatonischen Akkorden.',
       badge: 'Zen Audio',
+      category: 'relax',
       route: '/game/bubble-harmony',
       icon: 'bubble',
       primaryColor: '#93c5fd',
@@ -42,6 +46,7 @@ export class GameRegistryService {
       subtitle: 'Taktiles Meditations-Muster',
       description: 'Ziehe beruhigende Linien und Wellenmuster in feinen kosmischen Sand, platziere glatte Kieselsteine und beobachte schwebende Sternenblüten.',
       badge: 'Chill Sandbox',
+      category: 'natur',
       route: '/game/zen-sand',
       icon: 'zen',
       primaryColor: '#fed7aa',
@@ -57,6 +62,7 @@ export class GameRegistryService {
       subtitle: 'Binauraler Ambient-Raum',
       description: 'Kombiniere sanften Weltraumregen, Kaminfeuer, sanfte Synths und Sommernachtslüfte zu deinem persönlichen Einschlaf- und Fokus-Soundtrack.',
       badge: 'Creative',
+      category: 'geraeusche',
       route: '/game/soundscape-mixer',
       icon: 'soundscape',
       primaryColor: '#fde68a',
@@ -67,6 +73,10 @@ export class GameRegistryService {
       sizeClass: 'bubble--sm',
     },
   ]);
+
+  setSelectedCategory(categoryId: string | null): void {
+    this.selectedCategory.set(categoryId);
+  }
 
   getGameById(id: string): Minigame | undefined {
     return this.games().find((game) => game.id === id);
