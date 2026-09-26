@@ -1681,12 +1681,12 @@
 // ---------------------------------------------------------------------------
 .sanctuary-swing-item {
   position: absolute;
-  transform-origin: 50% 0; // Pivot point at the top wire/chain attachment
+  transform-origin: 50% calc(var(--clip-top, 0) * 1%); // Pivot point at attachment ring
   cursor: default; // Atmospheric physics objects, not clickable buttons/links
   z-index: 6;
   pointer-events: auto;
   will-change: transform;
-  transform: rotate(var(--swing-angle, 0deg));
+  filter: drop-shadow(0 4px 12px rgba(7, 20, 50, 0.45));
 
   .swing-img {
     display: block;
@@ -1694,7 +1694,12 @@
     height: auto;
     pointer-events: none;
     user-select: none;
-    filter: drop-shadow(0 4px 12px rgba(7, 20, 50, 0.45));
+    clip-path: inset(
+      calc(var(--clip-top, 0) * 1%)
+      var(--clip-right, 0%)
+      var(--clip-bottom, 0%)
+      var(--clip-left, 0%)
+    );
   }
 
   // Lantern Glow moving synchronously with the lantern
@@ -1742,7 +1747,8 @@
     left: 9.6657%;
     top: 0.7812%;
     width: 2.8343%;
-    transform-origin: 49.5% 0;
+    --clip-top: 0;
+    transform-origin: 51% 0%;
     .lamp-glow { top: 68%; width: 58px; height: 58px; }
   }
 
@@ -1750,7 +1756,8 @@
     left: 9.9564%;
     top: 40.3646%;
     width: 2.8343%;
-    transform-origin: 48.3% 0;
+    --clip-top: 44.7;
+    transform-origin: 48.3% calc(var(--clip-top) * 1%);
     .lamp-glow { top: 68%; width: 62px; height: 62px; }
   }
 
@@ -1758,7 +1765,8 @@
     left: 35.3198%;
     top: 46.0938%;
     width: 2.3256%;
-    transform-origin: 44.3% 0;
+    --clip-top: 49.0;
+    transform-origin: 44.3% calc(var(--clip-top) * 1%);
     .lamp-glow { top: 65%; width: 52px; height: 52px; }
   }
 
@@ -1766,7 +1774,10 @@
     left: 62.5727%;
     top: 51.0417%;
     width: 1.9622%;
-    transform-origin: 37.3% 0;
+    --clip-top: 32.3;
+    --clip-right: 29.6%;
+    --clip-bottom: 38.7%;
+    transform-origin: 37.3% calc(var(--clip-top) * 1%);
     .lamp-glow { top: 65%; width: 52px; height: 52px; }
   }
 
@@ -1774,7 +1785,8 @@
     left: 87.2093%;
     top: 38.5417%;
     width: 2.9070%;
-    transform-origin: 63.8% 0;
+    --clip-top: 48.8;
+    transform-origin: 50% calc(var(--clip-top) * 1%);
     .lamp-glow { top: 68%; width: 64px; height: 64px; }
   }
 
@@ -1782,7 +1794,8 @@
     left: 87.2093%;
     top: 9.8958%;
     width: 2.3983%;
-    transform-origin: 42.9% 0;
+    --clip-top: 16.0;
+    transform-origin: 42.9% calc(var(--clip-top) * 1%);
     .lamp-glow { top: 68%; width: 56px; height: 56px; }
   }
 
@@ -1791,7 +1804,8 @@
     left: 9.8837%;
     top: 81.7708%;
     width: 3.9244%;
-    transform-origin: 50% 0;
+    --clip-top: 78.0;
+    transform-origin: 50% calc(var(--clip-top) * 1%);
     .star-glow { top: 84%; width: 44px; height: 44px; }
   }
 
@@ -1799,7 +1813,8 @@
     left: 14.3169%;
     top: 72.9167%;
     width: 3.3430%;
-    transform-origin: 50% 0;
+    --clip-top: 82.4;
+    transform-origin: 50% calc(var(--clip-top) * 1%);
     .star-glow { top: 78%; width: 42px; height: 42px; }
   }
 
@@ -1807,7 +1822,8 @@
     left: 35.0291%;
     top: 60.5469%;
     width: 3.3430%;
-    transform-origin: 50% 0;
+    --clip-top: 78.1;
+    transform-origin: 50% calc(var(--clip-top) * 1%);
     .star-glow { top: 72%; width: 42px; height: 42px; }
   }
 
@@ -1815,7 +1831,8 @@
     left: 83.5756%;
     top: 70.5729%;
     width: 3.6337%;
-    transform-origin: 50% 0;
+    --clip-top: 78.9;
+    transform-origin: 50% calc(var(--clip-top) * 1%);
     .star-glow { top: 72%; width: 44px; height: 44px; }
   }
 
@@ -1823,7 +1840,8 @@
     left: 85.4651%;
     top: 72.0052%;
     width: 4.2151%;
-    transform-origin: 50% 0;
+    --clip-top: 82.8;
+    transform-origin: 50% calc(var(--clip-top) * 1%);
     .star-glow { top: 86%; width: 48px; height: 48px; }
   }
 
@@ -1831,7 +1849,8 @@
     left: 88.5174%;
     top: 78.6458%;
     width: 3.0523%;
-    transform-origin: 50% 0;
+    --clip-top: 79.1;
+    transform-origin: 50% calc(var(--clip-top) * 1%);
     .star-glow { top: 70%; width: 36px; height: 36px; }
   }
 
@@ -1839,7 +1858,8 @@
     left: 91.2791%;
     top: 89.1927%;
     width: 2.9070%;
-    transform-origin: 50% 0;
+    --clip-top: 61.0;
+    transform-origin: 50% calc(var(--clip-top) * 1%);
     .star-glow { top: 60%; width: 36px; height: 36px; }
   }
 }

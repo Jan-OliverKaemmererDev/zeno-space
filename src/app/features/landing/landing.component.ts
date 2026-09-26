@@ -18,6 +18,7 @@ import { SmoothScrollService } from '../../core/services/smooth-scroll.service';
 import { BubbleCardComponent } from '../../shared/components/bubble-card/bubble-card.component';
 import { LiquidNavComponent } from '../../shared/components/liquid-nav/liquid-nav.component';
 import { OrbNavComponent } from '../../shared/components/orb-nav/orb-nav.component';
+import { RopePhysicsComponent } from '../../shared/components/rope-physics/rope-physics.component';
 import { Minigame } from '../../core/models/minigame.model';
 
 /**
@@ -56,33 +57,6 @@ export interface TooltipLetter {
   fromRight: number;
 }
 
-/**
- * Physics-driven swinging hanging object (lantern or star) in the cozy sanctuary section.
- */
-export interface SanctuarySwingItem {
-  id: string;
-  type: 'lantern' | 'star';
-  /** Normalized X anchor in 1376 coordinate space */
-  anchorX: number;
-  /** Normalized Y anchor in 768 coordinate space */
-  anchorY: number;
-  /** Length of the pendulum / hanging string in px */
-  length: number;
-  /** Current deflection angle in radians */
-  angle: number;
-  /** Angular velocity in radians per second */
-  velocity: number;
-  /** Natural angular frequency omega_0 (rad/s) */
-  omega0: number;
-  /** Damping multiplier per frame */
-  damping: number;
-  /** Interaction radius in 1376px scale */
-  influenceRadius: number;
-  /** Max deflection angle limit in radians */
-  maxAngle: number;
-  /** Cached DOM element */
-  element?: HTMLElement | null;
-}
 
 /**
  * Visual spark particle emitted from the sound toggle button burst animation.
@@ -137,6 +111,7 @@ export interface PillSpark {
     RouterLink,
     BubbleCardComponent,
     OrbNavComponent,
+    RopePhysicsComponent,
   ],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss',
@@ -148,6 +123,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 
   @ViewChild('cloudCanvas') cloudCanvasRef!: ElementRef<HTMLCanvasElement>;
   @ViewChild('scrollBody') scrollBodyRef!: ElementRef<HTMLElement>;
+  @ViewChild(RopePhysicsComponent) ropePhysicsComponent?: RopePhysicsComponent;
 
   // Floating Glass Orbs with Fluid Water Navigation
   readonly sections = [
@@ -464,10 +440,6 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
       cancelAnimationFrame(this.sanctuaryEvadeRafId);
       this.sanctuaryEvadeRafId = null;
     }
-    if (this.sanctuaryPhysicsRafId !== null) {
-      cancelAnimationFrame(this.sanctuaryPhysicsRafId);
-      this.sanctuaryPhysicsRafId = null;
-    }
     if (this.hubIntersectionObserver) {
       this.hubIntersectionObserver.disconnect();
       this.hubIntersectionObserver = null;
@@ -612,189 +584,6 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   private sanctuaryEvadeRafId: number | null = null;
   private lastSanctuaryPointerEvent: PointerEvent | null = null;
 
-  // ----------------------------------------------------
-  // Sanctuary Interactive Strings & Pendulum Physics
-  // ----------------------------------------------------
-  private sanctuaryPhysicsRafId: number | null = null;
-  private lastSanctuaryPointerNormX = 0;
-  private lastSanctuaryPointerNormY = 0;
-  private lastSanctuaryPointerTimestamp = 0;
-  private isSanctuaryPointerInside = false;
-
-  private readonly sanctuarySwingItems: SanctuarySwingItem[] = [
-    // Hanging Lanterns (6 items)
-    {
-      id: 'lantern-hanging-left-top',
-      type: 'lantern',
-      anchorX: 152,
-      anchorY: 6,
-      length: 69,
-      angle: 0,
-      velocity: 0,
-      omega0: 5.8,
-      damping: 0.983,
-      influenceRadius: 50,
-      maxAngle: 0.20, // ~11.5 deg
-    },
-    {
-      id: 'lantern-hanging-left-mid',
-      type: 'lantern',
-      anchorX: 156,
-      anchorY: 310,
-      length: 85,
-      angle: 0,
-      velocity: 0,
-      omega0: 5.4,
-      damping: 0.985,
-      influenceRadius: 54,
-      maxAngle: 0.18, // ~10.3 deg
-    },
-    {
-      id: 'lantern-hanging-center-left',
-      type: 'lantern',
-      anchorX: 502,
-      anchorY: 354,
-      length: 51,
-      angle: 0,
-      velocity: 0,
-      omega0: 6.3,
-      damping: 0.981,
-      influenceRadius: 46,
-      maxAngle: 0.22, // ~12.6 deg
-    },
-    {
-      id: 'lantern-hanging-center-right',
-      type: 'lantern',
-      anchorX: 874,
-      anchorY: 392,
-      length: 62,
-      angle: 0,
-      velocity: 0,
-      omega0: 6.0,
-      damping: 0.983,
-      influenceRadius: 48,
-      maxAngle: 0.21, // ~12.0 deg
-    },
-    {
-      id: 'lantern-hanging-right-mid',
-      type: 'lantern',
-      anchorX: 1220,
-      anchorY: 296,
-      length: 86,
-      angle: 0,
-      velocity: 0,
-      omega0: 5.4,
-      damping: 0.985,
-      influenceRadius: 54,
-      maxAngle: 0.18, // ~10.3 deg
-    },
-    {
-      id: 'lantern-hanging-right-top',
-      type: 'lantern',
-      anchorX: 1216,
-      anchorY: 76,
-      length: 50,
-      angle: 0,
-      velocity: 0,
-      omega0: 6.3,
-      damping: 0.981,
-      influenceRadius: 46,
-      maxAngle: 0.22, // ~12.6 deg
-    },
-
-    // Hanging Star Lanterns (7 items)
-    {
-      id: 'star-left-1',
-      type: 'star',
-      anchorX: 163,
-      anchorY: 628,
-      length: 118,
-      angle: 0,
-      velocity: 0,
-      omega0: 5.0,
-      damping: 0.986,
-      influenceRadius: 46,
-      maxAngle: 0.17, // ~9.7 deg
-    },
-    {
-      id: 'star-left-2',
-      type: 'star',
-      anchorX: 220,
-      anchorY: 560,
-      length: 85,
-      angle: 0,
-      velocity: 0,
-      omega0: 5.5,
-      damping: 0.984,
-      influenceRadius: 44,
-      maxAngle: 0.19, // ~10.9 deg
-    },
-    {
-      id: 'star-center',
-      type: 'star',
-      anchorX: 505,
-      anchorY: 465,
-      length: 64,
-      angle: 0,
-      velocity: 0,
-      omega0: 5.9,
-      damping: 0.982,
-      influenceRadius: 44,
-      maxAngle: 0.21, // ~12.0 deg
-    },
-    {
-      id: 'star-right-1',
-      type: 'star',
-      anchorX: 1175,
-      anchorY: 542,
-      length: 90,
-      angle: 0,
-      velocity: 0,
-      omega0: 5.4,
-      damping: 0.984,
-      influenceRadius: 44,
-      maxAngle: 0.19, // ~10.9 deg
-    },
-    {
-      id: 'star-right-2',
-      type: 'star',
-      anchorX: 1205,
-      anchorY: 553,
-      length: 163,
-      angle: 0,
-      velocity: 0,
-      omega0: 4.8,
-      damping: 0.987,
-      influenceRadius: 48,
-      maxAngle: 0.15, // ~8.6 deg
-    },
-    {
-      id: 'star-right-3',
-      type: 'star',
-      anchorX: 1239,
-      anchorY: 604,
-      length: 67,
-      angle: 0,
-      velocity: 0,
-      omega0: 5.9,
-      damping: 0.982,
-      influenceRadius: 42,
-      maxAngle: 0.21, // ~12.0 deg
-    },
-    {
-      id: 'star-right-4',
-      type: 'star',
-      anchorX: 1276,
-      anchorY: 685,
-      length: 41,
-      angle: 0,
-      velocity: 0,
-      omega0: 6.5,
-      damping: 0.980,
-      influenceRadius: 40,
-      maxAngle: 0.24, // ~13.8 deg
-    },
-  ];
 
   /**
    * Handles pointer motion over the hero title container, scheduling letter evasion calculation.
@@ -870,7 +659,6 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
       document.body.classList.add('in-sanctuary');
     }
     this.lastSanctuaryPointerEvent = event;
-    this.isSanctuaryPointerInside = true;
 
     // 1. Tooltip Letter Evasion
     if (this.sanctuaryEvadeRafId === null) {
@@ -888,189 +676,25 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
       });
     }
 
-    // 2. Interactive Strings & Lanterns Physics Impulse
-    this.applyPointerImpulseToSanctuaryItems(event);
+    // 2. Interactive Verlet Rope Physics
+    this.ropePhysicsComponent?.onPointerMove(event.clientX, event.clientY);
   }
 
   /**
    * Resets sanctuary balloon letter evasion transforms upon pointer leaving the sanctuary area
-   * and allows swinging lanterns/stars to smoothly dampen to rest.
+   * and notifies the rope physics component.
    *
    * @returns {void}
    */
   onSanctuaryPointerLeave(): void {
-    this.isSanctuaryPointerInside = false;
-    this.lastSanctuaryPointerTimestamp = 0;
     if (this.sanctuaryEvadeRafId !== null) {
       cancelAnimationFrame(this.sanctuaryEvadeRafId);
       this.sanctuaryEvadeRafId = null;
     }
     this.lastSanctuaryPointerEvent = null;
     this.resetLettersEvade('.hotspot-floating-tooltip .tooltip-letter');
-
-    // Ensure physics loop runs until all swaying items settle naturally to 0
-    if (this.sanctuaryPhysicsRafId === null) {
-      const anyActive = this.sanctuarySwingItems.some(i => Math.abs(i.angle) > 0.0001 || Math.abs(i.velocity) > 0.0001);
-      if (anyActive) {
-        this.sanctuaryPhysicsRafId = requestAnimationFrame(this.runSanctuaryPhysicsLoop);
-      }
-    }
+    this.ropePhysicsComponent?.onPointerLeave();
   }
-
-  /**
-   * Calculates physical force impulses imparted to hanging sanctuary lanterns and stars
-   * based on pointer movement velocity and proximity (inspired by CodingStella interactive strings physics).
-   *
-   * @param {PointerEvent} event - The pointer move event.
-   * @returns {void}
-   */
-  private applyPointerImpulseToSanctuaryItems(event: PointerEvent): void {
-    const container = document.querySelector('.sanctuary-canvas-wrapper') as HTMLElement | null;
-    if (!container) return;
-    const rect = container.getBoundingClientRect();
-    if (rect.width <= 0 || rect.height <= 0) return;
-
-    const normX = ((event.clientX - rect.left) / rect.width) * 1376;
-    const normY = ((event.clientY - rect.top) / rect.height) * 768;
-    const now = performance.now();
-    const dt = Math.max(0.005, Math.min(0.05, (now - this.lastSanctuaryPointerTimestamp) / 1000));
-
-    // Pointer velocity in normalized coordinate pixels per second (smoothed & clamped)
-    let vx = 0;
-    if (this.lastSanctuaryPointerTimestamp > 0) {
-      vx = (normX - this.lastSanctuaryPointerNormX) / dt;
-    }
-    vx = Math.max(-1000, Math.min(1000, vx));
-
-    this.lastSanctuaryPointerNormX = normX;
-    this.lastSanctuaryPointerNormY = normY;
-    this.lastSanctuaryPointerTimestamp = now;
-
-    let impartedMotion = false;
-
-    for (const item of this.sanctuarySwingItems) {
-      // Screen space tip position: clockwise rotation (angle > 0) moves the bottom to the LEFT (-X)
-      const sinA = Math.sin(item.angle);
-      const cosA = Math.cos(item.angle);
-      const tipX = item.anchorX - item.length * sinA;
-      const tipY = item.anchorY + item.length * cosA;
-
-      const segX = tipX - item.anchorX;
-      const segY = tipY - item.anchorY;
-      const segLenSq = segX * segX + segY * segY;
-
-      // Project pointer onto hanging string segment
-      const u = segLenSq > 0
-        ? Math.max(0, Math.min(1, ((normX - item.anchorX) * segX + (normY - item.anchorY) * segY) / segLenSq))
-        : 0;
-
-      const closestX = item.anchorX + u * segX;
-      const closestY = item.anchorY + u * segY;
-
-      const dx = normX - closestX;
-      const dy = normY - closestY;
-      const dist = Math.hypot(dx, dy);
-
-      if (dist < item.influenceRadius) {
-        // Smooth normalized distance factor [0 .. 1]
-        const normDist = dist / item.influenceRadius;
-        const falloff = 1 - normDist * normDist;
-        const smoothWeight = falloff * falloff;
-
-        // Mechanical leverage: hitting the bob produces greater torque than near the top wire anchor
-        const leverage = 0.25 + 0.75 * u;
-
-        // 1. Proximity push: pushes the lamp AWAY from the mouse.
-        // Screen physics with CSS rotate:
-        // Clockwise rotation (angle > 0) moves the lamp bottom to the LEFT.
-        // Counter-clockwise rotation (angle < 0) moves the lamp bottom to the RIGHT.
-        // If mouse is on left (dx < 0), we push lamp to the RIGHT (angle < 0).
-        // If mouse is on right (dx > 0), we push lamp to the LEFT (angle > 0).
-        // Using dipole p * smoothWeight ensures 0 torque when directly centered on the wire (no flipping jerk!).
-        const p = Math.max(-1, Math.min(1, dx / item.influenceRadius));
-        const repulseTorque = p * smoothWeight * 0.75;
-
-        // 2. Dynamic swipe impulse: cursor moving horizontally pushes lamp in the swipe direction
-        // If mouse moves right (vx > 0), push lamp to the right (angle < 0).
-        // If mouse moves left (vx < 0), push lamp to the left (angle > 0).
-        const swipeTorque = -(vx / 800) * smoothWeight * 0.65;
-
-        // Total balanced torque scaled by dt to be framerate independent
-        const totalTorque = (repulseTorque + swipeTorque) * leverage;
-        const impulse = totalTorque * 18.0 * dt;
-
-        item.velocity += impulse;
-
-        // Natural peak velocity clamp (~3.2 rad/s = ~183 deg/s) for snappy yet controlled response
-        item.velocity = Math.max(-3.2, Math.min(3.2, item.velocity));
-        impartedMotion = true;
-      }
-    }
-
-    if (impartedMotion && this.sanctuaryPhysicsRafId === null) {
-      this.sanctuaryPhysicsRafId = requestAnimationFrame(this.runSanctuaryPhysicsLoop);
-    }
-  }
-
-  /**
-   * Continuous requestAnimationFrame loop updating damped harmonic pendulum physics
-   * for all swinging sanctuary lanterns and stars. Pauses when all items reach rest.
-   *
-   * @returns {void}
-   */
-  private runSanctuaryPhysicsLoop = (): void => {
-    if (this.isDestroyed) {
-      this.sanctuaryPhysicsRafId = null;
-      return;
-    }
-
-    const dt = 0.016; // Stable 60Hz step for harmonic integration
-    let anyActive = false;
-
-    for (const item of this.sanctuarySwingItems) {
-      if (!item.element) {
-        item.element = document.querySelector(`[data-swing-id="${item.id}"]`) as HTMLElement;
-      }
-
-      // Gravitational / spring restoring torque: -omega0^2 * angle
-      // Add progressive cubic resistance near maxAngle for a silky-smooth soft cushion without hard bounce
-      const ratio = item.angle / item.maxAngle;
-      const restoringTorque = -item.omega0 * item.omega0 * (item.angle + Math.pow(ratio, 3) * item.maxAngle * 1.5);
-
-      // Angular acceleration integrated with smooth natural damping
-      item.velocity = (item.velocity + restoringTorque * dt) * item.damping;
-      item.angle += item.velocity * dt;
-
-      // Elastic limit bounds with soft velocity deceleration (no sudden snap or reverse jerk)
-      if (item.angle > item.maxAngle) {
-        item.angle = item.maxAngle;
-        item.velocity *= 0.5;
-      } else if (item.angle < -item.maxAngle) {
-        item.angle = -item.maxAngle;
-        item.velocity *= 0.5;
-      }
-
-      // Settle to sleep when motion is imperceptible
-      if (Math.abs(item.angle) < 0.0003 && Math.abs(item.velocity) < 0.001) {
-        item.angle = 0;
-        item.velocity = 0;
-      } else {
-        anyActive = true;
-      }
-
-      // Synchronously update element transform
-      if (item.element) {
-        const deg = (item.angle * (180 / Math.PI)).toFixed(2);
-        item.element.style.transform = `rotate(${deg}deg)`;
-      }
-    }
-
-    if (anyActive || this.isSanctuaryPointerInside) {
-      this.sanctuaryPhysicsRafId = requestAnimationFrame(this.runSanctuaryPhysicsLoop);
-    } else {
-      this.sanctuaryPhysicsRafId = null;
-    }
-  };
 
   /**
    * Applies subtle physics-based repulsion vectors to letters matching the given selector based on pointer position.
