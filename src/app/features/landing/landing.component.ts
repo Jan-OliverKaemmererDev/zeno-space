@@ -132,6 +132,12 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   private glideTimeout: ReturnType<typeof setTimeout> | null = null;
   readonly isDragging = signal<boolean>(false);
 
+  // Sanctuary Interactive Balloons & Smooth Scroll Reveal
+  readonly showImpressum = signal<boolean>(false);
+  readonly showDatenschutz = signal<boolean>(false);
+  readonly isSanctuaryRevealed = signal<boolean>(false);
+  private sanctuaryIntersectionObserver: IntersectionObserver | null = null;
+
   // Audio activation state & fine stardust particles
   readonly isBursting = signal<boolean>(false);
   private wasAwaitingGesture = false;
@@ -324,6 +330,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     this.initCloudScene();
     this.initPhraseSmoothWrapping();
     this.initHubTitleObserver();
+    this.initSanctuaryObserver();
     this.audioService.playAmbientMusic();
     this.updateActiveSection();
     if (typeof window !== 'undefined') {
@@ -346,6 +353,9 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
    * @returns {void}
    */
   ngOnDestroy(): void {
+    if (typeof document !== 'undefined') {
+      document.body.classList.remove('in-sanctuary');
+    }
     this.isDestroyed = true;
     this.smoothScroll.registerContainer(null);
     this.audioService.pauseAmbientMusic();
@@ -386,6 +396,10 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     if (this.hubIntersectionObserver) {
       this.hubIntersectionObserver.disconnect();
       this.hubIntersectionObserver = null;
+    }
+    if (this.sanctuaryIntersectionObserver) {
+      this.sanctuaryIntersectionObserver.disconnect();
+      this.sanctuaryIntersectionObserver = null;
     }
     if (this.prompterEvadeRafId !== null) {
       cancelAnimationFrame(this.prompterEvadeRafId);
@@ -675,6 +689,38 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     this.hubIntersectionObserver.observe(hubTitle);
   }
 
+  /**
+   * Initializes an IntersectionObserver to smoothly fade in the sanctuary section when scrolled into view.
+   *
+   * @returns {void}
+   */
+  private initSanctuaryObserver(): void {
+    if (typeof window === 'undefined') return;
+
+    if (!('IntersectionObserver' in window)) {
+      this.isSanctuaryRevealed.set(true);
+      return;
+    }
+
+    const sanctuaryEl = document.getElementById('sanctuary');
+    if (!sanctuaryEl) return;
+
+    this.sanctuaryIntersectionObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            this.isSanctuaryRevealed.set(true);
+          } else {
+            // Keep completely hidden until scrolled down to it
+            this.isSanctuaryRevealed.set(false);
+          }
+        }
+      },
+      { threshold: 0.08, rootMargin: '0px 0px -22% 0px' }
+    );
+    this.sanctuaryIntersectionObserver.observe(sanctuaryEl);
+  }
+
   // ----------------------------------------------------
   // Subtle Word Evasion for Prompter Text
   // ----------------------------------------------------
@@ -805,10 +851,12 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     // Direct bounds check
     if (scrollY <= 80) {
       this.setSection(0);
+      this.isSanctuaryRevealed.set(false);
       return;
     }
     if (maxScroll > 0 && scrollY >= maxScroll - 60) {
       this.setSection(2);
+      this.isSanctuaryRevealed.set(true);
       return;
     }
 
@@ -817,6 +865,12 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 
     if (sanctuaryEl) {
       const rect = sanctuaryEl.getBoundingClientRect();
+      if (rect.top <= window.innerHeight * 0.70) {
+        this.isSanctuaryRevealed.set(true);
+      } else if (rect.top > window.innerHeight * 0.88) {
+        this.isSanctuaryRevealed.set(false);
+      }
+
       if (rect.top <= window.innerHeight * 0.55) {
         this.setSection(2);
         return;
@@ -850,6 +904,16 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 
     const direction: 'down' | 'up' = index > current ? 'down' : 'up';
     this.activeSectionIndex.set(index);
+    
+    if (typeof document !== 'undefined') {
+      if (index === 2) {
+        document.body.classList.add('in-sanctuary');
+        this.isSanctuaryRevealed.set(true);
+      } else {
+        document.body.classList.remove('in-sanctuary');
+      }
+    }
+    
     this.triggerGlide(direction);
 
     if (playSound) {
@@ -1409,5 +1473,22 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     };
 
     animate();
+  }
+
+  toggleImpressum(event: Event) {
+    event.stopPropagation();
+    this.showImpressum.update(v => !v);
+    this.showDatenschutz.set(false);
+  }
+
+  toggleDatenschutz(event: Event) {
+    event.stopPropagation();
+    this.showDatenschutz.update(v => !v);
+    this.showImpressum.set(false);
+  }
+
+  closeBalloons() {
+    this.showImpressum.set(false);
+    this.showDatenschutz.set(false);
   }
 }

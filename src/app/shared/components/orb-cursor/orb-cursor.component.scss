@@ -165,7 +165,16 @@
   );
   filter: blur(8px);
   pointer-events: none;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition: transform 0.2s ease, opacity 0.2s ease, background 0.5s ease;
+
+  :host-context(.in-sanctuary) & {
+    background: radial-gradient(
+      circle,
+      rgba(251, 191, 36, 0.28) 0%,
+      rgba(252, 211, 77, 0.12) 40%,
+      transparent 70%
+    );
+  }
 
   .is-hovering & {
     width: 56px;
@@ -177,6 +186,15 @@
       transparent 75%
     );
     filter: blur(10px);
+
+    :host-context(.in-sanctuary) & {
+      background: radial-gradient(
+        circle,
+        rgba(251, 191, 36, 0.45) 0%,
+        rgba(252, 211, 77, 0.2) 50%,
+        transparent 75%
+      );
+    }
   }
 
   .is-clicking & {
@@ -207,9 +225,20 @@
   border: 1.3px solid rgba(186, 230, 253, 0.75);
   box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
   transition:
-    background 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
+    background 0.5s ease,
+    border-color 0.5s ease,
+    box-shadow 0.5s ease;
+
+  :host-context(.in-sanctuary) & {
+    background: linear-gradient(
+      135deg,
+      rgba(254, 243, 199, 0.38) 0%,
+      rgba(251, 191, 36, 0.44) 50%,
+      rgba(245, 158, 11, 0.50) 100%
+    );
+    border-color: rgba(253, 230, 138, 0.75);
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.35);
+  }
 
   // Hover state (balanced luminous sky border)
   .is-hovering & {
@@ -221,12 +250,28 @@
     );
     border-color: rgba(224, 242, 254, 0.85);
     box-shadow: 0 0 16px rgba(56, 189, 248, 0.42);
+
+    :host-context(.in-sanctuary) & {
+      background: linear-gradient(
+        135deg,
+        rgba(254, 243, 199, 0.40) 0%,
+        rgba(251, 191, 36, 0.48) 50%,
+        rgba(245, 158, 11, 0.54) 100%
+      );
+      border-color: rgba(254, 243, 199, 0.85);
+      box-shadow: 0 0 16px rgba(251, 191, 36, 0.42);
+    }
   }
 
   // Click compression state (focused, refined border)
   .is-clicking & {
     border-color: rgba(224, 242, 254, 0.90);
     box-shadow: 0 0 16px rgba(56, 189, 248, 0.50);
+
+    :host-context(.in-sanctuary) & {
+      border-color: rgba(254, 243, 199, 0.90);
+      box-shadow: 0 0 16px rgba(251, 191, 36, 0.50);
+    }
   }
 
   // 1s Hold trembling state (balanced energetic glow)
@@ -235,5 +280,12 @@
     box-shadow:
       0 0 16px rgba(56, 189, 248, 0.60),
       0 0 5px rgba(224, 242, 254, 0.82);
+
+    :host-context(.in-sanctuary) & {
+      border-color: rgba(255, 251, 235, 0.94);
+      box-shadow:
+        0 0 16px rgba(251, 191, 36, 0.60),
+        0 0 5px rgba(254, 243, 199, 0.82);
+    }
   }
 }

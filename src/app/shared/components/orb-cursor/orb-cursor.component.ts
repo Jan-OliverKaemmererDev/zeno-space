@@ -431,14 +431,16 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
    * Spawns a fine micro-pixel spark with balanced speed and drift distance.
    */
   private spawnSpark(): void {
-    const isBlue = Math.random() < 0.45;
-    const color = isBlue ? '#7dd3fc' : '#ffffff';
-    const size = Math.random() < 0.5 ? 2.0 : 1.5; // Exactly 1.5px or 2px micro-pixel
+    const isSanctuary = typeof document !== 'undefined' && document.body.classList.contains('in-sanctuary');
+    const isPrimary = Math.random() < 0.45;
+    const color = isSanctuary
+      ? (isPrimary ? '#fcd34d' : '#ffffff') // Warm yellow/white
+      : (isPrimary ? '#7dd3fc' : '#ffffff'); // Cold blue/white
+    const size = Math.random() < 0.5 ? 2.0 : 1.5;
     const angle = Math.random() * Math.PI * 2;
-    // Spawn near the edge of the shrunken orb (radius ~7.5px)
     const startDist = 7.0 + Math.random() * 2.0;
-    const speed = 44 + Math.random() * 30; // px/sec - lively yet controlled outward drift (~18-24px total)
-    const maxLife = 0.52 + Math.random() * 0.12; // ~0.55s duration
+    const speed = 44 + Math.random() * 30;
+    const maxLife = 0.52 + Math.random() * 0.12;
 
     this.sparks.push({
       x: Math.cos(angle) * startDist,
@@ -521,11 +523,16 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
 
           this.sparksCtx.fillStyle = s.color;
           this.sparksCtx.globalAlpha = Math.max(0, Math.min(1, alpha));
-          this.sparksCtx.shadowColor =
-            s.color === '#7dd3fc'
-              ? 'rgba(125, 211, 252, 0.95)'
-              : 'rgba(255, 255, 255, 0.85)';
-          this.sparksCtx.shadowBlur = s.color === '#7dd3fc' ? 3 : 2;
+          if (s.color === '#7dd3fc') {
+            this.sparksCtx.shadowColor = 'rgba(125, 211, 252, 0.95)';
+            this.sparksCtx.shadowBlur = 3;
+          } else if (s.color === '#fcd34d') {
+            this.sparksCtx.shadowColor = 'rgba(252, 211, 77, 0.95)';
+            this.sparksCtx.shadowBlur = 3;
+          } else {
+            this.sparksCtx.shadowColor = 'rgba(255, 255, 255, 0.85)';
+            this.sparksCtx.shadowBlur = 2;
+          }
 
           // Draw crisp square micro-pixel (border-radius: 0)
           this.sparksCtx.fillRect(

@@ -1264,164 +1264,423 @@
 .cozy-sanctuary-section {
   position: relative;
   z-index: 5;
-  padding: 60px 24px 80px;
-  max-width: 1000px;
-  margin: 0 auto;
+  width: 100%;
+  min-height: 100vh;
+  margin-top: 30vh;
+  background: transparent;
   font-family: var(--zeno-font-sniglet-regular);
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  // Fully hidden at first until scrolled down into it
+  opacity: 0;
+  transform: translateY(45px) scale(0.98);
+  transition: opacity 1.5s ease-out,
+              transform 1.5s ease-out;
+  will-change: opacity, transform;
+  pointer-events: none;
+
+  &.is-revealed {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+    transition: opacity 2.8s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 2.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
 
   * {
     font-family: var(--zeno-font-sniglet-regular);
   }
 }
 
-.sanctuary-card {
+.sanctuary-canvas-wrapper {
   position: relative;
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 32px;
-  padding: 48px 36px;
-  overflow: hidden;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
-  font-family: var(--zeno-font-sniglet-regular);
+  width: 100%;
+  aspect-ratio: 1376 / 768;
+  min-height: 100vh;
+  min-width: calc(100vh * (1376 / 768));
+  left: 50%;
+  transform: translateX(-50%);
+  animation: sceneFloat 14s ease-in-out infinite alternate;
 
-  .sanctuary-glow {
+  // Feather the top edge softly so it seamlessly dissolves into the background
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.08) 4%,
+    rgba(0, 0, 0, 0.42) 10%,
+    rgba(0, 0, 0, 0.86) 18%,
+    black 28%
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.08) 4%,
+    rgba(0, 0, 0, 0.42) 10%,
+    rgba(0, 0, 0, 0.86) 18%,
+    black 28%
+  );
+}
+
+@keyframes sceneFloat {
+  0% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-10px); }
+  100% { transform: translateX(-50%) translateY(0); }
+}
+
+.sanctuary-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+.sanctuary-sun-glow {
+  position: absolute;
+  left: 50.15%;
+  top: 49.3%;
+  width: 18%;
+  height: 32%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    rgba(255, 245, 210, 0.38) 0%,
+    rgba(251, 191, 36, 0.18) 35%,
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+  filter: blur(14px);
+  z-index: 2;
+  animation: sunBreathe 6s ease-in-out infinite alternate;
+}
+
+@keyframes sunBreathe {
+  0% { opacity: 0.55; transform: translate(-50%, -50%) scale(0.95); }
+  100% { opacity: 0.88; transform: translate(-50%, -50%) scale(1.08); }
+}
+
+// Balanced, authentic lamp glows strictly positioned on the drawn lanterns (Mittelwert)
+.lamp-glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle, 
+    rgba(255, 244, 180, 0.76) 0%, 
+    rgba(251, 191, 36, 0.38) 28%, 
+    rgba(245, 158, 11, 0.12) 52%, 
+    transparent 72%
+  );
+  mix-blend-mode: screen;
+  filter: blur(3.5px);
+  z-index: 3;
+  animation: lampFlicker 3.6s ease-in-out infinite alternate;
+
+  // Far-left library top balcony lantern
+  &.lamp-far-left-top {
+    left: 10.76%;
+    top: 5.47%;
+    width: 58px;
+    height: 58px;
+    animation-delay: 0s;
+    animation-duration: 3.4s;
+  }
+
+  // Far-left library mid balcony lantern
+  &.lamp-far-left-mid {
+    left: 11.77%;
+    top: 50.0%;
+    width: 66px;
+    height: 66px;
+    animation-delay: 0.6s;
+    animation-duration: 3.9s;
+  }
+
+  // Center-left island library hanging lantern
+  &.lamp-center-left {
+    left: 36.34%;
+    top: 50.78%;
+    width: 58px;
+    height: 58px;
+    animation-delay: 1.2s;
+    animation-duration: 3.1s;
+  }
+
+  // Center-right island library hanging lantern
+  &.lamp-center-right {
+    left: 63.23%;
+    top: 55.47%;
+    width: 58px;
+    height: 58px;
+    animation-delay: 0.4s;
+    animation-duration: 3.7s;
+  }
+
+  // Far-right library upper balcony lantern
+  &.lamp-far-right-top {
+    left: 88.52%;
+    top: 14.58%;
+    width: 62px;
+    height: 62px;
+    animation-delay: 1.8s;
+    animation-duration: 4.1s;
+  }
+
+  // Far-right library mid balcony lantern
+  &.lamp-far-right-mid {
+    left: 88.08%;
+    top: 46.61%;
+    width: 66px;
+    height: 66px;
+    animation-delay: 0.9s;
+    animation-duration: 3.5s;
+  }
+
+  // Left hot air balloon basket lantern
+  &.lamp-balloon-left {
+    left: 38.2%;
+    top: 27.5%;
+    width: 42px;
+    height: 42px;
+    animation-delay: 0.3s;
+    animation-duration: 2.9s;
+  }
+
+  // Right hot air balloon basket lantern
+  &.lamp-balloon-right {
+    left: 60.8%;
+    top: 25.5%;
+    width: 46px;
+    height: 46px;
+    animation-delay: 1.5s;
+    animation-duration: 3.2s;
+  }
+}
+
+@keyframes lampFlicker {
+  0% {
+    opacity: 0.58;
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  40% {
+    opacity: 0.84;
+    transform: translate(-50%, -50%) scale(1.04);
+  }
+  70% {
+    opacity: 0.66;
+    transform: translate(-50%, -50%) scale(0.97);
+  }
+  100% {
+    opacity: 0.82;
+    transform: translate(-50%, -50%) scale(1.05);
+  }
+}
+
+// Hot Air Balloon Interactive Targets
+.balloon-hotspot {
+  position: absolute;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  user-select: none;
+  outline: none;
+  border-radius: 50% 50% 40% 40%;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  // Left Balloon (envelope + basket)
+  &.balloon-left {
+    left: 38.0%;
+    top: 10.0%;
+    width: 6.8%;
+    height: 19.5%;
+    transform: translateX(-50%);
+  }
+
+  // Right Balloon (envelope + basket)
+  &.balloon-right {
+    left: 60.7%;
+    top: 6.8%;
+    width: 7.8%;
+    height: 21.0%;
+    transform: translateX(-50%);
+  }
+
+  // Soft hovering aura around balloon
+  .hotspot-balloon-aura {
     position: absolute;
-    top: -40%;
-    left: 20%;
-    width: 60%;
-    height: 80%;
-    background: radial-gradient(circle, rgba(147, 197, 253, 0.08) 0%, transparent 70%);
+    inset: -8px;
+    border-radius: 50% 50% 42% 42%;
+    background: radial-gradient(circle, rgba(251, 191, 36, 0.16) 0%, transparent 75%);
+    opacity: 0;
+    transition: opacity 0.35s ease, transform 0.35s ease;
     pointer-events: none;
   }
 
-  .sanctuary-inner {
-    position: relative;
-    z-index: 2;
-    text-align: center;
-    max-width: 720px;
-    margin: 0 auto;
-    font-family: var(--zeno-font-sniglet-regular);
-  }
+  // Small elegant badge under balloon basket
+  .hotspot-badge {
+    position: absolute;
+    bottom: -16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: rgba(15, 23, 42, 0.82);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(251, 191, 36, 0.5);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), 0 0 10px rgba(251, 191, 36, 0.2);
+    color: #fef08a;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    transition: all 0.25s ease;
+    pointer-events: none;
 
-  .sanctuary-badge {
-    display: inline-block;
-    font-family: var(--zeno-font-sniglet-regular);
-    font-size: 0.76rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--zeno-color-sky-200);
-    background: rgba(147, 197, 253, 0.1);
-    border: 1px solid rgba(147, 197, 253, 0.2);
-    padding: 5px 14px;
-    border-radius: 999px;
-    margin-bottom: 16px;
-  }
-
-  .sanctuary-title {
-    font-family: var(--zeno-font-sniglet-regular);
-    font-size: clamp(1.6rem, 3vw, 2.2rem);
-    font-weight: 700;
-    color: var(--zeno-color-white);
-    margin: 0 0 16px 0;
-  }
-
-  .sanctuary-text {
-    font-family: var(--zeno-font-sniglet-regular);
-    font-size: 1rem;
-    line-height: 1.7;
-    color: rgba(255, 255, 255, 0.7);
-    margin: 0 0 32px 0;
-
-    strong {
-      color: var(--zeno-color-white);
-      font-family: var(--zeno-font-sniglet-regular);
+    .badge-icon {
+      font-size: 0.85rem;
     }
   }
 
-  .sanctuary-stats {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    flex-wrap: wrap;
-    font-family: var(--zeno-font-sniglet-regular);
+  &:hover,
+  &:focus-visible,
+  &.is-active {
+    transform: translateX(-50%) scale(1.05);
 
-    .stat-pill {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 12px 24px;
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      font-family: var(--zeno-font-sniglet-regular);
+    .hotspot-balloon-aura {
+      opacity: 1;
+      transform: scale(1.04);
+    }
 
-      .stat-value {
-        font-family: var(--zeno-font-sniglet-regular);
-        font-size: 1.25rem;
-        font-weight: 700;
-        color: var(--zeno-color-white);
-      }
-
-      .stat-label {
-        font-family: var(--zeno-font-sniglet-regular);
-        font-size: 0.74rem;
-        color: rgba(255, 255, 255, 0.5);
-      }
+    .hotspot-badge {
+      background: rgba(30, 41, 59, 0.95);
+      border-color: #fbbf24;
+      color: #ffffff;
+      box-shadow: 0 6px 20px rgba(251, 191, 36, 0.4), 0 0 14px rgba(251, 191, 36, 0.5);
+      transform: translateY(2px) scale(1.04);
     }
   }
 }
 
-// Cozy Footer
-.cozy-footer {
-  position: relative;
-  z-index: 5;
-  text-align: center;
-  padding: 40px 24px 60px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  font-family: var(--zeno-font-sniglet-regular);
+@keyframes auraSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
 
-  * {
-    font-family: var(--zeno-font-sniglet-regular);
+// Speech Bubble modal / popover
+.speech-bubble {
+  position: absolute;
+  top: calc(100% + 22px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  background: rgba(255, 252, 245, 0.97);
+  backdrop-filter: blur(16px);
+  color: #1e293b;
+  padding: 18px 22px;
+  border-radius: 20px;
+  width: 290px;
+  max-width: 90vw;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(251, 191, 36, 0.25);
+  border: 1.5px solid rgba(245, 158, 11, 0.4);
+  opacity: 0;
+  pointer-events: auto;
+  animation: bubblePop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  cursor: default;
+  z-index: 50;
+
+  // Pointer arrow pointing up to the balloon basket
+  &::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 0 10px 10px 10px;
+    border-style: solid;
+    border-color: transparent transparent rgba(255, 252, 245, 0.97) transparent;
   }
 
-  .footer-text {
-    font-family: var(--zeno-font-sniglet-regular);
-    font-size: 0.88rem;
-    color: rgba(255, 255, 255, 0.55);
-    margin-bottom: 16px;
+  .bubble-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding-bottom: 6px;
 
-    strong {
-      color: var(--zeno-color-white);
-      font-family: var(--zeno-font-sniglet-regular);
+    h4 {
+      margin: 0;
+      color: #0f172a;
+      font-size: 1.2rem;
+      font-family: var(--zeno-font-bubble);
+      letter-spacing: 0.03em;
+    }
+
+    .bubble-close-btn {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      line-height: 1;
+      color: #64748b;
+      cursor: pointer;
+      padding: 0 4px;
+      border-radius: 6px;
+      transition: color 0.15s, transform 0.15s;
+
+      &:hover {
+        color: #0f172a;
+        transform: scale(1.15);
+      }
     }
   }
 
-  .footer-links {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 12px;
-    font-size: 0.85rem;
-    font-family: var(--zeno-font-sniglet-regular);
+  .bubble-body {
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #334155;
 
-    a {
-      font-family: var(--zeno-font-sniglet-regular);
-      color: rgba(255, 255, 255, 0.65);
-      text-decoration: none;
-      transition: color 0.2s ease;
+    p {
+      margin: 0 0 8px 0;
 
-      &:hover {
-        color: var(--zeno-color-sky-200);
+      &:last-child {
+        margin-bottom: 0;
       }
     }
 
-    span {
-      font-family: var(--zeno-font-sniglet-regular);
-      color: rgba(255, 255, 255, 0.2);
+    .bubble-brand {
+      font-weight: 700;
+      color: #0f172a;
+      font-size: 1.05rem;
     }
+
+    .bubble-sub {
+      font-size: 0.85rem;
+      color: #64748b;
+      font-style: italic;
+      margin-top: 6px;
+    }
+  }
+}
+
+@keyframes bubblePop {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(8px) scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+    pointer-events: auto;
   }
 }
 

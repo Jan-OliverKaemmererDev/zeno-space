@@ -258,52 +258,98 @@
     </section>
 
     <!-- Cozy Sanctuary Section -->
-    <section class="cozy-sanctuary-section" id="sanctuary">
-      <article class="sanctuary-card" aria-label="Das zeno-space Manifest">
-        <div class="sanctuary-glow"></div>
-        <div class="sanctuary-inner">
-          <span class="sanctuary-badge">Das zeno-space Manifest</span>
-          <h3 class="sanctuary-title">Warum gemütlich & entschleunigt?</h3>
-          <p class="sanctuary-text">
-            Das Internet ist oft laut, hektisch und voller endloser Feeds. <strong>zeno-space</strong>
-            ist ein bewusstes Gegenstück: Ein digitaler Wohlfühlort ohne Highscores, ohne Hektik und ohne Werbung.
-            Hier geht es einzig um das beruhigende Gefühl von sanften physikalischen Bewegungen, wunderschönen
-            Farben und spielerischer Achtsamkeit.
-          </p>
-          <dl class="sanctuary-stats" aria-label="Plattform-Eigenschaften">
-            <div class="stat-pill">
-              <dd class="stat-value">60 FPS</dd>
-              <dt class="stat-label">Flüssiges Schweben</dt>
-            </div>
-            <div class="stat-pill">
-              <dd class="stat-value">WebGL</dd>
-              <dt class="stat-label">Hardware-3D</dt>
-            </div>
-            <div class="stat-pill">
-              <dd class="stat-value">WebAudio</dd>
-              <dt class="stat-label">Synthesizer</dt>
-            </div>
-          </dl>
-        </div>
-      </article>
-    </section>
+    <section 
+      class="cozy-sanctuary-section" 
+      id="sanctuary" 
+      [class.is-revealed]="isSanctuaryRevealed()"
+      (click)="closeBalloons()"
+    >
+      <div class="sanctuary-canvas-wrapper">
+        <!-- Sanctuary Artwork Image -->
+        <img 
+          src="/images/landing-sanctuary-wide.jpg" 
+          alt="Himmelsbibliothek Zuflucht – Schwebende Inseln mit Bibliotheken und Walen" 
+          class="sanctuary-art"
+        />
 
-    <!-- Cozy Footer -->
-    <footer class="cozy-footer">
-      <div class="footer-orb" aria-hidden="true"></div>
-      <p class="footer-text">
-        Erschaffen für gemütliche Momente & Entspannung in deinem Wohlfühlort. Mit Liebe gebaut für <strong>zeno-space</strong>.
-      </p>
-      <nav class="footer-links" aria-label="Schnellnavigation">
-        <a routerLink="/game/cosmic-sculptor" aria-label="Minispiel 3D Cosmos öffnen">3D Cosmos</a>
-        <span aria-hidden="true">•</span>
-        <a routerLink="/game/bubble-harmony" aria-label="Minispiel Bubble Harmony öffnen">Bubble Harmony</a>
-        <span aria-hidden="true">•</span>
-        <a routerLink="/game/zen-sand" aria-label="Minispiel Zen Sand öffnen">Zen Sand</a>
-        <span aria-hidden="true">•</span>
-        <a routerLink="/game/soundscape-mixer" aria-label="Minispiel Soundscape öffnen">Soundscape</a>
-      </nav>
-    </footer>
+        <!-- Center Sunset Radiance -->
+        <div class="sanctuary-sun-glow" aria-hidden="true"></div>
+
+        <!-- Authentic Lamp Glows - positioned exactly where lanterns are drawn in the illustration -->
+        <div class="lamp-glow lamp-far-left-top" aria-hidden="true"></div>
+        <div class="lamp-glow lamp-far-left-mid" aria-hidden="true"></div>
+        <div class="lamp-glow lamp-center-left" aria-hidden="true"></div>
+        <div class="lamp-glow lamp-center-right" aria-hidden="true"></div>
+        <div class="lamp-glow lamp-far-right-top" aria-hidden="true"></div>
+        <div class="lamp-glow lamp-far-right-mid" aria-hidden="true"></div>
+        <div class="lamp-glow lamp-balloon-left" aria-hidden="true"></div>
+        <div class="lamp-glow lamp-balloon-right" aria-hidden="true"></div>
+
+        <!-- Interactive Hot Air Balloon 1: Impressum -->
+        <div 
+          class="balloon-hotspot balloon-left" 
+          [class.is-active]="showImpressum()"
+          (click)="toggleImpressum($event)"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="toggleImpressum($event)"
+          (keydown.space)="toggleImpressum($event)"
+          aria-label="Impressum öffnen – Klick auf den linken Heißluftballon"
+        >
+          <div class="hotspot-balloon-aura" aria-hidden="true"></div>
+          <div class="hotspot-badge">
+            <span class="badge-icon">📜</span>
+            <span class="badge-text">Impressum</span>
+          </div>
+
+          @if (showImpressum()) {
+            <div class="speech-bubble impressum-bubble" (click)="$event.stopPropagation()">
+              <div class="bubble-header">
+                <h4>Impressum</h4>
+                <button type="button" class="bubble-close-btn" (click)="closeBalloons()" aria-label="Schließen">×</button>
+              </div>
+              <div class="bubble-body">
+                <p class="bubble-brand">zeno-space</p>
+                <p>Private Projekte<br>Jan-Oliver Kämmerer</p>
+                <p class="bubble-sub">Entwickelt mit Liebe zum Detail</p>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Interactive Hot Air Balloon 2: Datenschutz -->
+        <div 
+          class="balloon-hotspot balloon-right" 
+          [class.is-active]="showDatenschutz()"
+          (click)="toggleDatenschutz($event)"
+          role="button"
+          tabindex="0"
+          (keydown.enter)="toggleDatenschutz($event)"
+          (keydown.space)="toggleDatenschutz($event)"
+          aria-label="Datenschutz öffnen – Klick auf den rechten Heißluftballon"
+        >
+          <div class="hotspot-balloon-aura" aria-hidden="true"></div>
+          <div class="hotspot-badge">
+            <span class="badge-icon">🛡️</span>
+            <span class="badge-text">Datenschutz</span>
+          </div>
+
+          @if (showDatenschutz()) {
+            <div class="speech-bubble datenschutz-bubble" (click)="$event.stopPropagation()">
+              <div class="bubble-header">
+                <h4>Datenschutz</h4>
+                <button type="button" class="bubble-close-btn" (click)="closeBalloons()" aria-label="Schließen">×</button>
+              </div>
+              <div class="bubble-body">
+                <p class="bubble-brand">100% Privat & Lokal</p>
+                <p>Keine Tracking-Cookies.<br>Keine Datenspeicherung.<br>Alle Minispiele und Audios laufen direkt in deinem Browser.</p>
+                <p class="bubble-sub">Genieße deine Auszeit ohne Sorgen!</p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
   </div>
 
   <!-- 

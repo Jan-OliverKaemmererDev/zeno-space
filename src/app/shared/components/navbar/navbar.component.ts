@@ -406,7 +406,17 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     }
     // On landing page, only show below the hero viewport
     const threshold = window.innerHeight * 0.7;
-    this.isVisible.set(window.scrollY >= threshold);
+    let visible = window.scrollY >= threshold;
+
+    // Hide if we reached the sanctuary section
+    const sanctuaryElement = document.getElementById('sanctuary');
+    if (sanctuaryElement) {
+      const rect = sanctuaryElement.getBoundingClientRect();
+      if (rect.top < window.innerHeight * 0.5) {
+        visible = false;
+      }
+    }
+    this.isVisible.set(visible);
   }
 
   /**
