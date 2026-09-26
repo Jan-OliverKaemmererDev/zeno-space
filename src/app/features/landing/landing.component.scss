@@ -1535,7 +1535,8 @@
     display: inline-flex;
     align-items: center;
     white-space: nowrap;
-    pointer-events: none;
+    pointer-events: auto;
+    cursor: pointer;
     user-select: none;
     background: transparent;
     border: none;
@@ -1545,7 +1546,7 @@
     padding: 0;
     margin: 0;
     opacity: 1;
-    transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+    transition: opacity 0.25s ease-out;
 
     .tooltip-letter-carrier {
       display: inline-block;
@@ -1574,17 +1575,24 @@
         drop-shadow(0 2px 4px rgba(24, 12, 36, 0.95))
         drop-shadow(0 4px 14px rgba(0, 0, 0, 0.75))
         drop-shadow(0 0 12px rgba(251, 191, 36, 0.65));
-      transition: filter 0.25s ease;
+
+      // Dynamic subtle evasion from mouse pointer like a floating soap bubble in air (matching section-header)
+      transform: translate3d(var(--evade-x, 0px), var(--evade-y, 0px), 0)
+                 scale(var(--evade-scale, 1))
+                 rotate(var(--evade-rot, 0deg));
+      transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), filter 0.25s ease;
+      will-change: transform;
     }
   }
 
   &:hover,
   &:focus-visible {
-    transform: translateX(-50%) scale(1.05);
+    // Keep exact position without lifting or scaling the hotspot and text
+    transform: translateX(-50%);
 
     .hotspot-balloon-aura {
       opacity: 1;
-      transform: scale(1.04);
+      transform: scale(1.05);
     }
 
     .hotspot-floating-tooltip .tooltip-letter {

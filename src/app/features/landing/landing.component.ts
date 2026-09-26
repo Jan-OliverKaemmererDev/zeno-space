@@ -414,6 +414,10 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
       cancelAnimationFrame(this.hubEvadeRafId);
       this.hubEvadeRafId = null;
     }
+    if (this.sanctuaryEvadeRafId !== null) {
+      cancelAnimationFrame(this.sanctuaryEvadeRafId);
+      this.sanctuaryEvadeRafId = null;
+    }
     if (this.hubIntersectionObserver) {
       this.hubIntersectionObserver.disconnect();
       this.hubIntersectionObserver = null;
@@ -555,6 +559,8 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   private lastPointerEvent: PointerEvent | null = null;
   private hubEvadeRafId: number | null = null;
   private lastHubPointerEvent: PointerEvent | null = null;
+  private sanctuaryEvadeRafId: number | null = null;
+  private lastSanctuaryPointerEvent: PointerEvent | null = null;
 
   /**
    * Handles pointer motion over the hero title container, scheduling letter evasion calculation.
@@ -619,18 +625,65 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
+   * Handles pointer motion over the sanctuary area, scheduling letter evasion calculation for Datenschutz and Impressum.
+   *
+   * @param {PointerEvent} event - The pointer move event.
+   * @returns {void}
+   */
+  onSanctuaryPointerMove(event: PointerEvent): void {
+    this.lastSanctuaryPointerEvent = event;
+    if (this.sanctuaryEvadeRafId !== null) return;
+
+    this.sanctuaryEvadeRafId = requestAnimationFrame(() => {
+      this.sanctuaryEvadeRafId = null;
+      if (!this.lastSanctuaryPointerEvent || this.isDestroyed) return;
+      this.applyEvadeToLetters(
+        this.lastSanctuaryPointerEvent,
+        '.hotspot-floating-tooltip .tooltip-letter',
+        65,    // radius: 65px (harmonious middle ground between 90px and 40px)
+        8.5,   // maxPush: 8.5px (balanced displacement between 14px and 4px)
+        false, // allowLift: false (strictly prevent lifting the text upwards)
+        0.18   // verticalRatio: 0.18 (soft organic downward cushion, never upwards)
+      );
+    });
+  }
+
+  /**
+   * Resets sanctuary balloon letter evasion transforms upon pointer leaving the sanctuary area.
+   *
+   * @returns {void}
+   */
+  onSanctuaryPointerLeave(): void {
+    if (this.sanctuaryEvadeRafId !== null) {
+      cancelAnimationFrame(this.sanctuaryEvadeRafId);
+      this.sanctuaryEvadeRafId = null;
+    }
+    this.lastSanctuaryPointerEvent = null;
+    this.resetLettersEvade('.hotspot-floating-tooltip .tooltip-letter');
+  }
+
+  /**
    * Applies subtle physics-based repulsion vectors to letters matching the given selector based on pointer position.
    *
    * @param {PointerEvent} event - The pointer event.
    * @param {string} selector - CSS selector matching the target letter elements.
+   * @param {number} [radius=90] - Distance in pixels within which letters react to the pointer.
+   * @param {number} [maxPush=14] - Maximum displacement in pixels for letters closest to the pointer.
+   * @param {boolean} [allowLift=true] - Whether letters can be pushed upwards (negative Y).
+   * @param {number} [verticalRatio=1] - Multiplier for vertical repulsion (0 for horizontal-only).
    * @returns {void}
    */
-  private applyEvadeToLetters(event: PointerEvent, selector: string): void {
+  private applyEvadeToLetters(
+    event: PointerEvent,
+    selector: string,
+    radius = 90,
+    maxPush = 14,
+    allowLift = true,
+    verticalRatio = 1
+  ): void {
     const letters = document.querySelectorAll<HTMLElement>(selector);
     const mouseX = event.clientX;
     const mouseY = event.clientY;
-    const radius = 90; // Subtle sphere of influence around pointer
-    const maxPush = 14; // Gentle bubble displacement
 
     letters.forEach((el) => {
       const rect = el.getBoundingClientRect();
@@ -644,10 +697,15 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
         const norm = dist / radius; // 0 (at cursor) to 1 (at outer edge)
         // Smooth falloff curve
         const force = Math.pow(1 - norm, 1.6);
-        const pushX = (dx / dist) * force * maxPush;
-        const pushY = (dy / dist) * force * maxPush;
-        const scale = 1 + force * 0.08;
-        const rot = (dx / dist) * force * 3;
+        const dirX = Math.abs(dx) > 0.5 ? Math.sign(dx) : (cx >= mouseX ? 1 : -1);
+        const pushRatioX = verticalRatio < 0.5 ? Math.max(Math.abs(dx / dist), 0.6) * dirX : (dx / dist);
+        const pushX = pushRatioX * force * maxPush;
+        let pushY = (dy / dist) * force * maxPush * verticalRatio;
+        if (!allowLift && pushY < 0) {
+          pushY = 0; // Strictly prevent lifting the text upwards
+        }
+        const scale = 1 + force * (maxPush > 10 ? 0.08 : 0.045);
+        const rot = (dx / dist) * force * (maxPush > 10 ? 3 : 1.8);
 
         el.style.setProperty('--evade-x', `${pushX.toFixed(2)}px`);
         el.style.setProperty('--evade-y', `${pushY.toFixed(2)}px`);
@@ -932,6 +990,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
         this.isSanctuaryRevealed.set(true);
       } else {
         document.body.classList.remove('in-sanctuary');
+        this.resetLettersEvade('.hotspot-floating-tooltip .tooltip-letter');
       }
     }
     
@@ -1500,16 +1559,19 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     event.stopPropagation();
     this.showImpressum.update(v => !v);
     this.showDatenschutz.set(false);
+    this.resetLettersEvade('.hotspot-floating-tooltip .tooltip-letter');
   }
 
   toggleDatenschutz(event: Event) {
     event.stopPropagation();
     this.showDatenschutz.update(v => !v);
     this.showImpressum.set(false);
+    this.resetLettersEvade('.hotspot-floating-tooltip .tooltip-letter');
   }
 
   closeBalloons() {
     this.showImpressum.set(false);
     this.showDatenschutz.set(false);
+    this.resetLettersEvade('.hotspot-floating-tooltip .tooltip-letter');
   }
 }

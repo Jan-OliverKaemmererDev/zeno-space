@@ -115,6 +115,12 @@ Options -Indexes -MultiViews
     ExpiresByType audio/wav "access plus 1 year"
     ExpiresByType audio/ogg "access plus 1 year"
 
+    # Static named images in /images/ have no content hash -
+    # use a short TTL so updates are reflected quickly
+    <Files "images/*">
+        ExpiresDefault "access plus 1 hour"
+    </Files>
+
     # Webfonts
     ExpiresByType font/woff2 "access plus 1 year"
     ExpiresByType font/woff "access plus 1 year"
@@ -132,6 +138,11 @@ Options -Indexes -MultiViews
     # Immutable caching for hashed chunks (e.g. main-*.js, styles-*.css)
     <FilesMatch "\.([0-9a-f]{8,})\.(js|css|svg|png|webp|woff2)$">
         Header set Cache-Control "max-age=31536000, public, immutable"
+    </FilesMatch>
+
+    # Static named images (no hash in filename) must revalidate after 1 hour
+    <FilesMatch "^images/.*\.(jpg|jpeg|png|webp|gif|svg)$">
+        Header set Cache-Control "max-age=3600, public, must-revalidate"
     </FilesMatch>
 </IfModule>
 

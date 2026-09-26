@@ -263,6 +263,9 @@
       id="sanctuary" 
       [class.is-revealed]="isSanctuaryRevealed()"
       (click)="closeBalloons()"
+      (pointermove)="onSanctuaryPointerMove($event)"
+      (pointerleave)="onSanctuaryPointerLeave()"
+      (pointerup)="onSanctuaryPointerLeave()"
     >
       <div class="sanctuary-canvas-wrapper">
         <!-- Sanctuary Artwork Image -->
