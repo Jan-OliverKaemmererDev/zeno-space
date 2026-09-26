@@ -105,7 +105,7 @@
     will-change: transform, opacity;
   }
 
-  // 8 particles in a single, tight, harmonious orbit close to the orb
+  // 8 particles in a single, tight, harmonious orbit close to the orb (Default Sky theme)
   @for $i from 0 through 7 {
     .p-#{$i} {
       @if $i % 2 == 0 {
@@ -128,6 +128,28 @@
           0 0 5px rgba(56, 189, 248, 0.6);
       }
       animation: cursorOrbitTrack1 4.8s linear infinite (-0.6s * $i);
+    }
+  }
+
+  // Warm amber / gold stardust orbit particles in cozy sanctuary
+  :host-context(.in-sanctuary) &,
+  .orb-cursor-host.in-sanctuary & {
+    @for $i from 0 through 7 {
+      .p-#{$i} {
+        @if $i % 2 == 0 {
+          // Warm bright star white with amber glow
+          background: #fffbeb !important;
+          box-shadow:
+            0 0 3px rgba(255, 251, 235, 0.95),
+            0 0 5px rgba(251, 191, 36, 0.75) !important;
+        } @else {
+          // Warm golden stardust
+          background: #fcd34d !important;
+          box-shadow:
+            0 0 3px rgba(252, 211, 77, 0.95),
+            0 0 5px rgba(245, 158, 11, 0.65) !important;
+        }
+      }
     }
   }
 }
@@ -167,7 +189,8 @@
   pointer-events: none;
   transition: transform 0.2s ease, opacity 0.2s ease, background 0.5s ease;
 
-  :host-context(.in-sanctuary) & {
+  :host-context(.in-sanctuary) &,
+  .orb-cursor-host.in-sanctuary & {
     background: radial-gradient(
       circle,
       rgba(251, 191, 36, 0.28) 0%,
@@ -187,13 +210,14 @@
     );
     filter: blur(10px);
 
-    :host-context(.in-sanctuary) & {
+    :host-context(.in-sanctuary) &,
+    .orb-cursor-host.in-sanctuary & {
       background: radial-gradient(
         circle,
-        rgba(251, 191, 36, 0.45) 0%,
-        rgba(252, 211, 77, 0.2) 50%,
+        rgba(251, 191, 36, 0.50) 0%,
+        rgba(252, 211, 77, 0.25) 50%,
         transparent 75%
-      );
+      ) !important;
     }
   }
 
@@ -229,7 +253,8 @@
     border-color 0.5s ease,
     box-shadow 0.5s ease;
 
-  :host-context(.in-sanctuary) & {
+  :host-context(.in-sanctuary) &,
+  .orb-cursor-host.in-sanctuary & {
     background: linear-gradient(
       135deg,
       rgba(254, 243, 199, 0.38) 0%,
@@ -251,15 +276,16 @@
     border-color: rgba(224, 242, 254, 0.85);
     box-shadow: 0 0 16px rgba(56, 189, 248, 0.42);
 
-    :host-context(.in-sanctuary) & {
+    :host-context(.in-sanctuary) &,
+    .orb-cursor-host.in-sanctuary & {
       background: linear-gradient(
         135deg,
-        rgba(254, 243, 199, 0.40) 0%,
-        rgba(251, 191, 36, 0.48) 50%,
-        rgba(245, 158, 11, 0.54) 100%
-      );
-      border-color: rgba(254, 243, 199, 0.85);
-      box-shadow: 0 0 16px rgba(251, 191, 36, 0.42);
+        rgba(254, 243, 199, 0.42) 0%,
+        rgba(251, 191, 36, 0.52) 50%,
+        rgba(245, 158, 11, 0.58) 100%
+      ) !important;
+      border-color: rgba(254, 243, 199, 0.90) !important;
+      box-shadow: 0 0 18px rgba(251, 191, 36, 0.55) !important;
     }
   }
 
@@ -268,9 +294,10 @@
     border-color: rgba(224, 242, 254, 0.90);
     box-shadow: 0 0 16px rgba(56, 189, 248, 0.50);
 
-    :host-context(.in-sanctuary) & {
-      border-color: rgba(254, 243, 199, 0.90);
-      box-shadow: 0 0 16px rgba(251, 191, 36, 0.50);
+    :host-context(.in-sanctuary) &,
+    .orb-cursor-host.in-sanctuary & {
+      border-color: rgba(254, 243, 199, 0.90) !important;
+      box-shadow: 0 0 16px rgba(251, 191, 36, 0.50) !important;
     }
   }
 
@@ -281,11 +308,12 @@
       0 0 16px rgba(56, 189, 248, 0.60),
       0 0 5px rgba(224, 242, 254, 0.82);
 
-    :host-context(.in-sanctuary) & {
-      border-color: rgba(255, 251, 235, 0.94);
+    :host-context(.in-sanctuary) &,
+    .orb-cursor-host.in-sanctuary & {
+      border-color: rgba(255, 251, 235, 0.94) !important;
       box-shadow:
         0 0 16px rgba(251, 191, 36, 0.60),
-        0 0 5px rgba(254, 243, 199, 0.82);
+        0 0 5px rgba(254, 243, 199, 0.82) !important;
     }
   }
 }

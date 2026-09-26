@@ -60,12 +60,35 @@ export class AudioService {
   private craneFoldingArrayBuffer: ArrayBuffer | null = null;
   private craneFoldingLoadingPromise: Promise<ArrayBuffer | null> | null = null;
 
+  // Cozy Sanctuary Whale Ambience (/sounds/wale1.mp3 & /sounds/wale2.mp3)
+  private whale1Buffer: AudioBuffer | null = null;
+  private whale1ArrayBuffer: ArrayBuffer | null = null;
+  private whale1LoadingPromise: Promise<ArrayBuffer | null> | null = null;
+
+  private whale2Buffer: AudioBuffer | null = null;
+  private whale2ArrayBuffer: ArrayBuffer | null = null;
+  private whale2LoadingPromise: Promise<ArrayBuffer | null> | null = null;
+
+  private whale1Audio: HTMLAudioElement | null = null;
+  private whale2Audio: HTMLAudioElement | null = null;
+
+  private activeWhaleSource: AudioBufferSourceNode | null = null;
+  private activeWhaleGain: GainNode | null = null;
+  private activeWhaleAudio: HTMLAudioElement | null = null;
+  private whaleFadeIntervalId: number | null = null;
+
+  private whaleScheduleTimeoutId: number | null = null;
+  private isInSanctuary = false;
+  private lastWhaleIndex = 0;
+  private readonly whaleTargetVolume = 0.65;
+
   constructor() {
     if (typeof window !== 'undefined') {
       this.preloadWaterdropSound();
       this.preloadParticleOrbSound();
       this.preloadWaterdropToneOnSound();
       this.preloadCraneFoldingSound();
+      this.preloadWhaleSounds();
     }
   }
 
@@ -256,6 +279,12 @@ export class AudioService {
       if (this.craneFoldingArrayBuffer && !this.craneFoldingBuffer) {
         this.decodeCraneFoldingBuffer(this.craneFoldingArrayBuffer);
       }
+      if (this.whale1ArrayBuffer && !this.whale1Buffer) {
+        this.decodeWhale1Buffer(this.whale1ArrayBuffer);
+      }
+      if (this.whale2ArrayBuffer && !this.whale2Buffer) {
+        this.decodeWhale2Buffer(this.whale2ArrayBuffer);
+      }
     }
 
     if (this.ctx.state === 'suspended') {
@@ -403,9 +432,11 @@ export class AudioService {
 
     if (nextMuted) {
       this.pauseAmbientMusic();
+      this.pauseSanctuaryWhales();
     } else {
       this.playWaterdropToneOn(1.0);
       this.playAmbientMusic();
+      this.resumeSanctuaryWhales();
     }
   }
 
@@ -489,6 +520,9 @@ export class AudioService {
     this.initContext();
     this.playWaterdropToneOn(1.0);
     this.playAmbientMusic();
+    if (this.isInSanctuary) {
+      this.resumeSanctuaryWhales();
+    }
   }
 
   /**
@@ -1130,6 +1164,339 @@ export class AudioService {
       }
     } catch (err) {
       console.warn('Could not instantiate Audio for crane-folding:', err);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Cozy Sanctuary Whale Ambience (/sounds/wale1.mp3 & /sounds/wale2.mp3)
+  // ---------------------------------------------------------------------------
+
+  private preloadWhaleSounds(): void {
+    const isTestEnv = !!(globalThis as unknown as { process?: { env?: Record<string, string> } })
+      ?.process?.env?.['VITEST'];
+
+    if (
+      typeof window === 'undefined' ||
+      !window.location ||
+      window.location.protocol.startsWith('about:') ||
+      isTestEnv
+    ) {
+      return;
+    }
+
+    const base =
+      window.location.origin &&
+      window.location.origin !== 'null' &&
+      !window.location.origin.startsWith('about:')
+        ? window.location.origin
+        : '';
+
+    // Whale 1
+    if (!this.whale1LoadingPromise) {
+      this.whale1LoadingPromise = fetch(`${base}/sounds/wale1.mp3`)
+        .then((res) => (res.ok ? res.arrayBuffer() : null))
+        .then((buf) => {
+          if (!buf) return null;
+          this.whale1ArrayBuffer = buf;
+          if (this.ctx) this.decodeWhale1Buffer(buf);
+          return buf;
+        })
+        .catch((err) => {
+          console.warn('Could not preload wale1.mp3:', err);
+          return null;
+        });
+    }
+
+    // Whale 2
+    if (!this.whale2LoadingPromise) {
+      this.whale2LoadingPromise = fetch(`${base}/sounds/wale2.mp3`)
+        .then((res) => (res.ok ? res.arrayBuffer() : null))
+        .then((buf) => {
+          if (!buf) return null;
+          this.whale2ArrayBuffer = buf;
+          if (this.ctx) this.decodeWhale2Buffer(buf);
+          return buf;
+        })
+        .catch((err) => {
+          console.warn('Could not preload wale2.mp3:', err);
+          return null;
+        });
+    }
+
+    // HTMLAudioElement fallbacks
+    try {
+      this.whale1Audio = new Audio('/sounds/wale1.mp3');
+      this.whale1Audio.preload = 'auto';
+      this.whale1Audio.volume = 0;
+
+      this.whale2Audio = new Audio('/sounds/wale2.mp3');
+      this.whale2Audio.preload = 'auto';
+      this.whale2Audio.volume = 0;
+    } catch {
+      // Audio element creation may be restricted in non-browser env
+    }
+  }
+
+  private decodeWhale1Buffer(arrayBuf: ArrayBuffer): void {
+    if (!this.ctx || this.whale1Buffer) return;
+    this.ctx
+      .decodeAudioData(arrayBuf.slice(0))
+      .then((decoded) => {
+        this.whale1Buffer = decoded;
+      })
+      .catch((err) => {
+        console.warn('decodeAudioData for wale1.mp3 failed:', err);
+      });
+  }
+
+  private decodeWhale2Buffer(arrayBuf: ArrayBuffer): void {
+    if (!this.ctx || this.whale2Buffer) return;
+    this.ctx
+      .decodeAudioData(arrayBuf.slice(0))
+      .then((decoded) => {
+        this.whale2Buffer = decoded;
+      })
+      .catch((err) => {
+        console.warn('decodeAudioData for wale2.mp3 failed:', err);
+      });
+  }
+
+  /**
+   * Starts the randomized atmospheric whale singing scheduler when the user enters the cozy sanctuary section.
+   *
+   * @returns {void}
+   */
+  startSanctuaryWhales(): void {
+    if (this.isInSanctuary) return;
+    this.isInSanctuary = true;
+
+    if (this.isMuted()) return;
+    this.initContext();
+
+    this.clearWhaleTimeout();
+
+    // Natural brief pause before first whale sings (0.4s - 0.8s) so user hears it promptly
+    const initialDelay = 400 + Math.random() * 400;
+    this.whaleScheduleTimeoutId = window.setTimeout(() => {
+      this.triggerNextWhaleSound();
+    }, initialDelay);
+  }
+
+  /**
+   * Stops the sanctuary whale scheduler and smoothly fades out any currently playing whale sound.
+   *
+   * @returns {void}
+   */
+  stopSanctuaryWhales(): void {
+    this.isInSanctuary = false;
+    this.clearWhaleTimeout();
+    this.fadeCurrentWhaleOut(1.2);
+  }
+
+  /**
+   * Pauses whale sounds when audio is globally muted.
+   *
+   * @returns {void}
+   */
+  pauseSanctuaryWhales(): void {
+    this.clearWhaleTimeout();
+    this.fadeCurrentWhaleOut(0.8);
+  }
+
+  /**
+   * Resumes whale sounds when audio is unmuted and the user is still inside the sanctuary.
+   *
+   * @returns {void}
+   */
+  resumeSanctuaryWhales(): void {
+    if (!this.isInSanctuary || this.isMuted()) return;
+    this.initContext();
+    this.clearWhaleTimeout();
+    this.whaleScheduleTimeoutId = window.setTimeout(() => {
+      this.triggerNextWhaleSound();
+    }, 400 + Math.random() * 400);
+  }
+
+  private clearWhaleTimeout(): void {
+    if (this.whaleScheduleTimeoutId !== null) {
+      clearTimeout(this.whaleScheduleTimeoutId);
+      this.whaleScheduleTimeoutId = null;
+    }
+  }
+
+  /**
+   * Triggers the playback of a randomly chosen whale sound with organic fade-in and gentle fade-out.
+   */
+  private triggerNextWhaleSound(): void {
+    this.whaleScheduleTimeoutId = null;
+    if (!this.isInSanctuary || this.isMuted()) return;
+
+    // Pick between whale 1 and whale 2 (with alternate bias to avoid repetitive loops)
+    const pick = Math.random() < (this.lastWhaleIndex === 1 ? 0.75 : 0.25) ? 2 : 1;
+    this.lastWhaleIndex = pick;
+
+    const soundUrl = pick === 1 ? '/sounds/wale1.mp3' : '/sounds/wale2.mp3';
+    let soundDuration = pick === 1 ? 6.7 : 5.04;
+
+    // 1. Try Web Audio buffer playback (sample-perfect linear ramps)
+    const buffer = pick === 1 ? this.whale1Buffer : this.whale2Buffer;
+    if (this.ctx && buffer) {
+      this.playWhaleWebAudio(buffer);
+      soundDuration = buffer.duration;
+    } else {
+      // 2. Fallback to HTMLAudioElement
+      this.playWhaleFallback(soundUrl);
+    }
+
+    // Schedule next sound after this one finishes, plus a random ambient pause between 8 and 16 seconds
+    const pauseInterval = 8000 + Math.random() * 8000;
+    const nextDelay = soundDuration * 1000 + pauseInterval;
+
+    this.whaleScheduleTimeoutId = window.setTimeout(() => {
+      if (this.isInSanctuary && !this.isMuted()) {
+        this.triggerNextWhaleSound();
+      }
+    }, nextDelay);
+  }
+
+  private playWhaleWebAudio(buffer: AudioBuffer): void {
+    if (!this.ctx) return;
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume().catch(() => {});
+    }
+
+    // Fade out any currently playing sound cleanly first
+    this.fadeCurrentWhaleOut(0.3);
+
+    const source = this.ctx.createBufferSource();
+    source.buffer = buffer;
+
+    const gain = this.ctx.createGain();
+    const now = this.ctx.currentTime;
+    const duration = buffer.duration;
+
+    const fadeInDuration = 1.2;
+    const fadeOutDuration = 2.0;
+    const targetVol = this.whaleTargetVolume;
+
+    // Envelope: 0 -> targetVol (fadeIn) -> sustain -> 0 (fadeOut)
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.linearRampToValueAtTime(targetVol, now + fadeInDuration);
+    const fadeOutStart = Math.max(now + fadeInDuration + 0.1, now + duration - fadeOutDuration);
+    gain.gain.setValueAtTime(targetVol, fadeOutStart);
+    gain.gain.linearRampToValueAtTime(0.0001, now + duration);
+
+    source.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    source.start(now);
+    source.stop(now + duration + 0.05);
+
+    this.activeWhaleSource = source;
+    this.activeWhaleGain = gain;
+
+    source.onended = () => {
+      if (this.activeWhaleSource === source) {
+        this.activeWhaleSource = null;
+        this.activeWhaleGain = null;
+      }
+    };
+  }
+
+  private playWhaleFallback(soundUrl: string): void {
+    this.fadeCurrentWhaleOut(0.3);
+
+    try {
+      const audio = new Audio(soundUrl);
+      this.activeWhaleAudio = audio;
+      audio.volume = 0;
+
+      const playPromise = audio.play();
+      if (!playPromise) return;
+
+      playPromise
+        .then(() => {
+          const fadeInDuration = 1.2;
+          const fadeOutDuration = 2.0;
+          const targetVol = this.whaleTargetVolume;
+
+          const step = () => {
+            if (!this.activeWhaleAudio || this.activeWhaleAudio !== audio) {
+              return;
+            }
+
+            const curTime = audio.currentTime;
+            const dur = audio.duration || (soundUrl.includes('wale1') ? 6.7 : 5.04);
+            const timeLeft = Math.max(0, dur - curTime);
+
+            if (timeLeft <= fadeOutDuration) {
+              const factor = Math.max(0, timeLeft / fadeOutDuration);
+              audio.volume = targetVol * factor;
+            } else if (curTime < fadeInDuration) {
+              const factor = Math.min(1, curTime / fadeInDuration);
+              audio.volume = targetVol * factor;
+            } else {
+              audio.volume = targetVol;
+            }
+
+            if (timeLeft > 0.05 && !audio.ended && !audio.paused) {
+              requestAnimationFrame(step);
+            } else if (audio.ended || timeLeft <= 0.05) {
+              audio.volume = 0;
+              audio.pause();
+            }
+          };
+          requestAnimationFrame(step);
+        })
+        .catch((err) => {
+          console.warn('Fallback playWhaleFallback failed:', err);
+        });
+    } catch (err) {
+      console.warn('Could not instantiate Audio for whale sound:', err);
+    }
+  }
+
+  private fadeCurrentWhaleOut(fadeDurationSeconds = 1.2): void {
+    if (this.whaleFadeIntervalId !== null) {
+      clearInterval(this.whaleFadeIntervalId);
+      this.whaleFadeIntervalId = null;
+    }
+
+    // 1. Web Audio ramp-down
+    if (this.ctx && this.activeWhaleGain && this.activeWhaleSource) {
+      const gainToFade = this.activeWhaleGain;
+      const sourceToStop = this.activeWhaleSource;
+      this.activeWhaleSource = null;
+      this.activeWhaleGain = null;
+      try {
+        const now = this.ctx.currentTime;
+        gainToFade.gain.cancelScheduledValues(now);
+        gainToFade.gain.setValueAtTime(Math.max(0.0001, gainToFade.gain.value), now);
+        gainToFade.gain.linearRampToValueAtTime(0.0001, now + fadeDurationSeconds);
+        sourceToStop.stop(now + fadeDurationSeconds + 0.05);
+      } catch {}
+    }
+
+    // 2. HTMLAudioElement ramp-down
+    if (this.activeWhaleAudio && !this.activeWhaleAudio.paused) {
+      const audio = this.activeWhaleAudio;
+      this.activeWhaleAudio = null;
+      const startVol = audio.volume;
+      const steps = 15;
+      const stepMs = (fadeDurationSeconds * 1000) / steps;
+      let s = 0;
+
+      const fadeTimer = window.setInterval(() => {
+        s++;
+        const factor = Math.max(0, 1 - s / steps);
+        audio.volume = startVol * factor;
+        if (s >= steps) {
+          clearInterval(fadeTimer);
+          audio.pause();
+          audio.volume = 0;
+          audio.currentTime = 0;
+        }
+      }, stepMs);
     }
   }
 }

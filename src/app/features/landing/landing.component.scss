@@ -79,10 +79,25 @@
   align-items: center;
   justify-content: flex-end;
   pointer-events: auto;
+  opacity: 0;
+  transform: translateY(-12px) scale(0.95);
+  animation: heroSoundContainerEntrance 1.4s cubic-bezier(0.16, 1, 0.3, 1) 0.5s forwards;
+  will-change: opacity, transform;
 
   @media (max-width: 640px) {
     top: 18px;
     right: 18px;
+  }
+}
+
+@keyframes heroSoundContainerEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -1303,7 +1318,7 @@
   min-width: calc(100vh * (1376 / 768));
   left: 50%;
   transform: translateX(-50%);
-  animation: sceneFloat 14s ease-in-out infinite alternate;
+  // Background stays strictly static as requested (no whole-scene floating)
 
   // Feather the top edge softly so it seamlessly dissolves into the background
   mask-image: linear-gradient(
@@ -1322,12 +1337,6 @@
     rgba(0, 0, 0, 0.86) 18%,
     black 28%
   );
-}
-
-@keyframes sceneFloat {
-  0% { transform: translateX(-50%) translateY(0); }
-  50% { transform: translateX(-50%) translateY(-10px); }
-  100% { transform: translateX(-50%) translateY(0); }
 }
 
 .sanctuary-art {
@@ -1365,7 +1374,7 @@
   100% { opacity: 0.88; transform: translate(-50%, -50%) scale(1.08); }
 }
 
-// Balanced, authentic lamp glows strictly positioned on the drawn lanterns (Mittelwert)
+// Balanced, authentic lamp glows strictly positioned on the drawn lanterns
 .lamp-glow {
   position: absolute;
   border-radius: 50%;
@@ -1383,17 +1392,7 @@
   z-index: 3;
   animation: lampFlicker 3.6s ease-in-out infinite alternate;
 
-  // Far-left library top balcony lantern
-  &.lamp-far-left-top {
-    left: 10.76%;
-    top: 5.47%;
-    width: 58px;
-    height: 58px;
-    animation-delay: 0s;
-    animation-duration: 3.4s;
-  }
-
-  // Far-left library mid balcony lantern
+  // Far-left library mid balcony lantern (static on architecture)
   &.lamp-far-left-mid {
     left: 11.77%;
     top: 50.0%;
@@ -1403,37 +1402,7 @@
     animation-duration: 3.9s;
   }
 
-  // Center-left island library hanging lantern
-  &.lamp-center-left {
-    left: 36.34%;
-    top: 50.78%;
-    width: 58px;
-    height: 58px;
-    animation-delay: 1.2s;
-    animation-duration: 3.1s;
-  }
-
-  // Center-right island library hanging lantern
-  &.lamp-center-right {
-    left: 63.23%;
-    top: 55.47%;
-    width: 58px;
-    height: 58px;
-    animation-delay: 0.4s;
-    animation-duration: 3.7s;
-  }
-
-  // Far-right library upper balcony lantern
-  &.lamp-far-right-top {
-    left: 88.52%;
-    top: 14.58%;
-    width: 62px;
-    height: 62px;
-    animation-delay: 1.8s;
-    animation-duration: 4.1s;
-  }
-
-  // Far-right library mid balcony lantern
+  // Far-right library mid balcony lantern (static on architecture)
   &.lamp-far-right-mid {
     left: 88.08%;
     top: 46.61%;
@@ -1443,22 +1412,22 @@
     animation-duration: 3.5s;
   }
 
-  // Left hot air balloon basket lantern
+  // Left hot air balloon basket lantern (moves inside balloon unit)
   &.lamp-balloon-left {
-    left: 38.2%;
-    top: 27.5%;
-    width: 42px;
-    height: 42px;
+    left: 50%;
+    top: 88%;
+    width: 44px;
+    height: 44px;
     animation-delay: 0.3s;
     animation-duration: 2.9s;
   }
 
-  // Right hot air balloon basket lantern
+  // Right hot air balloon basket lantern (moves inside balloon unit)
   &.lamp-balloon-right {
-    left: 60.8%;
-    top: 25.5%;
-    width: 46px;
-    height: 46px;
+    left: 50%;
+    top: 88%;
+    width: 48px;
+    height: 48px;
     animation-delay: 1.5s;
     animation-duration: 3.2s;
   }
@@ -1483,7 +1452,80 @@
   }
 }
 
-// Hot Air Balloon Interactive Targets
+// ---------------------------------------------------------------------------
+// Ebene 2: Floating Whales Layer (Sanftes, organisches Auf- und Abschweben)
+// ---------------------------------------------------------------------------
+.sanctuary-whales-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.sanctuary-whale {
+  position: absolute;
+  pointer-events: none;
+  will-change: transform;
+  user-select: none;
+  animation: sanctuaryWhaleFloat var(--float-duration, 8s) ease-in-out var(--float-delay, 0s) infinite alternate;
+
+  &.whale-top-left {
+    left: 10.538%;
+    top: 13.411%;
+    width: 19.985%;
+    --float-duration: 8.6s;
+    --float-delay: 0s;
+  }
+
+  &.whale-top-right {
+    left: 68.823%;
+    top: 19.141%;
+    width: 19.913%;
+    --float-duration: 7.8s;
+    --float-delay: -2.5s;
+  }
+
+  &.whale-bottom-left {
+    left: 17.078%;
+    top: 75.000%;
+    width: 26.235%;
+    --float-duration: 9.4s;
+    --float-delay: -4.2s;
+  }
+
+  &.whale-bottom-right {
+    left: 61.192%;
+    top: 71.615%;
+    width: 22.892%;
+    --float-duration: 8.2s;
+    --float-delay: -1.7s;
+  }
+
+  &.whale-far-small {
+    left: 14.390%;
+    top: 36.719%;
+    width: 6.395%;
+    --float-duration: 6.8s;
+    --float-delay: -3.3s;
+    opacity: 0.88;
+  }
+}
+
+@keyframes sanctuaryWhaleFloat {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Ebene 2: Interactive Hot Air Balloons (Schweben synchron mit Hotspots & Tooltips)
+// ---------------------------------------------------------------------------
 .balloon-hotspot {
   position: absolute;
   cursor: pointer;
@@ -1495,32 +1537,45 @@
   user-select: none;
   outline: none;
   border-radius: 50% 50% 40% 40%;
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+  animation: sanctuaryBalloonFloat var(--float-duration, 7s) ease-in-out var(--float-delay, 0s) infinite alternate;
 
-  // Left Balloon (envelope + basket)
-  &.balloon-left {
-    left: 38.0%;
-    top: 10.0%;
-    width: 6.8%;
-    height: 19.5%;
-    transform: translateX(-50%);
+  .balloon-artwork {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+    filter: drop-shadow(0 8px 24px rgba(7, 20, 50, 0.35));
   }
 
-  // Right Balloon (envelope + basket)
+  // Left Balloon (envelope + basket) - exact position from manifest
+  &.balloon-left {
+    left: 35.247%;
+    top: 12.240%;
+    width: 5.814%;
+    height: 17.188%;
+    --float-duration: 6.8s;
+    --float-delay: -0.8s;
+  }
+
+  // Right Balloon (envelope + basket) - exact position from manifest
   &.balloon-right {
-    left: 60.7%;
-    top: 6.8%;
-    width: 7.8%;
-    height: 21.0%;
-    transform: translateX(-50%);
+    left: 57.049%;
+    top: 6.120%;
+    width: 7.340%;
+    height: 22.005%;
+    --float-duration: 7.4s;
+    --float-delay: -3.6s;
   }
 
   // Soft hovering aura around balloon
   .hotspot-balloon-aura {
     position: absolute;
-    inset: -8px;
+    inset: -10px;
     border-radius: 50% 50% 42% 42%;
-    background: radial-gradient(circle, rgba(251, 191, 36, 0.16) 0%, transparent 75%);
+    background: radial-gradient(circle, rgba(251, 191, 36, 0.22) 0%, transparent 75%);
     opacity: 0;
     transition: opacity 0.35s ease, transform 0.35s ease;
     pointer-events: none;
@@ -1587,12 +1642,9 @@
 
   &:hover,
   &:focus-visible {
-    // Keep exact position without lifting or scaling the hotspot and text
-    transform: translateX(-50%);
-
     .hotspot-balloon-aura {
       opacity: 1;
-      transform: scale(1.05);
+      transform: scale(1.06);
     }
 
     .hotspot-floating-tooltip .tooltip-letter {
@@ -1609,6 +1661,186 @@
       transform: translateX(-50%) scale(0.9);
       pointer-events: none;
     }
+  }
+}
+
+@keyframes sanctuaryBalloonFloat {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Ebene 2: Interactive Swinging Lanterns & Star Lanterns (Realtime Strings-Physik)
+// ---------------------------------------------------------------------------
+.sanctuary-swing-item {
+  position: absolute;
+  transform-origin: 50% 0; // Pivot point at the top wire/chain attachment
+  cursor: pointer;
+  z-index: 6;
+  pointer-events: auto;
+  will-change: transform;
+  transform: rotate(var(--swing-angle, 0deg));
+
+  .swing-img {
+    display: block;
+    width: 100%;
+    height: auto;
+    pointer-events: none;
+    user-select: none;
+    filter: drop-shadow(0 4px 12px rgba(7, 20, 50, 0.45));
+  }
+
+  // Lantern Glow moving synchronously with the lantern
+  .lamp-glow {
+    position: absolute;
+    top: 68%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(
+      circle,
+      rgba(255, 244, 180, 0.85) 0%,
+      rgba(251, 191, 36, 0.44) 28%,
+      rgba(245, 158, 11, 0.14) 52%,
+      transparent 72%
+    );
+    mix-blend-mode: screen;
+    filter: blur(3.5px);
+    animation: lampFlicker 3.4s ease-in-out infinite alternate;
+  }
+
+  // Star Glow moving synchronously with the star lantern
+  .star-glow {
+    position: absolute;
+    top: 70%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    pointer-events: none;
+    background: radial-gradient(
+      circle,
+      rgba(255, 250, 205, 0.92) 0%,
+      rgba(251, 191, 36, 0.50) 30%,
+      rgba(245, 158, 11, 0.16) 55%,
+      transparent 72%
+    );
+    mix-blend-mode: screen;
+    filter: blur(2.5px);
+    animation: lampFlicker 2.9s ease-in-out infinite alternate;
+  }
+
+  // Exact Coordinates and Chain Pivot Origins for Hanging Lanterns
+  &.lantern-hanging-left-top {
+    left: 9.6657%;
+    top: 0.7812%;
+    width: 2.8343%;
+    transform-origin: 49.5% 0;
+    .lamp-glow { top: 68%; width: 58px; height: 58px; }
+  }
+
+  &.lantern-hanging-left-mid {
+    left: 9.9564%;
+    top: 40.3646%;
+    width: 2.8343%;
+    transform-origin: 48.3% 0;
+    .lamp-glow { top: 68%; width: 62px; height: 62px; }
+  }
+
+  &.lantern-hanging-center-left {
+    left: 35.3198%;
+    top: 46.0938%;
+    width: 2.3256%;
+    transform-origin: 44.3% 0;
+    .lamp-glow { top: 65%; width: 52px; height: 52px; }
+  }
+
+  &.lantern-hanging-center-right {
+    left: 62.5727%;
+    top: 51.0417%;
+    width: 1.9622%;
+    transform-origin: 37.3% 0;
+    .lamp-glow { top: 65%; width: 52px; height: 52px; }
+  }
+
+  &.lantern-hanging-right-mid {
+    left: 87.2093%;
+    top: 38.5417%;
+    width: 2.9070%;
+    transform-origin: 63.8% 0;
+    .lamp-glow { top: 68%; width: 64px; height: 64px; }
+  }
+
+  &.lantern-hanging-right-top {
+    left: 87.2093%;
+    top: 9.8958%;
+    width: 2.3983%;
+    transform-origin: 42.9% 0;
+    .lamp-glow { top: 68%; width: 56px; height: 56px; }
+  }
+
+  // Exact Coordinates for Hanging Star Lanterns (Continuous Unbroken Ropes)
+  &.star-left-1 {
+    left: 9.8837%;
+    top: 81.7708%;
+    width: 3.9244%;
+    transform-origin: 50% 0;
+    .star-glow { top: 84%; width: 44px; height: 44px; }
+  }
+
+  &.star-left-2 {
+    left: 14.3169%;
+    top: 72.9167%;
+    width: 3.3430%;
+    transform-origin: 50% 0;
+    .star-glow { top: 78%; width: 42px; height: 42px; }
+  }
+
+  &.star-center {
+    left: 35.0291%;
+    top: 60.5469%;
+    width: 3.3430%;
+    transform-origin: 50% 0;
+    .star-glow { top: 72%; width: 42px; height: 42px; }
+  }
+
+  &.star-right-1 {
+    left: 83.5756%;
+    top: 70.5729%;
+    width: 3.6337%;
+    transform-origin: 50% 0;
+    .star-glow { top: 72%; width: 44px; height: 44px; }
+  }
+
+  &.star-right-2 {
+    left: 85.4651%;
+    top: 72.0052%;
+    width: 4.2151%;
+    transform-origin: 50% 0;
+    .star-glow { top: 86%; width: 48px; height: 48px; }
+  }
+
+  &.star-right-3 {
+    left: 88.5174%;
+    top: 78.6458%;
+    width: 3.0523%;
+    transform-origin: 50% 0;
+    .star-glow { top: 70%; width: 36px; height: 36px; }
+  }
+
+  &.star-right-4 {
+    left: 91.2791%;
+    top: 89.1927%;
+    width: 2.9070%;
+    transform-origin: 50% 0;
+    .star-glow { top: 60%; width: 36px; height: 36px; }
   }
 }
 
@@ -1745,6 +1977,181 @@
     opacity: 1;
     transform: translateX(-50%) translateY(0) scale(1);
     pointer-events: auto;
+  }
+}
+
+// ==========================================
+// SANCTUARY SOUND TOGGLE (Warm Cursor Colors)
+// ==========================================
+.sanctuary-sound-container {
+  position: absolute;
+  top: 28px;
+  right: 28px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(-16px) scale(0.92);
+  transition: opacity 0.8s ease-out,
+              transform 0.8s ease-out;
+  will-change: opacity, transform;
+
+  @media (max-width: 640px) {
+    top: 18px;
+    right: 18px;
+  }
+
+  // Sanftes Erscheinen beim Herunterscrollen zur Sanctuary-Section
+  .cozy-sanctuary-section.is-revealed & {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+    transition: opacity 1.8s cubic-bezier(0.16, 1, 0.3, 1) 0.35s,
+                transform 1.8s cubic-bezier(0.16, 1, 0.3, 1) 0.35s;
+  }
+
+  .sanctuary-tooltip {
+    .tooltip-letter-carrier {
+      opacity: 0;
+      transform: translate3d(0, 0, 0) scale(0.96);
+      will-change: transform, opacity;
+      animation: none;
+    }
+
+    .tooltip-letter {
+      background: linear-gradient(180deg, #ffffff 0%, #fef3c7 45%, #fcd34d 100%) !important;
+      -webkit-background-clip: text !important;
+      -webkit-text-fill-color: transparent !important;
+      filter: 
+        drop-shadow(0 2px 4px rgba(20, 10, 0, 0.95))
+        drop-shadow(0 4px 14px rgba(0, 0, 0, 0.70))
+        drop-shadow(0 0 12px rgba(251, 191, 36, 0.65)) !important;
+    }
+  }
+
+  .cozy-sanctuary-section.is-revealed & .sanctuary-tooltip .tooltip-letter-carrier {
+    animation: 
+      soundTooltipLaolaWave 0.95s cubic-bezier(0.25, 1, 0.4, 1) forwards calc(0.55s + var(--char-from-right, 0) * 0.075s),
+      soundTooltipFloating 3.8s ease-in-out calc(1.5s + var(--char-from-right, 0) * 0.075s) infinite alternate;
+  }
+
+  .sanctuary-beacon-halo {
+    border-color: rgba(251, 191, 36, 0.35);
+    background: radial-gradient(circle, rgba(251, 191, 36, 0.12) 0%, rgba(251, 191, 36, 0.02) 65%, transparent 100%);
+  }
+
+  .sanctuary-orbit-system {
+    @for $i from 0 through 11 {
+      $track: $i % 2;
+      .p-#{$i} {
+        @if $track == 0 {
+          background: #fffbeb !important;
+          box-shadow: 
+            0 0 3px rgba(255, 251, 235, 0.95), 
+            0 0 5px rgba(251, 191, 36, 0.75) !important;
+        } @else {
+          background: #fcd34d !important;
+          box-shadow: 
+            0 0 3px rgba(252, 211, 77, 0.95), 
+            0 0 5px rgba(245, 158, 11, 0.65) !important;
+        }
+      }
+    }
+  }
+
+  .sanctuary-spark {
+    background-color: #fcd34d !important;
+    box-shadow: 
+      0 0 4px rgba(251, 191, 36, 0.95), 
+      0 0 2px rgba(255, 251, 235, 0.90) !important;
+  }
+}
+
+.sanctuary-sound-toggle {
+  position: relative;
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    rgba(254, 243, 199, 0.18) 0%,
+    rgba(251, 191, 36, 0.12) 50%,
+    rgba(245, 158, 11, 0.16) 100%
+  );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1.2px solid rgba(253, 230, 138, 0.45);
+  color: rgba(254, 243, 199, 0.90);
+  cursor: pointer;
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.25),
+    0 0 10px rgba(251, 191, 36, 0.20);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.has-orbit-pulse {
+    border-color: rgba(251, 191, 36, 0.65);
+    box-shadow: 
+      0 8px 24px rgba(0, 0, 0, 0.25), 
+      0 0 16px rgba(251, 191, 36, 0.38);
+    color: #fef3c7;
+
+    svg {
+      animation: soundPulse 2.4s ease-in-out infinite;
+      filter: drop-shadow(0 0 5px rgba(251, 191, 36, 0.75));
+    }
+  }
+
+  &.is-playing {
+    background: linear-gradient(
+      135deg,
+      rgba(254, 243, 199, 0.30) 0%,
+      rgba(251, 191, 36, 0.36) 50%,
+      rgba(245, 158, 11, 0.38) 100%
+    );
+    border-color: rgba(253, 230, 138, 0.80);
+    color: #fffbeb;
+    box-shadow: 
+      0 8px 24px rgba(0, 0, 0, 0.25), 
+      0 0 18px rgba(251, 191, 36, 0.45);
+
+    svg {
+      animation: soundPulse 2.4s ease-in-out infinite;
+      filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.85));
+    }
+  }
+
+  &:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(254, 243, 199, 0.42) 0%,
+      rgba(251, 191, 36, 0.48) 50%,
+      rgba(245, 158, 11, 0.50) 100%
+    );
+    border-color: rgba(254, 243, 199, 0.95);
+    transform: scale(1.08) !important;
+    box-shadow: 
+      0 12px 30px rgba(0, 0, 0, 0.35), 
+      0 0 22px rgba(251, 191, 36, 0.60);
+    color: #ffffff;
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+
+  svg {
+    transition: transform 0.2s ease, filter 0.3s ease;
+  }
+
+  @media (max-width: 640px) {
+    width: 44px;
+    height: 44px;
   }
 }
 

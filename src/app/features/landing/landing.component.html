@@ -262,33 +262,132 @@
       class="cozy-sanctuary-section" 
       id="sanctuary" 
       [class.is-revealed]="isSanctuaryRevealed()"
-      (click)="closeBalloons()"
+      (click)="onSanctuaryClick()"
       (pointermove)="onSanctuaryPointerMove($event)"
       (pointerleave)="onSanctuaryPointerLeave()"
       (pointerup)="onSanctuaryPointerLeave()"
     >
+      <!-- Top-Right: Sanctuary Sound Activation Toggle (Warm cursor color palette) -->
+      <aside 
+        class="sanctuary-sound-container"
+        [class.is-awaiting]="audioService.isAwaitingUserGesture()"
+        [class.is-bursting]="isBursting()"
+        aria-label="Sound-Steuerung"
+      >
+        @if (audioService.isAwaitingUserGesture() || isBursting()) {
+          <!-- Floating "Sound an?" Tooltip in Warm Amber Glow -->
+          <span 
+            class="sound-invite-tooltip sanctuary-tooltip"
+            aria-hidden="true"
+          >
+            @for (letter of soundTooltipLetters; track $index) {
+              <span 
+                class="tooltip-letter-carrier" 
+                [style.--char-from-right]="letter.fromRight"
+              >
+                <span class="tooltip-letter">{{ letter.char }}</span>
+              </span>
+            }
+          </span>
+        }
+
+        <!-- Sound Button Anchor with Orbit Particles & Click Shockwave Sparks -->
+        <div class="sound-button-anchor">
+          @if (audioService.isAwaitingUserGesture() || isBursting()) {
+            <!-- Warm Ethereal Pulsing Beacon Halo -->
+            <div class="sound-beacon-halo sanctuary-beacon-halo" aria-hidden="true"></div>
+
+            <!-- Warm Orbiting Fine Stardust Particles -->
+            <div class="orbit-particles-system sanctuary-orbit-system" aria-hidden="true">
+              @for (idx of orbitParticleIndices; track idx) {
+                <span [class]="'orbit-particle p-' + idx"></span>
+              }
+            </div>
+
+            <!-- Subtle Explosive Scatter Sparks upon Click -->
+            @for (spark of burstSparks(); track spark.id) {
+              <span 
+                class="sound-click-spark sanctuary-spark"
+                [style.--sx.px]="spark.startX"
+                [style.--sy.px]="spark.startY"
+                [style.--ex.px]="spark.endX"
+                [style.--ey.px]="spark.endY"
+                [style.width.px]="spark.size"
+                [style.height.px]="spark.size"
+                [style.animation-delay.ms]="spark.delayMs"
+                aria-hidden="true"
+              ></span>
+            }
+          }
+
+          <!-- Circular Glassmorphism Audio Toggle Button in Warm Cursor Colors -->
+          <button 
+            type="button" 
+            class="sanctuary-sound-toggle"
+            [class.is-playing]="audioService.isAmbientPlaying()"
+            [class.has-orbit-pulse]="audioService.isAwaitingUserGesture()"
+            (click)="toggleSound($event)"
+            [attr.aria-label]="audioService.isAmbientPlaying() ? 'Sound stummschalten' : 'Sound abspielen'"
+            [title]="audioService.isAmbientPlaying() ? 'Sound stummschalten' : 'Sound abspielen'"
+          >
+            @if (audioService.isAmbientPlaying()) {
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+              </svg>
+            } @else {
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                <line x1="23" y1="9" x2="17" y2="15" />
+                <line x1="17" y1="9" x2="23" y2="15" />
+              </svg>
+            }
+          </button>
+        </div>
+      </aside>
+
       <div class="sanctuary-canvas-wrapper">
-        <!-- Sanctuary Artwork Image -->
+        <!-- Sanctuary Artwork Image (Static Clean Background) -->
         <img 
-          src="/images/landing-sanctuary-wide.jpg" 
-          alt="Himmelsbibliothek Zuflucht – Schwebende Inseln mit Bibliotheken und Walen" 
+          src="/images/landing-sanctuary-clean.jpg" 
+          alt="Himmelsbibliothek Zuflucht – Schwebende Inseln mit Bibliotheken" 
           class="sanctuary-art"
         />
 
         <!-- Center Sunset Radiance -->
         <div class="sanctuary-sun-glow" aria-hidden="true"></div>
 
-        <!-- Authentic Lamp Glows - positioned exactly where lanterns are drawn in the illustration -->
-        <div class="lamp-glow lamp-far-left-top" aria-hidden="true"></div>
-        <div class="lamp-glow lamp-far-left-mid" aria-hidden="true"></div>
-        <div class="lamp-glow lamp-center-left" aria-hidden="true"></div>
-        <div class="lamp-glow lamp-center-right" aria-hidden="true"></div>
-        <div class="lamp-glow lamp-far-right-top" aria-hidden="true"></div>
-        <div class="lamp-glow lamp-far-right-mid" aria-hidden="true"></div>
-        <div class="lamp-glow lamp-balloon-left" aria-hidden="true"></div>
-        <div class="lamp-glow lamp-balloon-right" aria-hidden="true"></div>
+        <!-- Floating Whales Layer (Ebene 2: Sanft auf und ab schwebend) -->
+        <div class="sanctuary-whales-layer" aria-hidden="true">
+          <img 
+            src="/images/sanctuary/whales/whale-top-left.png" 
+            class="sanctuary-whale whale-top-left" 
+            alt="" 
+          />
+          <img 
+            src="/images/sanctuary/whales/whale-top-right.png" 
+            class="sanctuary-whale whale-top-right" 
+            alt="" 
+          />
+          <img 
+            src="/images/sanctuary/whales/whale-bottom-left.png" 
+            class="sanctuary-whale whale-bottom-left" 
+            alt="" 
+          />
+          <img 
+            src="/images/sanctuary/whales/whale-bottom-right.png" 
+            class="sanctuary-whale whale-bottom-right" 
+            alt="" 
+          />
+          <img 
+            src="/images/sanctuary/whales/whale-far-small.png" 
+            class="sanctuary-whale whale-far-small" 
+            alt="" 
+          />
+        </div>
 
-        <!-- Interactive Hot Air Balloon 1: Impressum -->
+        <!-- Interactive Hot Air Balloon 1: Impressum (Ebene 2: Sanft schwebend) -->
         <div 
           class="balloon-hotspot balloon-left" 
           [class.is-active]="showImpressum()"
@@ -299,6 +398,12 @@
           (keydown.space)="toggleImpressum($event)"
           aria-label="Impressum öffnen – Klick auf den linken Heißluftballon"
         >
+          <img 
+            src="/images/sanctuary/balloons/balloon-left.png" 
+            class="balloon-artwork" 
+            alt="Heißluftballon Impressum"
+          />
+          <div class="lamp-glow lamp-balloon-left" aria-hidden="true"></div>
           <div class="hotspot-balloon-aura" aria-hidden="true"></div>
           
           <!-- Free-floating warm letter tooltip matching orb-tooltip -->
@@ -325,7 +430,7 @@
           }
         </div>
 
-        <!-- Interactive Hot Air Balloon 2: Datenschutz -->
+        <!-- Interactive Hot Air Balloon 2: Datenschutz (Ebene 2: Sanft schwebend) -->
         <div 
           class="balloon-hotspot balloon-right" 
           [class.is-active]="showDatenschutz()"
@@ -336,6 +441,12 @@
           (keydown.space)="toggleDatenschutz($event)"
           aria-label="Datenschutz öffnen – Klick auf den rechten Heißluftballon"
         >
+          <img 
+            src="/images/sanctuary/balloons/balloon-right.png" 
+            class="balloon-artwork" 
+            alt="Heißluftballon Datenschutz"
+          />
+          <div class="lamp-glow lamp-balloon-right" aria-hidden="true"></div>
           <div class="hotspot-balloon-aura" aria-hidden="true"></div>
 
           <!-- Free-floating warm letter tooltip matching orb-tooltip -->
@@ -360,6 +471,73 @@
               </div>
             </div>
           }
+        </div>
+
+        <!-- Interactive Hanging Lanterns (Ebene 2: Realtime-Physik wie CodingStella Strings) -->
+        <div class="sanctuary-swing-item lantern-hanging-left-top" data-swing-id="lantern-hanging-left-top" aria-hidden="true">
+          <img src="/images/sanctuary/lanterns/lantern-hanging-left-top.png" class="swing-img" alt="" />
+          <div class="lamp-glow" aria-hidden="true"></div>
+        </div>
+
+        <div class="sanctuary-swing-item lantern-hanging-left-mid" data-swing-id="lantern-hanging-left-mid" aria-hidden="true">
+          <img src="/images/sanctuary/lanterns/lantern-hanging-left-mid.png" class="swing-img" alt="" />
+          <div class="lamp-glow" aria-hidden="true"></div>
+        </div>
+
+        <div class="sanctuary-swing-item lantern-hanging-center-left" data-swing-id="lantern-hanging-center-left" aria-hidden="true">
+          <img src="/images/sanctuary/lanterns/lantern-hanging-center-left.png" class="swing-img" alt="" />
+          <div class="lamp-glow" aria-hidden="true"></div>
+        </div>
+
+        <div class="sanctuary-swing-item lantern-hanging-center-right" data-swing-id="lantern-hanging-center-right" aria-hidden="true">
+          <img src="/images/sanctuary/lanterns/lantern-hanging-center-right.png" class="swing-img" alt="" />
+          <div class="lamp-glow" aria-hidden="true"></div>
+        </div>
+
+        <div class="sanctuary-swing-item lantern-hanging-right-mid" data-swing-id="lantern-hanging-right-mid" aria-hidden="true">
+          <img src="/images/sanctuary/lanterns/lantern-hanging-right-mid.png" class="swing-img" alt="" />
+          <div class="lamp-glow" aria-hidden="true"></div>
+        </div>
+
+        <div class="sanctuary-swing-item lantern-hanging-right-top" data-swing-id="lantern-hanging-right-top" aria-hidden="true">
+          <img src="/images/sanctuary/lanterns/lantern-hanging-right-top.png" class="swing-img" alt="" />
+          <div class="lamp-glow" aria-hidden="true"></div>
+        </div>
+
+        <!-- Interactive Hanging Star Lanterns (Ebene 2: Ununterbrochene Seile & Realtime-Physik) -->
+        <div class="sanctuary-swing-item star-left-1" data-swing-id="star-left-1" aria-hidden="true">
+          <img src="/images/sanctuary/stars/star-left-1.png" class="swing-img" alt="" />
+          <div class="star-glow" aria-hidden="true"></div>
+        </div>
+
+        <div class="sanctuary-swing-item star-left-2" data-swing-id="star-left-2" aria-hidden="true">
+          <img src="/images/sanctuary/stars/star-left-2.png" class="swing-img" alt="" />
+          <div class="star-glow" aria-hidden="true"></div>
+        </div>
+
+        <div class="sanctuary-swing-item star-center" data-swing-id="star-center" aria-hidden="true">
+          <img src="/images/sanctuary/stars/star-center.png" class="swing-img" alt="" />
+          <div class="star-glow" aria-hidden="true"></div>
+        </div>
+
+        <div class="sanctuary-swing-item star-right-1" data-swing-id="star-right-1" aria-hidden="true">
+          <img src="/images/sanctuary/stars/star-right-1.png" class="swing-img" alt="" />
+          <div class="star-glow" aria-hidden="true"></div>
+        </div>
+
+        <div class="sanctuary-swing-item star-right-2" data-swing-id="star-right-2" aria-hidden="true">
+          <img src="/images/sanctuary/stars/star-right-2.png" class="swing-img" alt="" />
+          <div class="star-glow" aria-hidden="true"></div>
+        </div>
+
+        <div class="sanctuary-swing-item star-right-3" data-swing-id="star-right-3" aria-hidden="true">
+          <img src="/images/sanctuary/stars/star-right-3.png" class="swing-img" alt="" />
+          <div class="star-glow" aria-hidden="true"></div>
+        </div>
+
+        <div class="sanctuary-swing-item star-right-4" data-swing-id="star-right-4" aria-hidden="true">
+          <img src="/images/sanctuary/stars/star-right-4.png" class="swing-img" alt="" />
+          <div class="star-glow" aria-hidden="true"></div>
         </div>
       </div>
     </section>

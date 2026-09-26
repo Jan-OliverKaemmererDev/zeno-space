@@ -113,4 +113,27 @@ describe('AudioService', () => {
     service.toggleSound();
     expect(service.isMuted()).toBe(false);
   });
+
+  it('should start and stop sanctuary whales safely without throwing', () => {
+    expect(() => {
+      service.startSanctuaryWhales();
+    }).not.toThrow();
+
+    expect(() => {
+      service.stopSanctuaryWhales();
+    }).not.toThrow();
+  });
+
+  it('should handle pauseSanctuaryWhales and resumeSanctuaryWhales correctly', () => {
+    service.startSanctuaryWhales();
+    expect(() => {
+      service.pauseSanctuaryWhales();
+    }).not.toThrow();
+
+    expect(() => {
+      service.resumeSanctuaryWhales();
+    }).not.toThrow();
+
+    service.stopSanctuaryWhales();
+  });
 });

@@ -33,6 +33,13 @@ describe('OrbCursorComponent', () => {
     expect(compiled.querySelector('.orb-cursor-host')?.classList.contains('is-trembling')).toBe(true);
   });
 
+  it('should apply in-sanctuary class when isSanctuary signal is true', () => {
+    component.isSanctuary.set(true);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.orb-cursor-host')?.classList.contains('in-sanctuary')).toBe(true);
+  });
+
   it('should render the glass orb container with card-cta glass body', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.orb-cursor-wrapper')).toBeTruthy();

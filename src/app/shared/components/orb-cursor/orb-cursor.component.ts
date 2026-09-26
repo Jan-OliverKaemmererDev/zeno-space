@@ -63,6 +63,9 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
   /** Signal indicating whether the cursor is subtly trembling after being held for >= 2 seconds. */
   readonly isTrembling = signal<boolean>(false);
 
+  /** Signal indicating whether the cursor is in the warm sanctuary section. */
+  readonly isSanctuary = signal<boolean>(false);
+
   /** 8 fine stardust particles rotating in a single close orbit around cursor on button hover. */
   readonly orbitParticleIndices = Array.from({ length: 8 }, (_, i) => i);
 
@@ -283,7 +286,7 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
         const target = e.target as HTMLElement | null;
         if (!target) return;
         const interactive = target.closest(
-          'a, button, [role="button"], input, select, textarea, label, .card-cta, .bubble-card, .sound-btn, .interactive'
+          'a, button, [role="button"], input, select, textarea, label, .card-cta, .bubble-card, .sound-btn, .interactive, .sanctuary-swing-item'
         );
         const shouldHover = interactive !== null;
         if (this.isHovering() !== shouldHover) {
@@ -318,6 +321,14 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
    * uniform click shrinkage, 2s hold subtle tremble ("Schlottern"), spring wobble, and spark emission.
    */
   private updatePhysics(dt: number): void {
+    // Sync sanctuary state from DOM body
+    if (typeof document !== 'undefined') {
+      const isSanc = document.body.classList.contains('in-sanctuary');
+      if (this.isSanctuary() !== isSanc) {
+        this.isSanctuary.set(isSanc);
+      }
+    }
+
     // Position follows mouse instantly for zero cursor lag
     this.currentX += (this.targetX - this.currentX) * 0.95;
     this.currentY += (this.targetY - this.currentY) * 0.95;
@@ -431,7 +442,7 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
    * Spawns a fine micro-pixel spark with balanced speed and drift distance.
    */
   private spawnSpark(): void {
-    const isSanctuary = typeof document !== 'undefined' && document.body.classList.contains('in-sanctuary');
+    const isSanctuary = this.isSanctuary();
     const isPrimary = Math.random() < 0.45;
     const color = isSanctuary
       ? (isPrimary ? '#fcd34d' : '#ffffff') // Warm yellow/white

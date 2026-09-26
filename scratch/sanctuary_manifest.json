@@ -1,0 +1,222 @@
+{
+  "whales/whale-top-left": {
+    "x": 145,
+    "y": 103,
+    "width": 275,
+    "height": 113,
+    "pct_left": 10.538,
+    "pct_top": 13.411,
+    "pct_width": 19.985,
+    "pct_height": 14.714,
+    "filepath": "public/images/sanctuary/whales/whale-top-left.png"
+  },
+  "whales/whale-top-right": {
+    "x": 947,
+    "y": 147,
+    "width": 274,
+    "height": 97,
+    "pct_left": 68.823,
+    "pct_top": 19.141,
+    "pct_width": 19.913,
+    "pct_height": 12.63,
+    "filepath": "public/images/sanctuary/whales/whale-top-right.png"
+  },
+  "whales/whale-bottom-left": {
+    "x": 235,
+    "y": 576,
+    "width": 361,
+    "height": 136,
+    "pct_left": 17.078,
+    "pct_top": 75.0,
+    "pct_width": 26.235,
+    "pct_height": 17.708,
+    "filepath": "public/images/sanctuary/whales/whale-bottom-left.png"
+  },
+  "whales/whale-bottom-right": {
+    "x": 842,
+    "y": 550,
+    "width": 315,
+    "height": 154,
+    "pct_left": 61.192,
+    "pct_top": 71.615,
+    "pct_width": 22.892,
+    "pct_height": 20.052,
+    "filepath": "public/images/sanctuary/whales/whale-bottom-right.png"
+  },
+  "whales/whale-far-small": {
+    "x": 198,
+    "y": 282,
+    "width": 88,
+    "height": 44,
+    "pct_left": 14.39,
+    "pct_top": 36.719,
+    "pct_width": 6.395,
+    "pct_height": 5.729,
+    "filepath": "public/images/sanctuary/whales/whale-far-small.png"
+  },
+  "balloons/balloon-left": {
+    "x": 485,
+    "y": 94,
+    "width": 80,
+    "height": 132,
+    "pct_left": 35.247,
+    "pct_top": 12.24,
+    "pct_width": 5.814,
+    "pct_height": 17.188,
+    "filepath": "public/images/sanctuary/balloons/balloon-left.png"
+  },
+  "balloons/balloon-right": {
+    "x": 785,
+    "y": 47,
+    "width": 101,
+    "height": 169,
+    "pct_left": 57.049,
+    "pct_top": 6.12,
+    "pct_width": 7.34,
+    "pct_height": 22.005,
+    "filepath": "public/images/sanctuary/balloons/balloon-right.png"
+  },
+  "lanterns/lantern-hanging-left-top": {
+    "x": 133,
+    "y": 6,
+    "width": 39,
+    "height": 69,
+    "pct_left": 9.666,
+    "pct_top": 0.781,
+    "pct_width": 2.834,
+    "pct_height": 8.984,
+    "filepath": "public/images/sanctuary/lanterns/lantern-hanging-left-top.png"
+  },
+  "lanterns/lantern-hanging-left-mid": {
+    "x": 137,
+    "y": 310,
+    "width": 39,
+    "height": 85,
+    "pct_left": 9.956,
+    "pct_top": 40.365,
+    "pct_width": 2.834,
+    "pct_height": 11.068,
+    "filepath": "public/images/sanctuary/lanterns/lantern-hanging-left-mid.png"
+  },
+  "lanterns/lantern-hanging-center-left": {
+    "x": 486,
+    "y": 354,
+    "width": 32,
+    "height": 51,
+    "pct_left": 35.32,
+    "pct_top": 46.094,
+    "pct_width": 2.326,
+    "pct_height": 6.641,
+    "filepath": "public/images/sanctuary/lanterns/lantern-hanging-center-left.png"
+  },
+  "lanterns/lantern-hanging-center-right": {
+    "x": 861,
+    "y": 392,
+    "width": 27,
+    "height": 62,
+    "pct_left": 62.573,
+    "pct_top": 51.042,
+    "pct_width": 1.962,
+    "pct_height": 8.073,
+    "filepath": "public/images/sanctuary/lanterns/lantern-hanging-center-right.png"
+  },
+  "lanterns/lantern-hanging-right-top": {
+    "x": 1200,
+    "y": 76,
+    "width": 33,
+    "height": 50,
+    "pct_left": 87.209,
+    "pct_top": 9.896,
+    "pct_width": 2.398,
+    "pct_height": 6.51,
+    "filepath": "public/images/sanctuary/lanterns/lantern-hanging-right-top.png"
+  },
+  "lanterns/lantern-hanging-right-mid": {
+    "x": 1200,
+    "y": 296,
+    "width": 40,
+    "height": 86,
+    "pct_left": 87.209,
+    "pct_top": 38.542,
+    "pct_width": 2.907,
+    "pct_height": 11.198,
+    "filepath": "public/images/sanctuary/lanterns/lantern-hanging-right-mid.png"
+  },
+  "stars/star-left-1": {
+    "x": 139,
+    "y": 628,
+    "width": 48,
+    "height": 124,
+    "pct_left": 10.102,
+    "pct_top": 81.771,
+    "pct_width": 3.488,
+    "pct_height": 16.146,
+    "filepath": "public/images/sanctuary/stars/star-left-1.png"
+  },
+  "stars/star-left-2": {
+    "x": 200,
+    "y": 560,
+    "width": 40,
+    "height": 94,
+    "pct_left": 14.535,
+    "pct_top": 72.917,
+    "pct_width": 2.907,
+    "pct_height": 12.24,
+    "filepath": "public/images/sanctuary/stars/star-left-2.png"
+  },
+  "stars/star-center": {
+    "x": 485,
+    "y": 465,
+    "width": 40,
+    "height": 72,
+    "pct_left": 35.247,
+    "pct_top": 60.547,
+    "pct_width": 2.907,
+    "pct_height": 9.375,
+    "filepath": "public/images/sanctuary/stars/star-center.png"
+  },
+  "stars/star-right-1": {
+    "x": 1153,
+    "y": 542,
+    "width": 44,
+    "height": 97,
+    "pct_left": 83.794,
+    "pct_top": 70.573,
+    "pct_width": 3.198,
+    "pct_height": 12.63,
+    "filepath": "public/images/sanctuary/stars/star-right-1.png"
+  },
+  "stars/star-right-2": {
+    "x": 1179,
+    "y": 553,
+    "width": 52,
+    "height": 170,
+    "pct_left": 85.683,
+    "pct_top": 72.005,
+    "pct_width": 3.779,
+    "pct_height": 22.135,
+    "filepath": "public/images/sanctuary/stars/star-right-2.png"
+  },
+  "stars/star-right-3": {
+    "x": 1221,
+    "y": 604,
+    "width": 36,
+    "height": 73,
+    "pct_left": 88.735,
+    "pct_top": 78.646,
+    "pct_width": 2.616,
+    "pct_height": 9.505,
+    "filepath": "public/images/sanctuary/stars/star-right-3.png"
+  },
+  "stars/star-right-4": {
+    "x": 1259,
+    "y": 685,
+    "width": 34,
+    "height": 45,
+    "pct_left": 91.497,
+    "pct_top": 89.193,
+    "pct_width": 2.471,
+    "pct_height": 5.859,
+    "filepath": "public/images/sanctuary/stars/star-right-4.png"
+  }
+}
