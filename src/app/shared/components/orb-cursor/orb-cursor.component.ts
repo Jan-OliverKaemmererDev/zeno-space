@@ -60,8 +60,11 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
   /** Signal indicating whether the mouse button is actively held down. */
   readonly isClicking = signal<boolean>(false);
 
-  /** 12 fine stardust particles rotating in 2 calm orbits around cursor on button hover. */
-  readonly orbitParticleIndices = Array.from({ length: 12 }, (_, i) => i);
+  /** Signal indicating whether the cursor is subtly trembling after being held for >= 2 seconds. */
+  readonly isTrembling = signal<boolean>(false);
+
+  /** 8 fine stardust particles rotating in a single close orbit around cursor on button hover. */
+  readonly orbitParticleIndices = Array.from({ length: 8 }, (_, i) => i);
 
   // Position and continuous velocity tracking state
   private targetX = -100;
@@ -82,6 +85,12 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
   // Uniform click shrinkage state
   private isMouseDown = false;
   private clickScale = 1.0;
+
+  // 1-Second Hold Tremble state ("Schlottern / Zittern")
+  private holdDuration = 0;
+  private trembleX = 0;
+  private trembleY = 0;
+  private readonly trembleHoldThreshold = 1.0; // 1 second continuous hold
 
   // Release spring wobble state
   private wobbleOffset = 0;
@@ -193,6 +202,12 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
       () => {
         this.isMouseDown = true;
         this.isClicking.set(true);
+        this.holdDuration = 0;
+        this.trembleX = 0;
+        this.trembleY = 0;
+        if (this.isTrembling()) {
+          this.isTrembling.set(false);
+        }
         // Clear previous wobble during active press
         this.wobbleOffset = 0;
         this.wobbleVelocity = 0;
@@ -208,6 +223,12 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
         if (this.isMouseDown) {
           this.isMouseDown = false;
           this.isClicking.set(false);
+          this.holdDuration = 0;
+          this.trembleX = 0;
+          this.trembleY = 0;
+          if (this.isTrembling()) {
+            this.isTrembling.set(false);
+          }
           // Launch organic jelly spring impulse on release
           this.wobbleVelocity = 14.0;
         }
@@ -230,6 +251,27 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
         this.isMouseDown = false;
         this.isClicking.set(false);
         this.isHovering.set(false);
+        this.holdDuration = 0;
+        this.trembleX = 0;
+        this.trembleY = 0;
+        if (this.isTrembling()) {
+          this.isTrembling.set(false);
+        }
+      },
+      { passive: true, signal }
+    );
+
+    window.addEventListener(
+      'blur',
+      () => {
+        this.isMouseDown = false;
+        this.isClicking.set(false);
+        this.holdDuration = 0;
+        this.trembleX = 0;
+        this.trembleY = 0;
+        if (this.isTrembling()) {
+          this.isTrembling.set(false);
+        }
       },
       { passive: true, signal }
     );
@@ -273,7 +315,7 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
 
   /**
    * Computes position smoothing, continuous time-smoothed velocity deformation,
-   * uniform click shrinkage, spring wobble, and subtle continuous spark emission.
+   * uniform click shrinkage, 2s hold subtle tremble ("Schlottern"), spring wobble, and spark emission.
    */
   private updatePhysics(dt: number): void {
     // Position follows mouse instantly for zero cursor lag
@@ -303,8 +345,39 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
       this.currentAngle += angleDiff * (1 - Math.exp(-dt * 18));
     }
 
-    // 1. Uniform Click Shrinkage: shrinks completely in all directions (horizontal & vertical equally)
+    // 1. Uniform Click Shrinkage & 1-Second Hold Tremble ("Schlottern / Zittern")
     if (this.isMouseDown) {
+      this.holdDuration += dt;
+
+      if (this.holdDuration >= this.trembleHoldThreshold) {
+        if (!this.isTrembling()) {
+          this.isTrembling.set(true);
+        }
+
+        // Smoothly ramp in tremble intensity over 0.2s
+        const ramp = Math.min((this.holdDuration - this.trembleHoldThreshold) / 0.2, 1.0);
+        const now = performance.now();
+
+        // Balanced, clearly noticeable yet refined multi-frequency shivering in all directions
+        const freq1 = now * 0.055;
+        const freq2 = now * 0.092;
+        const freq3 = now * 0.145;
+        const baseShakeX =
+          Math.sin(freq1) * 0.42 + Math.cos(freq2) * 0.26 + (Math.random() - 0.5) * 0.3;
+        const baseShakeY =
+          Math.cos(freq1 * 1.1) * 0.42 + Math.sin(freq3) * 0.26 + (Math.random() - 0.5) * 0.3;
+
+        // Balanced golden-mean amplitude (typically ~0.45px to 0.85px max)
+        this.trembleX = baseShakeX * ramp;
+        this.trembleY = baseShakeY * ramp;
+      } else {
+        this.trembleX = 0;
+        this.trembleY = 0;
+        if (this.isTrembling()) {
+          this.isTrembling.set(false);
+        }
+      }
+
       const targetClickScale = 0.68; // Clean, uniform shrinkage to 68%
       this.clickScale += (targetClickScale - this.clickScale) * 0.35;
       this.wobbleOffset = 0;
@@ -317,6 +390,13 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
         this.spawnSpark();
       }
     } else {
+      this.holdDuration = 0;
+      this.trembleX = 0;
+      this.trembleY = 0;
+      if (this.isTrembling()) {
+        this.isTrembling.set(false);
+      }
+
       this.clickScale += (1.0 - this.clickScale) * 0.22;
       this.sparkSpawnAccumulator = 0;
 
@@ -395,8 +475,10 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
     const finalScaleX = stretchFactor * this.clickScale * wobbleX * this.currentHoverScale;
     const finalScaleY = compressFactor * this.clickScale * wobbleY * this.currentHoverScale;
 
-    // Position wrapper directly at current cursor coordinates
-    wrapper.style.transform = `translate3d(${this.currentX}px, ${this.currentY}px, 0)`;
+    // Position wrapper directly at current cursor coordinates + subtle tremble offset
+    const posX = this.currentX + this.trembleX;
+    const posY = this.currentY + this.trembleY;
+    wrapper.style.transform = `translate3d(${posX.toFixed(2)}px, ${posY.toFixed(2)}px, 0)`;
 
     // Rotate morph aligned with movement vector and apply scale
     morph.style.transform = `rotate(${this.currentAngle}rad) scale(${finalScaleX.toFixed(3)}, ${finalScaleY.toFixed(3)})`;

@@ -23,6 +23,14 @@ describe('OrbCursorComponent', () => {
     expect(component.isVisible()).toBe(false);
     expect(component.isHovering()).toBe(false);
     expect(component.isClicking()).toBe(false);
+    expect(component.isTrembling()).toBe(false);
+  });
+
+  it('should apply is-trembling class when isTrembling signal is true', () => {
+    component.isTrembling.set(true);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.orb-cursor-host')?.classList.contains('is-trembling')).toBe(true);
   });
 
   it('should render the glass orb container with card-cta glass body', () => {
@@ -32,10 +40,10 @@ describe('OrbCursorComponent', () => {
     expect(compiled.querySelector('.orb-ambient-glow')).toBeTruthy();
   });
 
-  it('should render the 2-orbit particle system with 12 particles and sparks canvas', () => {
+  it('should render the single orbit particle system with 8 particles and sparks canvas', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.cursor-orbit-system')).toBeTruthy();
-    expect(compiled.querySelectorAll('.cursor-orbit-particle').length).toBe(12);
+    expect(compiled.querySelectorAll('.cursor-orbit-particle').length).toBe(8);
     expect(compiled.querySelector('.cursor-sparks-canvas')).toBeTruthy();
   });
 });
