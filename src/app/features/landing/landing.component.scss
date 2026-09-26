@@ -1267,6 +1267,11 @@
   padding: 60px 24px 80px;
   max-width: 1000px;
   margin: 0 auto;
+  font-family: var(--zeno-font-sniglet-regular);
+
+  * {
+    font-family: var(--zeno-font-sniglet-regular);
+  }
 }
 
 .sanctuary-card {
@@ -1279,6 +1284,7 @@
   padding: 48px 36px;
   overflow: hidden;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  font-family: var(--zeno-font-sniglet-regular);
 
   .sanctuary-glow {
     position: absolute;
@@ -1296,10 +1302,12 @@
     text-align: center;
     max-width: 720px;
     margin: 0 auto;
+    font-family: var(--zeno-font-sniglet-regular);
   }
 
   .sanctuary-badge {
     display: inline-block;
+    font-family: var(--zeno-font-sniglet-regular);
     font-size: 0.76rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -1313,6 +1321,7 @@
   }
 
   .sanctuary-title {
+    font-family: var(--zeno-font-sniglet-regular);
     font-size: clamp(1.6rem, 3vw, 2.2rem);
     font-weight: 700;
     color: var(--zeno-color-white);
@@ -1320,6 +1329,7 @@
   }
 
   .sanctuary-text {
+    font-family: var(--zeno-font-sniglet-regular);
     font-size: 1rem;
     line-height: 1.7;
     color: rgba(255, 255, 255, 0.7);
@@ -1327,6 +1337,7 @@
 
     strong {
       color: var(--zeno-color-white);
+      font-family: var(--zeno-font-sniglet-regular);
     }
   }
 
@@ -1335,6 +1346,7 @@
     justify-content: center;
     gap: 16px;
     flex-wrap: wrap;
+    font-family: var(--zeno-font-sniglet-regular);
 
     .stat-pill {
       display: flex;
@@ -1344,14 +1356,17 @@
       border-radius: 18px;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.08);
+      font-family: var(--zeno-font-sniglet-regular);
 
       .stat-value {
+        font-family: var(--zeno-font-sniglet-regular);
         font-size: 1.25rem;
         font-weight: 700;
         color: var(--zeno-color-white);
       }
 
       .stat-label {
+        font-family: var(--zeno-font-sniglet-regular);
         font-size: 0.74rem;
         color: rgba(255, 255, 255, 0.5);
       }
@@ -1366,14 +1381,21 @@
   text-align: center;
   padding: 40px 24px 60px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-family: var(--zeno-font-sniglet-regular);
+
+  * {
+    font-family: var(--zeno-font-sniglet-regular);
+  }
 
   .footer-text {
+    font-family: var(--zeno-font-sniglet-regular);
     font-size: 0.88rem;
     color: rgba(255, 255, 255, 0.55);
     margin-bottom: 16px;
 
     strong {
       color: var(--zeno-color-white);
+      font-family: var(--zeno-font-sniglet-regular);
     }
   }
 
@@ -1383,8 +1405,10 @@
     justify-content: center;
     gap: 12px;
     font-size: 0.85rem;
+    font-family: var(--zeno-font-sniglet-regular);
 
     a {
+      font-family: var(--zeno-font-sniglet-regular);
       color: rgba(255, 255, 255, 0.65);
       text-decoration: none;
       transition: color 0.2s ease;
@@ -1395,9 +1419,11 @@
     }
 
     span {
+      font-family: var(--zeno-font-sniglet-regular);
       color: rgba(255, 255, 255, 0.2);
     }
   }
 }
+
 
 
