@@ -1,3 +1,4 @@
+@use 'sass:math';
 @use 'styles/variables' as v;
 @use 'styles/mixins' as m;
 
@@ -1116,84 +1117,228 @@
 // RIGHT SIDE: MINIMALIST SOUND TOGGLE
 // ==========================================
 .nav-actions {
+  position: relative;
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   flex-shrink: 0;
+}
+
+// Floating "Sound an?" Tooltip (Identische Typografie & Laola-Wave wie bei orb-tooltip / hero sound toggle)
+.sound-invite-tooltip {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 0;
+  margin: 0;
+  cursor: default;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.22s ease-out;
+
+  .tooltip-letter-carrier {
+    display: inline-block;
+    position: relative;
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.96);
+    will-change: transform, opacity;
+    animation: 
+      soundTooltipLaolaWave 0.95s cubic-bezier(0.25, 1, 0.4, 1) forwards calc(var(--char-from-right, 0) * 0.075s),
+      soundTooltipFloating 3.8s ease-in-out calc(0.95s + var(--char-from-right, 0) * 0.075s) infinite alternate;
+  }
+
+  .tooltip-letter {
+    display: inline-block;
+    position: relative;
+    font-family: var(--zeno-font-bubble);
+    font-size: 0.92rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    background: linear-gradient(180deg, var(--zeno-color-white) 0%, var(--zeno-color-sky-100) 55%, var(--zeno-color-sky-200) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: 
+      drop-shadow(0 2px 4px rgba(0, 8, 24, 0.95))
+      drop-shadow(0 4px 14px rgba(0, 0, 0, 0.70))
+      drop-shadow(0 0 12px rgba(56, 189, 248, 0.55));
+  }
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.nav-sound-container.is-bursting .sound-invite-tooltip {
+  .tooltip-letter-carrier {
+    animation: soundTooltipExitBurst 0.45s cubic-bezier(0.12, 0.9, 0.28, 1) forwards calc(var(--char-from-right, 0) * 0.025s) !important;
+  }
+}
+
+// Sound Button Anchor (Perfect origin center for micro-particles & shockwave sparks)
+.sound-button-anchor {
+  position: relative;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 640px) {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+// Ethereal Pulsing Beacon Halo (Feine, zarte Aura & Schockwelle)
+.sound-beacon-halo {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  pointer-events: none;
+  border: 0.75px solid rgba(56, 189, 248, 0.25);
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.08) 0%, rgba(56, 189, 248, 0.01) 65%, transparent 100%);
+  animation: beaconBreatheFine 3s ease-in-out infinite;
+}
+
+.nav-sound-container.is-bursting .sound-beacon-halo {
+  animation: beaconShockwaveFine 0.62s cubic-bezier(0.12, 0.9, 0.28, 1) forwards !important;
+}
+
+// Orbiting Fine Stardust Particles (12 zarte Mikropunkte auf 2 ruhigen Bahnen)
+.orbit-particles-system {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+
+  .orbit-particle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    border-radius: 50%;
+    pointer-events: none;
+    will-change: transform, opacity;
+    transition: opacity 0.25s ease;
+  }
+
+  // 12 Particles on 2 Calm, Harmonious Orbital Tracks (6 per track)
+  @for $i from 0 through 11 {
+    $track: $i % 2;
+    $step: math.floor(math.div($i, 2)); // 0..5
+    .p-#{$i} {
+      @if $track == 0 {
+        width: 1.4px;
+        height: 1.4px;
+        margin: -0.7px 0 0 -0.7px;
+        background: var(--zeno-color-white);
+        box-shadow: 0 0 3px rgba(255, 255, 255, 0.9), 0 0 5px rgba(56, 189, 248, 0.7);
+        animation: orbitTrack1 5.4s linear infinite (-0.9s * $step);
+      } @else {
+        width: 1.2px;
+        height: 1.2px;
+        margin: -0.6px 0 0 -0.6px;
+        background: var(--zeno-color-sky-300);
+        box-shadow: 0 0 3px rgba(125, 211, 252, 0.95), 0 0 5px rgba(56, 189, 248, 0.6);
+        animation: orbitTrack2 7.2s linear infinite (-1.2s * $step);
+      }
+    }
+  }
+}
+
+.nav-sound-container.is-bursting .orbit-particle {
+  opacity: 0 !important;
+}
+
+// Click Wave Explosive Scatter Sparks (14 feine Lichtpunkte wie bei den hero sound toggle sparks)
+.sound-click-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 15;
+  box-shadow: 
+    0 0 4px rgba(125, 211, 252, 0.95),
+    0 0 2px rgba(255, 255, 255, 0.85);
+  animation: sparkShootOut 0.62s cubic-bezier(0.12, 0.9, 0.28, 1) forwards;
 }
 
 .nav-sound-toggle {
   position: relative;
+  z-index: 2;
   width: 42px;
   height: 42px;
-  border-radius: 999px;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  box-shadow: 
-    0 4px 14px rgba(0, 0, 0, 0.16),
-    inset 0 1px 2px rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: rgba(255, 255, 255, 0.75);
   cursor: pointer;
-  user-select: none;
-  transition: all 0.32s cubic-bezier(0.16, 1, 0.3, 1);
-  color: var(--zeno-color-white);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
-  .sound-ambient-halo {
-    position: absolute;
-    inset: -2px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, rgba(14, 165, 233, 0.10) 55%, transparent 75%);
-    filter: blur(6px);
-    pointer-events: none;
-    opacity: 0.55;
-    transition: all 0.35s ease;
+  &.has-orbit-pulse {
+    border-color: rgba(56, 189, 248, 0.45);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 0 16px rgba(56, 189, 248, 0.3);
+    color: #e0f2fe;
+
+    svg {
+      animation: soundPulse 2.4s ease-in-out infinite;
+      filter: drop-shadow(0 0 4px rgba(56, 189, 248, 0.6));
+    }
+  }
+
+  &.is-playing {
+    background: rgba(56, 189, 248, 0.16);
+    border-color: rgba(56, 189, 248, 0.45);
+    color: var(--zeno-color-white);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), 0 0 16px rgba(56, 189, 248, 0.35);
+
+    svg {
+      animation: soundPulse 2.4s ease-in-out infinite;
+      filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.6));
+    }
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.55);
+    transform: scale(1.08) !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35), 0 0 20px rgba(56, 189, 248, 0.5);
+    color: var(--zeno-color-white);
+  }
+
+  &:active {
+    transform: scale(0.96);
   }
 
   svg {
     position: relative;
     z-index: 1;
-    color: var(--zeno-color-white);
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.16);
-    border-color: rgba(147, 197, 253, 0.65);
-    transform: translateY(-1px) scale(1.03);
-    box-shadow: 
-      0 6px 20px rgba(0, 0, 0, 0.25),
-      0 0 18px rgba(56, 189, 248, 0.30),
-      inset 0 1px 3px rgba(255, 255, 255, 0.45);
-    color: #bae6fd;
-
-    .sound-ambient-halo {
-      opacity: 0.85;
-      transform: scale(1.25);
-    }
-
-    svg {
-      color: var(--zeno-color-sky-200);
-      filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.60));
-    }
-  }
-
-  &:active {
-    transform: translateY(0) scale(0.97);
-  }
-
-  &.is-playing {
-    border-color: rgba(147, 197, 253, 0.45);
-    box-shadow: 
-      0 4px 14px rgba(0, 0, 0, 0.20),
-      0 0 12px rgba(56, 189, 248, 0.20),
-      inset 0 1px 2px rgba(255, 255, 255, 0.45);
-
-    svg {
-      animation: soundPulse 2.4s ease-in-out infinite;
-    }
+    transition: transform 0.2s ease, filter 0.3s ease;
   }
 }
 
@@ -1203,6 +1348,123 @@
   }
   50% {
     transform: scale(1.08);
+  }
+}
+
+@keyframes beaconBreatheFine {
+  0%, 100% {
+    transform: scale(1.06);
+    opacity: 0.35;
+    border-color: rgba(56, 189, 248, 0.2);
+  }
+  50% {
+    transform: scale(1.28);
+    opacity: 0.7;
+    border-color: rgba(56, 189, 248, 0.45);
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+  }
+}
+
+@keyframes beaconShockwaveFine {
+  0% {
+    transform: scale(1);
+    opacity: 0.65;
+    border-width: 0.75px;
+    border-color: rgba(125, 211, 252, 0.7);
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+    border-width: 0.25px;
+    border-color: rgba(56, 189, 248, 0);
+  }
+}
+
+@keyframes sparkShootOut {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) translate(var(--sx), var(--sy)) scale(1.1);
+  }
+  35% {
+    opacity: 0.95;
+    filter: brightness(1.6) drop-shadow(0 0 3px #ffffff);
+  }
+  75% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(var(--ex), var(--ey)) scale(0.3);
+  }
+}
+
+@keyframes soundTooltipLaolaWave {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.96);
+  }
+  42% {
+    opacity: 1;
+    transform: translate3d(0, -4px, 0) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes soundTooltipFloating {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -3px, 0) scale(1.01);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes soundTooltipExitBurst {
+  0% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(-12px, -3px, 0) scale(0.88);
+    filter: blur(3px);
+  }
+}
+
+// Keyframes: 2 Calm, Serene Orbital Tracks for the Fine Stardust Particles
+@keyframes orbitTrack1 {
+  0% {
+    transform: rotate(0deg) translateX(29px) rotate(0deg);
+    opacity: 0.75;
+  }
+  50% {
+    transform: rotate(180deg) translateX(31px) rotate(-180deg);
+    opacity: 0.95;
+  }
+  100% {
+    transform: rotate(360deg) translateX(29px) rotate(-360deg);
+    opacity: 0.75;
+  }
+}
+
+@keyframes orbitTrack2 {
+  0% {
+    transform: rotate(60deg) translateX(35px) rotate(-60deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: rotate(-120deg) translateX(33px) rotate(120deg);
+    opacity: 0.55;
+  }
+  100% {
+    transform: rotate(-300deg) translateX(35px) rotate(300deg);
+    opacity: 0.8;
   }
 }
 
@@ -1312,6 +1574,7 @@
     padding: 14px;
   }
 
+  .sound-button-anchor,
   .nav-sound-toggle {
     width: 38px;
     height: 38px;

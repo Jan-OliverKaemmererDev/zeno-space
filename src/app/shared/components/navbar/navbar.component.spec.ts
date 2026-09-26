@@ -185,4 +185,39 @@ describe('NavbarComponent', () => {
     expect(component.isDropdownOpen()).toBe(false);
     expect(component.isDropdownClosing()).toBe(true);
   });
+
+  it('should render orbit particles, beacon halo, and tooltip when audio is awaiting user gesture', () => {
+    audioService.isAwaitingUserGesture.set(true);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    expect(host.querySelector('.sound-invite-tooltip')).toBeTruthy();
+    expect(host.querySelector('.sound-beacon-halo')).toBeTruthy();
+    expect(host.querySelector('.orbit-particles-system')).toBeTruthy();
+
+    const particles = host.querySelectorAll('.orbit-particle');
+    expect(particles.length).toBe(12);
+
+    const toggleBtn = host.querySelector('.nav-sound-toggle');
+    expect(toggleBtn?.classList.contains('has-orbit-pulse')).toBe(true);
+  });
+
+  it('should trigger particle burst and call toggleSound on onToggleAudio when awaiting user gesture', () => {
+    const toggleSpy = vi.spyOn(audioService, 'toggleSound');
+    audioService.isAwaitingUserGesture.set(true);
+    fixture.detectChanges();
+
+    expect(component.isBursting()).toBe(false);
+    expect(component.burstSparks().length).toBe(0);
+
+    component.onToggleAudio();
+    fixture.detectChanges();
+
+    expect(toggleSpy).toHaveBeenCalled();
+    expect(component.isBursting()).toBe(true);
+    expect(component.burstSparks().length).toBe(14);
+
+    const sparks = fixture.nativeElement.querySelectorAll('.sound-click-spark');
+    expect(sparks.length).toBe(14);
+  });
 });

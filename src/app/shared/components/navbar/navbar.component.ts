@@ -3,6 +3,7 @@ import {
   inject,
   signal,
   computed,
+  effect,
   HostListener,
   NgZone,
   AfterViewInit,
@@ -15,6 +16,38 @@ import { filter } from 'rxjs/operators';
 import { AudioService } from '../../../core/services/audio.service';
 import { SmoothScrollService } from '../../../core/services/smooth-scroll.service';
 import { GameRegistryService } from '../../../core/services/game-registry.service';
+
+/**
+ * Character data with right-aligned stagger index for wave tooltips.
+ */
+export interface TooltipLetter {
+  /** Character to display. */
+  char: string;
+  /** Distance index counted from the right edge. */
+  fromRight: number;
+}
+
+/**
+ * Visual spark particle emitted from the sound toggle button burst animation.
+ */
+export interface SoundBurstSpark {
+  /** Unique identifier for the spark. */
+  id: number;
+  /** Starting X coordinate. */
+  startX: number;
+  /** Starting Y coordinate. */
+  startY: number;
+  /** Destination X coordinate. */
+  endX: number;
+  /** Destination Y coordinate. */
+  endY: number;
+  /** CSS color hex code. */
+  color: string;
+  /** Particle size in pixels. */
+  size: number;
+  /** Stagger delay in milliseconds. */
+  delayMs: number;
+}
 
 /**
  * Represents a categorized minigame group with metadata and presentation assets.
@@ -69,6 +102,29 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   readonly isDropdownOpen = signal<boolean>(false);
   /** Whether the category dropdown menu is currently playing its closing transition. */
   readonly isDropdownClosing = signal<boolean>(false);
+
+  // Audio activation state & fine stardust particles
+  /** Whether the sound button is currently playing an explosive particle burst animation upon activation. */
+  readonly isBursting = signal<boolean>(false);
+  private wasAwaitingGesture = false;
+  private burstTimeoutId: number | null = null;
+
+  /** Staggered letter wave for "Sound an?" tooltip matching the hero sound activation prompt. */
+  readonly soundTooltipLetters: TooltipLetter[] = (() => {
+    const text = 'Sound an?';
+    const chars = Array.from(text);
+    const total = chars.length;
+    return chars.map((char, index) => ({
+      char: char === ' ' ? '\u00A0' : char,
+      fromRight: total - 1 - index,
+    }));
+  })();
+
+  /** 12 fine micro-particles orbiting calmly on 2 tracks (6 per track). */
+  readonly orbitParticleIndices = Array.from({ length: 12 }, (_, i) => i);
+
+  /** Explosive micro-sparks on audio activation click (14 delicate light points scattering outward). */
+  readonly burstSparks = signal<SoundBurstSpark[]>([]);
 
   private flapTimeoutId: number | null = null;
   private flightTimeoutId: number | null = null;
@@ -193,6 +249,17 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
         this.closeDropdown();
       }
     });
+
+    // Synchronize particle burst when user gesture activates audio playback
+    effect(() => {
+      const awaiting = this.audioService.isAwaitingUserGesture();
+      if (awaiting) {
+        this.wasAwaitingGesture = true;
+      } else if (this.wasAwaitingGesture) {
+        this.wasAwaitingGesture = false;
+        this.triggerParticleBurst();
+      }
+    });
   }
 
   /**
@@ -221,6 +288,9 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     }
     if (this.closeTimeoutId !== null) {
       clearTimeout(this.closeTimeoutId);
+    }
+    if (this.burstTimeoutId !== null) {
+      clearTimeout(this.burstTimeoutId);
     }
   }
 
@@ -541,11 +611,57 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
+   * Spawns an explosive burst of 14 delicate micro-sparks radiating outward from the audio toggle button.
+   *
+   * @returns {void}
+   */
+  private triggerParticleBurst(): void {
+    if (this.burstTimeoutId !== null) {
+      clearTimeout(this.burstTimeoutId);
+    }
+    this.isBursting.set(true);
+
+    const count = 14;
+    const sparks: SoundBurstSpark[] = [];
+    const baseAngle = Math.random() * Math.PI * 2;
+
+    for (let i = 0; i < count; i++) {
+      const angle = baseAngle + (i * ((Math.PI * 2) / count)) + (Math.random() - 0.5) * 0.22;
+      const startDist = 22 + Math.random() * 3; // Start near button edge
+      const endDist = startDist + 32 + Math.random() * 45; // Explode outward ~32-77px
+      const isBlue = Math.random() < 0.5;
+
+      sparks.push({
+        id: i + 1,
+        startX: Math.round(Math.cos(angle) * startDist * 10) / 10,
+        startY: Math.round(Math.sin(angle) * startDist * 10) / 10,
+        endX: Math.round(Math.cos(angle) * endDist * 10) / 10,
+        endY: Math.round(Math.sin(angle) * endDist * 10) / 10,
+        color: isBlue ? '#7dd3fc' : '#ffffff',
+        size: Math.random() < 0.6 ? 1.5 : 2,
+        delayMs: Math.round(Math.random() * 50),
+      });
+    }
+
+    this.burstSparks.set(sparks);
+
+    this.burstTimeoutId = window.setTimeout(() => {
+      if (this.isDestroyed) return;
+      this.isBursting.set(false);
+      this.burstSparks.set([]);
+      this.burstTimeoutId = null;
+    }, 680);
+  }
+
+  /**
    * Toggles the master audio playback state.
    *
    * @returns {void}
    */
   onToggleAudio(): void {
+    if (this.audioService.isAwaitingUserGesture()) {
+      this.triggerParticleBurst();
+    }
     this.audioService.toggleSound();
   }
 }
