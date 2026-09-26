@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
+import { OrbCursorComponent } from './shared/components/orb-cursor/orb-cursor.component';
 
 /**
  * Root component of the application.
@@ -9,7 +10,7 @@ import { NavbarComponent } from './shared/components/navbar/navbar.component';
  */
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, NavbarComponent],
+  imports: [RouterOutlet, NavbarComponent, OrbCursorComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

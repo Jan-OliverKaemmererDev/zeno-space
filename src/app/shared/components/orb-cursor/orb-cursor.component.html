@@ -1,0 +1,29 @@
+<div
+  class="orb-cursor-host"
+  [class.is-visible]="isVisible()"
+  [class.is-hovering]="isHovering()"
+  [class.is-clicking]="isClicking()"
+  aria-hidden="true"
+>
+  <div #cursorWrapper class="orb-cursor-wrapper">
+    <!-- Continuous micro-sparks while mouse is pressed and shrunk -->
+    <canvas #sparksCanvas class="cursor-sparks-canvas" width="200" height="200"></canvas>
+
+    <!-- 3 Orbiting particle tracks (celestial stardust around cursor on button hover) -->
+    <div
+      class="cursor-orbit-system"
+      [class.is-active]="isHovering()"
+      [class.is-suppressed]="isClicking()"
+    >
+      @for (idx of orbitParticleIndices; track idx) {
+        <span [class]="'cursor-orbit-particle p-' + idx"></span>
+      }
+    </div>
+
+    <!-- The Glass Orb -->
+    <div #cursorMorph class="orb-cursor-morph">
+      <div class="orb-ambient-glow"></div>
+      <div #cursorBody class="orb-glass-body"></div>
+    </div>
+  </div>
+</div>

@@ -278,7 +278,19 @@ button {
   }
 }
 
-
+// ==========================================
+// CUSTOM ORB CURSOR OVERRIDES
+// Hide native OS cursor on desktop devices with fine pointer
+// ==========================================
+@media (pointer: fine) {
+  html,
+  body,
+  *,
+  *::before,
+  *::after {
+    cursor: none !important;
+  }
+}
 
 // Selection Highlight
 ::selection {

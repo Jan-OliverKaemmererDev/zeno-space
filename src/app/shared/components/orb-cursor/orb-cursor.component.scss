@@ -1,0 +1,249 @@
+@use 'sass:math';
+
+:host {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 999999;
+  user-select: none;
+}
+
+// Hide on touchscreens where mouse pointer does not exist
+@media (pointer: coarse) {
+  :host {
+    display: none !important;
+  }
+}
+
+.orb-cursor-host {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.is-visible {
+    opacity: 1;
+  }
+}
+
+.orb-cursor-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.orb-cursor-morph {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+// ==========================================
+// CONTINUOUS SPARKS CANVAS (On Click & Hold)
+// ==========================================
+.cursor-sparks-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200px;
+  height: 200px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 12;
+}
+
+// ==========================================
+// 2 ORBITS PARTICLES SYSTEM (Active on button hover)
+// ==========================================
+.cursor-orbit-system {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  opacity: 0;
+  transform: scale(0.65);
+  transition:
+    opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 8;
+
+  &.is-active {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  &.is-suppressed {
+    opacity: 0.15;
+    transform: scale(0.5);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+
+  .cursor-orbit-particle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+
+  // 12 particles distributed over 2 calm orbits (6 particles per track)
+  @for $i from 0 through 11 {
+    $track: $i % 2;
+    $step: math.floor(math.div($i, 2)); // 0..5
+    .p-#{$i} {
+      @if $track == 0 {
+        // Inner Orbit (Track 0) - Crisp bright star white
+        width: 1.4px;
+        height: 1.4px;
+        margin: -0.7px 0 0 -0.7px;
+        background: #ffffff;
+        box-shadow:
+          0 0 3px rgba(255, 255, 255, 0.95),
+          0 0 5px rgba(56, 189, 248, 0.7);
+        animation: cursorOrbitTrack1 5.2s linear infinite (-0.866s * $step);
+      } @else {
+        // Middle Orbit (Track 1) - Sky blue
+        width: 1.2px;
+        height: 1.2px;
+        margin: -0.6px 0 0 -0.6px;
+        background: #7dd3fc;
+        box-shadow:
+          0 0 3px rgba(125, 211, 252, 0.95),
+          0 0 5px rgba(56, 189, 248, 0.6);
+        animation: cursorOrbitTrack2 6.8s linear infinite (-1.133s * $step);
+      }
+    }
+  }
+}
+
+// Keyframes: 2 Calm, Harmonious Orbital Tracks
+@keyframes cursorOrbitTrack1 {
+  0% {
+    transform: rotate(0deg) translateX(17px) rotate(0deg);
+    opacity: 0.85;
+  }
+  50% {
+    transform: rotate(180deg) translateX(19px) rotate(-180deg);
+    opacity: 1;
+  }
+  100% {
+    transform: rotate(360deg) translateX(17px) rotate(-360deg);
+    opacity: 0.85;
+  }
+}
+
+@keyframes cursorOrbitTrack2 {
+  0% {
+    transform: rotate(45deg) translateX(24px) rotate(-45deg);
+    opacity: 0.8;
+  }
+  50% {
+    transform: rotate(-135deg) translateX(22px) rotate(135deg);
+    opacity: 0.6;
+  }
+  100% {
+    transform: rotate(-315deg) translateX(24px) rotate(315deg);
+    opacity: 0.8;
+  }
+}
+
+// Ambient Cyan / Sky Glow behind the orb (pure luminescence, zero dark shadows)
+.orb-ambient-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(56, 189, 248, 0.28) 0%,
+    rgba(147, 197, 253, 0.12) 40%,
+    transparent 70%
+  );
+  filter: blur(8px);
+  pointer-events: none;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+
+  .is-hovering & {
+    width: 56px;
+    height: 56px;
+    background: radial-gradient(
+      circle,
+      rgba(56, 189, 248, 0.45) 0%,
+      rgba(96, 165, 250, 0.2) 50%,
+      transparent 75%
+    );
+    filter: blur(10px);
+  }
+
+  .is-clicking & {
+    transform: translate(-50%, -50%) scale(0.75);
+    opacity: 0.9;
+  }
+}
+
+// Main Glass Orb Body (clean card-cta glass, balanced middle ground border)
+.orb-glass-body {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  will-change: transform, border-radius;
+
+  // card-cta Glassmorphism (pure luminous glass, no GPU backdrop-filter glitch)
+  background: linear-gradient(
+    135deg,
+    rgba(224, 242, 254, 0.38) 0%,
+    rgba(56, 189, 248, 0.44) 50%,
+    rgba(96, 165, 250, 0.50) 100%
+  );
+  border: 1.3px solid rgba(186, 230, 253, 0.75);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+
+  // Hover state (balanced luminous sky border)
+  .is-hovering & {
+    background: linear-gradient(
+      135deg,
+      rgba(224, 242, 254, 0.40) 0%,
+      rgba(56, 189, 248, 0.48) 50%,
+      rgba(96, 165, 250, 0.54) 100%
+    );
+    border-color: rgba(224, 242, 254, 0.85);
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.42);
+  }
+
+  // Click compression state (focused, refined border)
+  .is-clicking & {
+    border-color: rgba(224, 242, 254, 0.90);
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.50);
+  }
+}
