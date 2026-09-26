@@ -8,9 +8,9 @@
   overflow: hidden;
   background: radial-gradient(
     circle at 50% 50%,
-    #0f172a 0%,
-    #090d1f 60%,
-    #050711 100%
+    var(--zeno-color-bg-surface) 0%,
+    var(--zeno-color-bg-deep) 60%,
+    var(--zeno-color-bg-darker) 100%
   );
   user-select: none;
 }
@@ -47,7 +47,7 @@
   background: rgba(14, 18, 34, 0.75);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #fff;
+  color: var(--zeno-color-white);
   font-size: 0.9rem;
   font-weight: 600;
   transition: all 0.25s ease;
@@ -87,11 +87,11 @@
 
   .stat-num {
     font-weight: 700;
-    color: #38bdf8;
+    color: var(--zeno-color-accent-cyan);
   }
 
   .stat-text {
-    color: v.$color-text-muted;
+    color: var(--zeno-color-text-muted);
   }
 }
 
@@ -144,8 +144,8 @@
   }
 
   &--primary {
-    background: linear-gradient(135deg, #38bdf8, #818cf8);
-    color: #fff;
+    background: linear-gradient(135deg, var(--zeno-color-accent-cyan), var(--zeno-color-indigo-400));
+    color: var(--zeno-color-white);
     box-shadow: 0 4px 15px rgba(56, 189, 248, 0.4);
 
     &:hover {
@@ -157,27 +157,27 @@
   &--secondary {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    color: v.$color-text-secondary;
+    color: var(--zeno-color-text-secondary);
 
     &:hover {
       background: rgba(255, 255, 255, 0.15);
-      color: #fff;
+      color: var(--zeno-color-white);
     }
 
     &.active {
       background: rgba(168, 85, 247, 0.25);
       border-color: rgba(168, 85, 247, 0.4);
-      color: #f3e8ff;
+      color: var(--zeno-color-purple-100);
     }
   }
 
   &--ghost {
     background: transparent;
-    color: v.$color-text-muted;
+    color: var(--zeno-color-text-muted);
 
     &:hover {
       background: rgba(255, 255, 255, 0.08);
-      color: #fff;
+      color: var(--zeno-color-white);
     }
   }
 }
@@ -193,7 +193,7 @@
   align-items: center;
   gap: 8px;
   font-size: 0.78rem;
-  color: v.$color-text-muted;
+  color: var(--zeno-color-text-muted);
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
   padding: 4px 14px;

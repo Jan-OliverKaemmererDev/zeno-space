@@ -6,8 +6,9 @@ import {
   OnDestroy,
   inject,
   signal,
+  HostListener,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AudioService } from '../../../core/services/audio.service';
 
 interface Stone {
@@ -36,6 +37,12 @@ export class ZenSandComponent implements AfterViewInit, OnDestroy {
   @ViewChild('sandCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   readonly audioService = inject(AudioService);
+  private readonly router = inject(Router);
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.router.navigate(['/']);
+  }
 
   readonly stoneCount = signal<number>(0);
   readonly currentTool = signal<'rake' | 'stone'>('rake');

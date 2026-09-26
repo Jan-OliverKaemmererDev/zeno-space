@@ -6,8 +6,9 @@ import {
   OnDestroy,
   inject,
   signal,
+  HostListener,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { AudioService } from '../../../core/services/audio.service';
 
@@ -31,6 +32,12 @@ export class SoundscapeMixerComponent implements AfterViewInit, OnDestroy {
   @ViewChild('visualizer') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   readonly audioService = inject(AudioService);
+  private readonly router = inject(Router);
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.router.navigate(['/']);
+  }
 
   readonly channels = signal<SoundChannel[]>([
     {

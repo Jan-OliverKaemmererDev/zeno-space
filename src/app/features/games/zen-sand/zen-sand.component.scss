@@ -6,7 +6,7 @@
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background-color: #090814;
+  background-color: var(--zeno-color-bg-deep);
   user-select: none;
 }
 
@@ -42,7 +42,7 @@
   background: rgba(14, 18, 34, 0.75);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #fff;
+  color: var(--zeno-color-white);
   font-size: 0.9rem;
   font-weight: 600;
   transition: all 0.25s ease;
@@ -82,11 +82,11 @@
 
   .stat-num {
     font-weight: 700;
-    color: #f472b6;
+    color: var(--zeno-color-accent-rose);
   }
 
   .stat-text {
-    color: v.$color-text-muted;
+    color: var(--zeno-color-text-muted);
   }
 }
 
@@ -141,28 +141,28 @@
   &--secondary {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    color: v.$color-text-secondary;
+    color: var(--zeno-color-text-secondary);
 
     &:hover {
       background: rgba(255, 255, 255, 0.15);
-      color: #fff;
+      color: var(--zeno-color-white);
     }
 
     &.active {
       background: rgba(244, 114, 182, 0.25);
       border-color: rgba(244, 114, 182, 0.45);
-      color: #fdf2f8;
+      color: var(--zeno-color-rose-100);
       box-shadow: 0 0 15px rgba(244, 114, 182, 0.3);
     }
   }
 
   &--ghost {
     background: transparent;
-    color: v.$color-text-muted;
+    color: var(--zeno-color-text-muted);
 
     &:hover {
       background: rgba(255, 255, 255, 0.08);
-      color: #fff;
+      color: var(--zeno-color-white);
     }
   }
 }
@@ -178,7 +178,7 @@
   align-items: center;
   gap: 8px;
   font-size: 0.78rem;
-  color: v.$color-text-muted;
+  color: var(--zeno-color-text-muted);
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
   padding: 4px 14px;

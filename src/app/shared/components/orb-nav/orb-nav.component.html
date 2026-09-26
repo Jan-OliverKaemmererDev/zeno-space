@@ -15,7 +15,7 @@
   </div>
 
   <!-- Three.js 3D WebGL Canvas -->
-  <canvas #orbCanvas class="orb-3d-canvas" width="76" height="260"></canvas>
+  <canvas #orbCanvas class="orb-3d-canvas" width="76" height="260" role="img" aria-label="3D Pixel-Orb Navigation – dekorative Darstellung"></canvas>
 
   <!-- Interactive Target Anchors for Accessibility, Tooltips & Clicks -->
   <div class="orb-targets-overlay">
@@ -31,9 +31,11 @@
           class="orb-target-btn"
           [class.is-active]="activeIndex() === idx"
           [class.is-hovered]="activeHoverIndex() === idx"
+          [attr.tabindex]="activeIndex() === idx ? 0 : -1"
+          (keydown)="onOrbKeydown($event, idx)"
           (pointerdown)="onOrbPointerDown()"
           (click)="onOrbClick(idx)"
-          [attr.aria-label]="sec.label + ' Sektion anspringen'"
+          [attr.aria-label]="'Zu Abschnitt ' + sec.label + ' springen'"
           [attr.aria-current]="activeIndex() === idx ? 'true' : null"
         >
           <span class="sr-only">{{ sec.label }}</span>

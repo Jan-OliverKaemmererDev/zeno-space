@@ -22,6 +22,19 @@ $color-accent-rose: #f472b6;
 $color-accent-peach: #fb923c;
 $color-accent-gold: #fde047;
 
+// Extended Color Palette (Light Cyan / Sky / Slate / Indigo / Rose)
+$color-white: #ffffff;
+$color-bg-darker: #050711;
+$color-sky-50: #f0f9ff;
+$color-sky-100: #e0f2fe;
+$color-sky-200: #bae6fd;
+$color-sky-300: #7dd3fc;
+$color-slate-100: #f1f5f9;
+$color-slate-200: #e2e8f0;
+$color-indigo-400: #818cf8;
+$color-purple-100: #f3e8ff;
+$color-rose-100: #fbcfe8;
+
 // Iridescent Bubble Gradients
 $gradient-cosmic-glow: linear-gradient(135deg, #8b5cf6 0%, #38bdf8 50%, #f472b6 100%);
 $gradient-bubble-iridescent: linear-gradient(
@@ -44,6 +57,18 @@ $glass-border-hover: 1px solid rgba(192, 132, 252, 0.35);
 $glass-blur: blur(16px);
 $glass-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 92, 246, 0.15);
 $glass-shadow-hover: 0 20px 40px -10px rgba(0, 0, 0, 0.6), 0 0 30px rgba(192, 132, 252, 0.3);
+
+// Shadows & Glow Tokens
+$shadow-glow-cyan-sm: 0 0 16px rgba(56, 189, 248, 0.25);
+$shadow-glow-cyan-md: 0 0 20px rgba(56, 189, 248, 0.35);
+$shadow-glow-cyan-lg: 0 0 30px rgba(56, 189, 248, 0.5);
+$shadow-elevation-sm: 0 8px 24px rgba(0, 0, 0, 0.25);
+$shadow-elevation-md: 0 14px 34px rgba(0, 0, 0, 0.45);
+$shadow-elevation-lg: 0 20px 40px rgba(0, 0, 0, 0.6);
+$shadow-glass-inner: inset 0 1px 2px rgba(255, 255, 255, 0.08);
+$shadow-focus-ring: 0 0 0 2px rgba(56, 189, 248, 0.8);
+$text-shadow-subtle: 0 1px 6px rgba(0, 0, 0, 0.35);
+$text-shadow-glow-cyan: 0 0 10px rgba(56, 189, 248, 0.45);
 
 // Typography
 $font-family-heading: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;

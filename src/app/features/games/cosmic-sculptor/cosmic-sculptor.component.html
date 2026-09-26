@@ -1,8 +1,10 @@
-<div class="cosmic-wrapper">
+<div class="cosmic-wrapper" role="application" aria-label="Cosmic Sculptor – Interaktives 3D Planetensystem">
   <!-- Three.js 3D Viewport Container -->
   <div 
     #canvasContainer 
     class="three-canvas-container"
+    role="img"
+    aria-label="3D Planetensystem Simulation"
     (mousedown)="onMouseDown($event)"
     (mousemove)="onMouseMove($event)"
     (mouseup)="onMouseUp()"
@@ -12,13 +14,13 @@
 
   <!-- Top Glass HUD Header -->
   <header class="cosmic-hud-header">
-    <a routerLink="/" class="back-link">
-      <span class="back-icon">←</span>
+    <a routerLink="/" class="back-link" aria-label="Zurück zur Startseite">
+      <span class="back-icon" aria-hidden="true">←</span>
       <span>Zurück zu den Seifenblasen</span>
     </a>
 
-    <div class="cosmic-status-pill">
-      <span class="status-dot"></span>
+    <div class="cosmic-status-pill" aria-live="polite">
+      <span class="status-dot" aria-hidden="true"></span>
       <span class="status-text">
         {{ planetCount() }} Himmelskörper im Orbit
       </span>
@@ -27,63 +29,76 @@
 
   <!-- Bottom Floating Glass Control Bar -->
   <div class="cosmic-controls-dock">
-    <div class="dock-panel">
+    <div class="dock-panel" role="toolbar" aria-label="Simulations-Steuerung">
       <!-- Action: Spawn Planet -->
       <button 
         type="button" 
         class="dock-btn dock-btn--primary"
         (click)="addRandomPlanet()"
+        aria-label="Planet erschaffen – Neuen Himmelskörper in die Umlaufbahn schicken"
         title="Neuen Himmelskörper in die Umlaufbahn schicken"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="12" cy="12" r="5" />
           <ellipse cx="12" cy="12" rx="9" ry="3" transform="rotate(-25 12 12)" />
         </svg>
         <span>Planet erschaffen</span>
       </button>
 
-      <div class="dock-divider"></div>
+      <div class="dock-divider" aria-hidden="true"></div>
 
       <!-- Action: Speed Toggle -->
-      <div class="speed-group">
-        <span class="group-label">Zeit:</span>
+      <fieldset class="speed-group" role="radiogroup" aria-label="Simulationsgeschwindigkeit">
+        <legend class="sr-only">Simulationsgeschwindigkeit</legend>
+        <span class="group-label" aria-hidden="true">Zeit:</span>
         <button 
           type="button" 
+          role="radio"
           class="speed-pill" 
           [class.active]="timeSpeed() === 0.5"
+          [attr.aria-checked]="timeSpeed() === 0.5"
+          aria-label="Geschwindigkeit 0.5x"
           (click)="setTimeSpeed(0.5)"
         >
           0.5x
         </button>
         <button 
           type="button" 
+          role="radio"
           class="speed-pill" 
           [class.active]="timeSpeed() === 1"
+          [attr.aria-checked]="timeSpeed() === 1"
+          aria-label="Geschwindigkeit 1x"
           (click)="setTimeSpeed(1)"
         >
           1x
         </button>
         <button 
           type="button" 
+          role="radio"
           class="speed-pill" 
           [class.active]="timeSpeed() === 2"
+          [attr.aria-checked]="timeSpeed() === 2"
+          aria-label="Geschwindigkeit 2x"
           (click)="setTimeSpeed(2)"
         >
           2x
         </button>
-      </div>
+      </fieldset>
 
-      <div class="dock-divider"></div>
+      <div class="dock-divider" aria-hidden="true"></div>
 
       <!-- Action: Trails Toggle -->
       <button 
         type="button" 
         class="dock-btn dock-btn--secondary"
         [class.active]="trailsEnabled()"
+        [attr.aria-pressed]="trailsEnabled()"
         (click)="toggleTrails()"
+        aria-label="Umlaufbahn-Schweife {{ trailsEnabled() ? 'deaktivieren' : 'aktivieren' }}"
         title="Umlaufbahn-Schweife ein-/ausschalten"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1M5.6 18.4l2.1-2.1m8.6-8.6 2.1-2.1" />
         </svg>
         <span>Schweife {{ trailsEnabled() ? 'An' : 'Aus' }}</span>
@@ -94,9 +109,10 @@
         type="button" 
         class="dock-btn dock-btn--ghost"
         (click)="resetCosmos()"
+        aria-label="Kosmos neu arrangieren"
         title="Kosmos neu arrangieren"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
           <path d="M3 3v5h5" />
         </svg>
@@ -105,16 +121,18 @@
     </div>
 
     <!-- Cozy Interaction Hint -->
-    <div class="interaction-hint">
+    <aside class="interaction-hint" aria-label="Bedienungshinweise">
       <span class="hint-item">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <rect x="6" y="3" width="12" height="18" rx="6" />
           <line x1="12" y1="7" x2="12" y2="11" />
         </svg>
         <span>Maus ziehen: Kamera rotieren</span>
       </span>
-      <span>•</span>
+      <span aria-hidden="true">•</span>
       <span>Mausrad: Zoomen</span>
-    </div>
+      <span aria-hidden="true">•</span>
+      <span>ESC: Zurück zur Startseite</span>
+    </aside>
   </div>
 </div>

@@ -597,6 +597,30 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     this.sectionSelect.emit(index);
   }
 
+  onOrbKeydown(event: KeyboardEvent, index: number): void {
+    const total = this.sections().length;
+    let targetIndex = -1;
+
+    if (event.key === 'ArrowDown' || event.key === 'ArrowRight') {
+      targetIndex = (index + 1) % total;
+    } else if (event.key === 'ArrowUp' || event.key === 'ArrowLeft') {
+      targetIndex = (index - 1 + total) % total;
+    } else if (event.key === 'Home') {
+      targetIndex = 0;
+    } else if (event.key === 'End') {
+      targetIndex = total - 1;
+    }
+
+    if (targetIndex >= 0) {
+      event.preventDefault();
+      this.onOrbClick(targetIndex);
+      const targetBtn = document.getElementById('orb-target-' + targetIndex);
+      if (targetBtn) {
+        targetBtn.focus();
+      }
+    }
+  }
+
   private spawnClickSparks(orbIndex: number): void {
     const count = Math.random() < 0.5 ? 2 : 3; // 2 or 3 micro-pixels
     const newSparks: OrbClickSpark[] = [];

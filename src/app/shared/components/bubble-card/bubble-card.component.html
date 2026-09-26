@@ -1,10 +1,11 @@
-<div 
+<article 
   class="card-container"
   [class.is-entering]="isPopping"
   [style.--float-delay]="game.floatDelay"
   [style.--float-duration]="game.floatDuration"
   [style.--pastel-color]="game.primaryColor"
   [style.--pastel-glow]="game.glowColor"
+  [attr.aria-label]="game.title"
 >
   <div 
     class="glass-bubble-card"
@@ -12,8 +13,8 @@
     [style.transform]="'perspective(1400px) rotateX(' + tiltX + 'deg) rotateY(' + tiltY + 'deg)'"
   >
     <!-- Soft Glass Highlights -->
-    <div class="card-glass-sheen"></div>
-    <div class="card-ambient-glow"></div>
+    <div class="card-glass-sheen" aria-hidden="true"></div>
+    <div class="card-ambient-glow" aria-hidden="true"></div>
 
     <!-- Card Content -->
     <div class="card-content">
@@ -23,34 +24,39 @@
       <p class="card-desc">{{ game.description }}</p>
 
       <!-- Tags -->
-      <div class="card-tags">
+      <ul class="card-tags" aria-label="Kategorien">
         @for (tag of game.tags; track tag) {
-          <button 
-            type="button"
-            class="tag-pill"
-            [class.active]="isTagActive(tag)"
-            (click)="onTagClick(tag, $event)"
-            [title]="'Kategorie ' + tag + ' auswählen'"
-          >
-            {{ tag }}
-          </button>
+          <li>
+            <button 
+              type="button"
+              class="tag-pill"
+              [class.active]="isTagActive(tag)"
+              [attr.aria-pressed]="isTagActive(tag)"
+              [attr.aria-label]="'Kategorie ' + tag + ' filtern'"
+              (click)="onTagClick(tag, $event)"
+              [title]="'Kategorie ' + tag + ' auswählen'"
+            >
+              {{ tag }}
+            </button>
+          </li>
         }
-      </div>
+      </ul>
 
       <!-- Footer CTA -->
-      <div class="card-footer">
+      <footer class="card-footer">
         <button 
           type="button" 
           class="card-cta"
           (click)="openGame($event)"
+          [attr.aria-label]="game.title + ' betreten – Eintauchen'"
           [title]="game.title + ' betreten'"
         >
           <span>Eintauchen</span>
-          <svg class="cta-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg class="cta-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M5 12h14M12 5l7 7-7 7"/>
           </svg>
         </button>
-      </div>
+      </footer>
     </div>
   </div>
-</div>
+</article>

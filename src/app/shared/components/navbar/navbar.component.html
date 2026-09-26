@@ -1,7 +1,7 @@
 <header class="navbar-wrapper" [class.is-visible]="isVisible() || isDropdownClosing()" [class.is-menu-open]="isDropdownOpen() || isDropdownClosing()">
   <nav class="navbar" [class.is-menu-open]="isDropdownOpen() || isDropdownClosing()">
     <!-- Brand Logo -->
-    <a routerLink="/" class="brand" title="Zur Startseite" (click)="closeDropdown()">
+    <a routerLink="/" class="brand" title="Zur Startseite" aria-label="zeno.space – Zur Startseite" (click)="closeDropdown()">
       <div class="brand-text">
         <span class="brand-title">zeno<span class="brand-accent">.space</span></span>
         <span class="brand-tag">Interaktive Welten</span>
@@ -23,11 +23,11 @@
         title="Origami Kranich – Klicke zum Entfalten der Kategorien"
       >
         <!-- Origami Crane Perch Ring Glow -->
-        <span class="crane-ambient-halo"></span>
+        <span class="crane-ambient-halo" aria-hidden="true"></span>
 
         <!-- Origami Crane Vector Model (Exact Line-Art Geometry + Watercolor Gradients) -->
         <div class="crane-graphic-wrapper">
-          <svg class="origami-crane-svg" viewBox="85 95 335 275" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <svg class="origami-crane-svg" viewBox="85 95 335 275" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <defs>
               <!-- Watercolor / Frosted Crystalline Blue Origami Gradients (IMG_2543.jpeg) -->
               <linearGradient id="craneGradUpperWing" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -195,7 +195,7 @@
           <span class="crane-label-text">
             {{ selectedCategory() ? selectedCategory()!.title : 'Kategorien' }}
           </span>
-          <svg class="crane-chevron" [class.is-rotated]="isDropdownOpen()" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="crane-chevron" [class.is-rotated]="isDropdownOpen()" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="6 9 12 15 18 9"></polyline>
           </svg>
         </span>
@@ -216,8 +216,9 @@
             class="dropdown-all-worlds-btn"
             (click)="resetCategory($event)"
             title="Alle Welten anzeigen"
+            aria-label="Filter zurücksetzen – Alle Welten anzeigen"
           >
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24"/>
               <polyline points="21 3 21 9 15 9"/>
             </svg>
@@ -226,7 +227,7 @@
         }
 
         <!-- Decorative Origami Crease Header -->
-        <div class="dropdown-origami-crease-header">
+        <div class="dropdown-origami-crease-header" aria-hidden="true">
           <span class="origami-crease-line origami-crease-line--left"></span>
           <div class="origami-gem-diamond">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -243,21 +244,25 @@
         </div>
 
         <!-- 6 Categories Grid (Mathematik, Astronomie, Natur, Geräusche, Relax, Abenteuer) -->
-        <div class="categories-grid">
+        <ul class="categories-grid" role="listbox" aria-label="Kategorien-Auswahl">
           @for (cat of categories; track cat.id; let idx = $index) {
-            <div 
+            <li 
               class="category-card is-interactive"
+              role="option"
+              [attr.aria-selected]="selectedCategory()?.id === cat.id"
               [class.is-selected]="selectedCategory()?.id === cat.id"
               [style.--card-stagger]="idx"
               (click)="onCategoryClick(cat)"
               tabindex="0"
               (keydown.enter)="onCategoryClick(cat)"
+              (keydown.space)="onCategoryClick(cat); $event.preventDefault()"
+              (keydown)="onCategoryKeydown($event, idx)"
               [attr.aria-label]="cat.title + ' – Welten dieser Kategorie anzeigen'"
             >
-              <div class="category-card-glow"></div>
+              <div class="category-card-glow" aria-hidden="true"></div>
               
               <div class="category-header">
-                <div class="category-icon-wrapper" [innerHTML]="cat.iconSvg"></div>
+                <div class="category-icon-wrapper" [innerHTML]="cat.iconSvg" aria-hidden="true"></div>
                 <h3 class="category-title">{{ cat.title }}</h3>
               </div>
 
@@ -265,9 +270,9 @@
                 <span class="category-subtitle">{{ cat.subtitle }}</span>
                 <p class="category-desc">{{ cat.description }}</p>
               </div>
-            </div>
+            </li>
           }
-        </div>
+        </ul>
       </div>
     </div>
 
@@ -283,13 +288,13 @@
       >
         <span class="sound-ambient-halo" aria-hidden="true"></span>
         @if (audioService.isAmbientPlaying()) {
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
             <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
             <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
           </svg>
         } @else {
-          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
             <line x1="23" y1="9" x2="17" y2="15" />
             <line x1="17" y1="9" x2="23" y2="15" />

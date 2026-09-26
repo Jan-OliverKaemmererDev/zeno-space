@@ -1,13 +1,13 @@
-<div class="soundscape-wrapper">
+<div class="soundscape-wrapper" role="application" aria-label="Soundscape Mixer – Klanglandschaften mischen">
   <!-- Top Glass HUD -->
   <header class="game-hud-header">
-    <a routerLink="/" class="back-link">
-      <span class="back-icon">←</span>
+    <a routerLink="/" class="back-link" aria-label="Zurück zur Startseite">
+      <span class="back-icon" aria-hidden="true">←</span>
       <span>Zurück zur Übersicht</span>
     </a>
 
     <div class="hud-status">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
         <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
       </svg>
@@ -28,11 +28,11 @@
 
       <!-- Real-time Wavy Visualizer -->
       <div class="visualizer-container">
-        <canvas #visualizer class="visualizer-canvas"></canvas>
+        <canvas #visualizer class="visualizer-canvas" role="img" aria-label="Echtzeit-Klangwellen Visualisierung"></canvas>
       </div>
 
       <!-- Sound Channels Grid -->
-      <div class="channels-grid">
+      <div class="channels-grid" role="group" aria-label="Klangkanäle">
         @for (ch of channels(); track ch.id) {
           <div 
             class="channel-strip" 
@@ -44,28 +44,30 @@
                 type="button" 
                 class="channel-toggle"
                 [class.active]="ch.active"
+                [attr.aria-pressed]="ch.active"
+                [attr.aria-label]="ch.name + (ch.active ? ' deaktivieren' : ' aktivieren')"
                 (click)="toggleChannel(ch.id)"
               >
                 <span class="channel-icon">
                   @switch (ch.icon) {
                     @case ('rain') {
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
                         <path d="M8 19v2M8 13v2M12 21v2M12 15v2M16 19v2M16 13v2" />
                       </svg>
                     }
                     @case ('drone') {
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M2 10v4M6 6v12M10 3v18M14 7v10M18 10v4M22 11v2" />
                       </svg>
                     }
                     @case ('fire') {
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" />
                       </svg>
                     }
                     @case ('chimes') {
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                         <line x1="4" y1="4" x2="20" y2="4" />
                         <line x1="7" y1="4" x2="7" y2="16" />
                         <line x1="12" y1="4" x2="12" y2="20" />
@@ -80,11 +82,11 @@
               </button>
 
               <div class="channel-info">
-                <h4 class="channel-name">{{ ch.name }}</h4>
+                <h3 class="channel-name">{{ ch.name }}</h3>
                 <p class="channel-desc">{{ ch.description }}</p>
               </div>
 
-              <span class="volume-val">{{ (ch.volume * 100) | number:'1.0-0' }}%</span>
+              <span class="volume-val" aria-hidden="true">{{ (ch.volume * 100) | number:'1.0-0' }}%</span>
             </div>
 
             <!-- Volume Slider -->
@@ -97,6 +99,10 @@
                 [value]="ch.volume" 
                 (input)="updateVolume(ch.id, $event)"
                 class="cozy-slider"
+                [attr.aria-label]="ch.name + ' Lautstärke'"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                [attr.aria-valuenow]="(ch.volume * 100) | number:'1.0-0'"
               />
             </div>
           </div>
@@ -105,14 +111,22 @@
 
       <!-- Sound Toggle Reminder -->
       @if (audioService.isMuted()) {
-        <div class="unmute-reminder" (click)="audioService.toggleSound()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div 
+          class="unmute-reminder" 
+          role="button"
+          tabindex="0"
+          (click)="audioService.toggleSound()"
+          (keydown.enter)="audioService.toggleSound()"
+          (keydown.space)="audioService.toggleSound(); $event.preventDefault()"
+          aria-label="Ton ist momentan stummgeschaltet – Klicken oder Leertaste drücken zum Aktivieren"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
             <line x1="23" y1="9" x2="17" y2="15" />
             <line x1="17" y1="9" x2="23" y2="15" />
           </svg>
           <span>Der Ton ist momentan stummgeschaltet.</span>
-          <button type="button" class="unmute-btn">Klicken zum Aktivieren</button>
+          <span class="unmute-btn" aria-hidden="true">Klicken zum Aktivieren</span>
         </div>
       }
     </div>

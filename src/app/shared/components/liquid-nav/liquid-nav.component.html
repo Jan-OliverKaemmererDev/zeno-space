@@ -1,11 +1,11 @@
-<div 
+<nav 
   class="liquid-nav-container"
   [class.is-dragging]="isDragging()"
   role="navigation"
   aria-label="Glaskugeln-Navigation mit flüssigem Wasser"
 >
   <!-- Three.js Liquid & Glass Canvas -->
-  <canvas #liquidCanvas class="liquid-canvas"></canvas>
+  <canvas #liquidCanvas class="liquid-canvas" role="img" aria-label="3D Glaskugeln-Animation"></canvas>
 
   <!-- Interactive Button Overlays for Accessibility & Tooltips -->
   <div class="nav-buttons-overlay">
@@ -16,6 +16,7 @@
         class="orb-target-btn"
         [class.is-active]="activeIndex() === $index"
         (click)="onSelect($index)"
+        [attr.tabindex]="activeIndex() === $index ? 0 : -1"
         [attr.aria-label]="sec.label + ' Sektion anspringen'"
         [attr.aria-current]="activeIndex() === $index ? 'true' : null"
       >
@@ -23,4 +24,4 @@
       </button>
     }
   </div>
-</div>
+</nav>

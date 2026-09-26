@@ -6,8 +6,9 @@ import {
   OnDestroy,
   inject,
   signal,
+  HostListener,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import * as THREE from 'three';
 import { AudioService } from '../../../core/services/audio.service';
 
@@ -33,6 +34,12 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
   @ViewChild('canvasContainer') containerRef!: ElementRef<HTMLDivElement>;
 
   readonly audioService = inject(AudioService);
+  private readonly router = inject(Router);
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.router.navigate(['/']);
+  }
 
   // Stats & Controls
   readonly planetCount = signal<number>(0);

@@ -217,7 +217,35 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
 
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.closeDropdown();
+    this.closeDropdown(false, true);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onDocumentKeydown(event: KeyboardEvent): void {
+    if (!this.isDropdownOpen()) return;
+
+    if (event.key === 'Tab') {
+      const host = this.elementRef.nativeElement as HTMLElement;
+      const dropdown = host.querySelector('.origami-dropdown-menu') as HTMLElement | null;
+      if (!dropdown) return;
+
+      const focusables = (Array.from(
+        dropdown.querySelectorAll('button, [tabindex="0"], a')
+      ) as HTMLElement[]).filter(el => el.offsetParent !== null);
+
+      if (focusables.length === 0) return;
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    }
   }
 
   @HostListener('document:pointerdown', ['$event'])
@@ -225,7 +253,7 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     if (!this.isDropdownOpen() && !this.isDropdownClosing()) return;
     const target = event.target as HTMLElement | null;
     if (target && !this.elementRef.nativeElement.contains(target)) {
-      this.closeDropdown();
+      this.closeDropdown(false, false);
     }
   }
 
@@ -287,7 +315,7 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
 
   toggleDropdown(): void {
     if (this.isDropdownOpen()) {
-      this.closeDropdown();
+      this.closeDropdown(false, true);
     } else {
       if (this.closeTimeoutId !== null) {
         clearTimeout(this.closeTimeoutId);
@@ -297,11 +325,26 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
       this.dropdownOpenScrollY = typeof window !== 'undefined' ? window.scrollY : 0;
       this.isDropdownOpen.set(true);
       this.audioService.playCraneFolding(1.0);
+
+      // Focus first category card inside dropdown for immediate keyboard usability
+      setTimeout(() => {
+        const firstCard = this.elementRef.nativeElement.querySelector('.category-card') as HTMLElement | null;
+        if (firstCard) {
+          firstCard.focus();
+        }
+      }, 50);
     }
   }
 
-  closeDropdown(immediate = false): void {
+  closeDropdown(immediate = false, returnFocus = false): void {
     if (!this.isDropdownOpen() && !this.isDropdownClosing()) return;
+
+    if (returnFocus) {
+      const trigger = this.elementRef.nativeElement.querySelector('.crane-trigger-btn') as HTMLElement | null;
+      if (trigger) {
+        trigger.focus();
+      }
+    }
 
     if (immediate) {
       if (this.closeTimeoutId !== null) {
@@ -330,9 +373,33 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     }, 1450);
   }
 
+  onCategoryKeydown(event: KeyboardEvent, index: number): void {
+    const host = this.elementRef.nativeElement as HTMLElement;
+    const cards = Array.from(
+      host.querySelectorAll('.category-card')
+    ) as HTMLElement[];
+    if (!cards.length) return;
+
+    let targetIndex = -1;
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+      targetIndex = (index + 1) % cards.length;
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+      targetIndex = (index - 1 + cards.length) % cards.length;
+    } else if (event.key === 'Home') {
+      targetIndex = 0;
+    } else if (event.key === 'End') {
+      targetIndex = cards.length - 1;
+    }
+
+    if (targetIndex >= 0) {
+      event.preventDefault();
+      cards[targetIndex].focus();
+    }
+  }
+
   onCategoryClick(cat: CategoryItem): void {
     this.gameRegistry.setSelectedCategory(cat.id);
-    this.closeDropdown();
+    this.closeDropdown(false, true);
     this.audioService.playChime(3, 0.15);
 
     if (this.isLandingPage()) {

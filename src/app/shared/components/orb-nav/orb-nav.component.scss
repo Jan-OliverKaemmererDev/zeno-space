@@ -194,20 +194,8 @@
   pointer-events: auto;
 
   &:focus-visible {
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.8), 0 0 12px rgba(56, 189, 248, 0.5);
+    box-shadow: var(--zeno-shadow-focus-ring), var(--zeno-shadow-glow-cyan-sm);
   }
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }
 
 // Tooltip: Free-floating transparent Sniglet typography with right-to-left Laola wave & gentle floating
@@ -269,12 +257,12 @@
 .tooltip-letter {
   display: inline-block;
   position: relative;
-  font-family: v.$font-family-bubble;
+  font-family: var(--zeno-font-bubble);
   font-size: 1.05rem;
   font-weight: 600;
   letter-spacing: 0.04em;
   line-height: 1;
-  background: linear-gradient(180deg, #ffffff 0%, #e0f2fe 55%, #bae6fd 100%);
+  background: linear-gradient(180deg, var(--zeno-color-white) 0%, var(--zeno-color-sky-100) 55%, var(--zeno-color-sky-200) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   filter: 

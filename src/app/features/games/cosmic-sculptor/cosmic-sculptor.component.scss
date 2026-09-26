@@ -6,7 +6,7 @@
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background-color: v.$color-bg-deep;
+  background-color: var(--zeno-color-bg-deep);
   user-select: none;
 }
 
@@ -49,7 +49,7 @@
   background: rgba(14, 18, 34, 0.75);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #fff;
+  color: var(--zeno-color-white);
   font-size: 0.9rem;
   font-weight: 600;
   transition: all 0.25s ease;
@@ -80,14 +80,14 @@
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 0.85rem;
-  color: v.$color-text-secondary;
+  color: var(--zeno-color-text-secondary);
 
   .status-dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #38bdf8;
-    box-shadow: 0 0 10px #38bdf8;
+    background: var(--zeno-color-accent-cyan);
+    box-shadow: 0 0 10px var(--zeno-color-accent-cyan);
     animation: pulseGlow 2s infinite ease-in-out;
   }
 }
@@ -146,8 +146,8 @@
   }
 
   &--primary {
-    background: linear-gradient(135deg, v.$color-accent-purple, v.$color-accent-rose);
-    color: #fff;
+    background: linear-gradient(135deg, var(--zeno-color-accent-purple), var(--zeno-color-accent-rose));
+    color: var(--zeno-color-white);
     box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
 
     &:hover {
@@ -159,27 +159,27 @@
   &--secondary {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    color: v.$color-text-secondary;
+    color: var(--zeno-color-text-secondary);
 
     &:hover {
       background: rgba(255, 255, 255, 0.15);
-      color: #fff;
+      color: var(--zeno-color-white);
     }
 
     &.active {
       background: rgba(56, 189, 248, 0.2);
       border-color: rgba(56, 189, 248, 0.4);
-      color: #e0f2fe;
+      color: var(--zeno-color-sky-100);
     }
   }
 
   &--ghost {
     background: transparent;
-    color: v.$color-text-muted;
+    color: var(--zeno-color-text-muted);
 
     &:hover {
       background: rgba(255, 255, 255, 0.06);
-      color: #fff;
+      color: var(--zeno-color-white);
     }
   }
 }
@@ -194,10 +194,14 @@
   display: flex;
   align-items: center;
   gap: 4px;
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
 
   .group-label {
     font-size: 0.75rem;
-    color: v.$color-text-muted;
+    color: var(--zeno-color-text-muted);
     margin-right: 4px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -208,18 +212,18 @@
     border-radius: 999px;
     font-size: 0.8rem;
     font-weight: 600;
-    color: v.$color-text-muted;
+    color: var(--zeno-color-text-muted);
     background: transparent;
     transition: all 0.2s ease;
 
     &:hover {
-      color: #fff;
+      color: var(--zeno-color-white);
     }
 
     &.active {
       background: rgba(192, 132, 252, 0.25);
       border: 1px solid rgba(192, 132, 252, 0.4);
-      color: #fff;
+      color: var(--zeno-color-white);
     }
   }
 }
@@ -229,7 +233,7 @@
   align-items: center;
   gap: 8px;
   font-size: 0.78rem;
-  color: v.$color-text-muted;
+  color: var(--zeno-color-text-muted);
   background: rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(8px);
   padding: 4px 14px;

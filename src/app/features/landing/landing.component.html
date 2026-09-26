@@ -1,16 +1,17 @@
 <div class="landing-container">
   <!-- Living WebGL Procedural Anime Cloud Canvas -->
-  <canvas #cloudCanvas class="cloud-canvas"></canvas>
+  <canvas #cloudCanvas class="cloud-canvas" role="img" aria-label="Dekorativer Anime-Wolken-Hintergrund"></canvas>
 
   <!-- Content Body receiving the elastic rubber-band transform -->
   <div #scrollBody class="landing-scroll-body">
     <!-- Hero Section with transparent view into living anime sky -->
     <section class="hero-section" id="hero">
       <!-- Top-Right: Sound Activation Experience (Lichtpartikel-Orbit, Cosmic Beacon & Toggle) -->
-      <div 
+      <aside 
         class="hero-sound-container"
         [class.is-awaiting]="audioService.isAwaitingUserGesture()"
         [class.is-bursting]="isBursting()"
+        aria-label="Hintergrundmusik-Steuerung"
       >
         @if (audioService.isAwaitingUserGesture() || isBursting()) {
           <!-- Floating "Sound an?" Tooltip (Gleiche Schrift & Laola-Wave Animation wie orb-tooltip, rein informativ) -->
@@ -70,13 +71,13 @@
             [title]="audioService.isAmbientPlaying() ? 'Musik stummschalten (Space Ambient läuft)' : 'Musik abspielen (Space Ambient)'"
           >
             @if (audioService.isAmbientPlaying()) {
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
                 <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
               </svg>
             } @else {
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
                 <line x1="23" y1="9" x2="17" y2="15" />
                 <line x1="17" y1="9" x2="23" y2="15" />
@@ -84,7 +85,7 @@
             }
           </button>
         </div>
-      </div>
+      </aside>
 
       <!-- Center: "Willkommen im Zeno-Space" without pill, letters emerging like air bubbles -->
       <div 
@@ -126,6 +127,7 @@
         (pointerup)="onPrompterPointerLeave()"
         role="button" 
         tabindex="0"
+        aria-label="Nach unten zum Erlebnis-Bereich schweben"
       >
         <span class="prompter-text" aria-label="Nach unten schweben">
           @for (word of prompterWords; track $index) {
@@ -146,7 +148,7 @@
 
     <!-- Mini-Game Hub Section -->
     <section class="bubble-hub-section" id="bubble-hub">
-      <div class="section-header">
+      <header class="section-header">
         <div 
           class="hub-title-container"
           [class.is-visible]="isHubTitleVisible()"
@@ -179,13 +181,15 @@
         </p>
 
         <!-- Category Filter Pills -->
-        <div class="filter-pills">
+        <div class="filter-pills" role="group" aria-label="Kategorie-Filter">
           @for (f of filters; track f.value) {
             <button 
               type="button" 
               class="filter-pill"
               [attr.data-category]="f.value"
               [class.active]="activeFilter() === f.value"
+              [attr.aria-pressed]="activeFilter() === f.value"
+              [attr.aria-label]="'Kategorie ' + f.label + (activeFilter() === f.value ? ' (aktiv)' : '')"
               (click)="setFilter(f.value, $event)"
             >
               <span>{{ f.label }}</span>
@@ -208,23 +212,23 @@
             </button>
           }
         </div>
-      </div>
+      </header>
 
       <!-- Cards Playground -->
-      <div class="bubbles-playground">
+      <div class="bubbles-playground" role="list" aria-label="Minispiel-Karten">
         @for (game of filteredGames(); track game.id) {
-          <div class="bubble-slot" [class]="'slot-' + game.id">
+          <div class="bubble-slot" role="listitem" [class]="'slot-' + game.id">
             <app-bubble-card 
               [game]="game"
               (categorySelect)="onCardCategorySelect($event)"
             ></app-bubble-card>
           </div>
         } @empty {
-          <div class="empty-category-card">
+          <aside class="empty-category-card" aria-label="Kategorie-Hinweis">
             <div class="empty-sparkle-halo"></div>
             <div class="empty-category-inner">
               <div class="empty-gem-icon">
-                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
                   <polygon points="12 2 22 12 12 22 2 12" fill="rgba(255, 255, 255, 0.12)" stroke="#bae6fd"/>
                   <circle cx="12" cy="12" r="3" fill="#38bdf8"/>
                 </svg>
@@ -233,15 +237,20 @@
               <p class="empty-desc">
                 Für diese Kategorie werden aktuell neue interaktive Welten erschaffen.
               </p>
-              <button type="button" class="empty-action-btn" (click)="resetCategory()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <button 
+                type="button" 
+                class="empty-action-btn" 
+                (click)="resetCategory()"
+                aria-label="Alle Welten anzeigen – Filter zurücksetzen"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                   <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24"/>
                   <polyline points="21 3 21 9 15 9"/>
                 </svg>
                 <span>Alle Welten anzeigen</span>
               </button>
             </div>
-          </div>
+          </aside>
         }
       </div>
 
@@ -250,7 +259,7 @@
 
     <!-- Cozy Sanctuary Section -->
     <section class="cozy-sanctuary-section" id="sanctuary">
-      <div class="sanctuary-card">
+      <article class="sanctuary-card" aria-label="Das zeno-space Manifest">
         <div class="sanctuary-glow"></div>
         <div class="sanctuary-inner">
           <span class="sanctuary-badge">Das zeno-space Manifest</span>
@@ -261,39 +270,39 @@
             Hier geht es einzig um das beruhigende Gefühl von sanften physikalischen Bewegungen, wunderschönen
             Farben und spielerischer Achtsamkeit.
           </p>
-          <div class="sanctuary-stats">
+          <dl class="sanctuary-stats" aria-label="Plattform-Eigenschaften">
             <div class="stat-pill">
-              <span class="stat-value">60 FPS</span>
-              <span class="stat-label">Flüssiges Schweben</span>
+              <dd class="stat-value">60 FPS</dd>
+              <dt class="stat-label">Flüssiges Schweben</dt>
             </div>
             <div class="stat-pill">
-              <span class="stat-value">WebGL</span>
-              <span class="stat-label">Hardware-3D</span>
+              <dd class="stat-value">WebGL</dd>
+              <dt class="stat-label">Hardware-3D</dt>
             </div>
             <div class="stat-pill">
-              <span class="stat-value">WebAudio</span>
-              <span class="stat-label">Synthesizer</span>
+              <dd class="stat-value">WebAudio</dd>
+              <dt class="stat-label">Synthesizer</dt>
             </div>
-          </div>
+          </dl>
         </div>
-      </div>
+      </article>
     </section>
 
     <!-- Cozy Footer -->
     <footer class="cozy-footer">
-      <div class="footer-orb"></div>
+      <div class="footer-orb" aria-hidden="true"></div>
       <p class="footer-text">
         Erschaffen für gemütliche Momente & Entspannung in deinem Wohlfühlort. Mit Liebe gebaut für <strong>zeno-space</strong>.
       </p>
-      <div class="footer-links">
-        <a routerLink="/game/cosmic-sculptor">3D Cosmos</a>
-        <span>•</span>
-        <a routerLink="/game/bubble-harmony">Bubble Harmony</a>
-        <span>•</span>
-        <a routerLink="/game/zen-sand">Zen Sand</a>
-        <span>•</span>
-        <a routerLink="/game/soundscape-mixer">Soundscape</a>
-      </div>
+      <nav class="footer-links" aria-label="Schnellnavigation">
+        <a routerLink="/game/cosmic-sculptor" aria-label="Minispiel 3D Cosmos öffnen">3D Cosmos</a>
+        <span aria-hidden="true">•</span>
+        <a routerLink="/game/bubble-harmony" aria-label="Minispiel Bubble Harmony öffnen">Bubble Harmony</a>
+        <span aria-hidden="true">•</span>
+        <a routerLink="/game/zen-sand" aria-label="Minispiel Zen Sand öffnen">Zen Sand</a>
+        <span aria-hidden="true">•</span>
+        <a routerLink="/game/soundscape-mixer" aria-label="Minispiel Soundscape öffnen">Soundscape</a>
+      </nav>
     </footer>
   </div>
 

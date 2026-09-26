@@ -40,7 +40,7 @@
   background: rgba(14, 18, 34, 0.75);
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #fff;
+  color: var(--zeno-color-white);
   font-size: 0.9rem;
   font-weight: 600;
   transition: all 0.25s ease;
@@ -71,7 +71,7 @@
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   font-size: 0.85rem;
-  color: v.$color-text-secondary;
+  color: var(--zeno-color-text-secondary);
 }
 
 // Dashboard
@@ -101,13 +101,13 @@
 
   .mixer-title {
     font-size: clamp(1.8rem, 3.5vw, 2.4rem);
-    color: #fff;
+    color: var(--zeno-color-white);
     margin-bottom: 10px;
   }
 
   .mixer-subtitle {
     font-size: 0.95rem;
-    color: v.$color-text-secondary;
+    color: var(--zeno-color-text-secondary);
     line-height: 1.6;
     max-width: 600px;
     margin: 0 auto;
@@ -170,9 +170,9 @@
   transition: all 0.25s ease;
 
   &.active {
-    background: var(--ch-color, #c084fc);
+    background: var(--ch-color, var(--zeno-color-accent-lavender));
     border-color: transparent;
-    box-shadow: 0 0 15px var(--ch-color, #c084fc);
+    box-shadow: 0 0 15px var(--ch-color, var(--zeno-color-accent-lavender));
     transform: scale(1.05);
   }
 }
@@ -182,20 +182,20 @@
 
   .channel-name {
     font-size: 1.05rem;
-    color: #fff;
+    color: var(--zeno-color-white);
     margin-bottom: 2px;
   }
 
   .channel-desc {
     font-size: 0.8rem;
-    color: v.$color-text-muted;
+    color: var(--zeno-color-text-muted);
   }
 }
 
 .volume-val {
   font-size: 0.85rem;
   font-weight: 700;
-  color: v.$color-text-secondary;
+  color: var(--zeno-color-text-secondary);
 }
 
 .slider-row {
@@ -218,7 +218,7 @@
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: #fff;
+    background: var(--zeno-color-white);
     cursor: pointer;
     box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
     transition: transform 0.15s ease;
@@ -240,13 +240,13 @@
   justify-content: space-between;
   cursor: pointer;
   font-size: 0.85rem;
-  color: #fbcfe8;
+  color: var(--zeno-color-rose-100);
 
   .unmute-btn {
     padding: 6px 14px;
     border-radius: 999px;
-    background: #f472b6;
-    color: #fff;
+    background: var(--zeno-color-accent-rose);
+    color: var(--zeno-color-white);
     font-weight: 600;
     font-size: 0.8rem;
   }

@@ -6,8 +6,9 @@ import {
   OnDestroy,
   inject,
   signal,
+  HostListener,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AudioService } from '../../../core/services/audio.service';
 
 interface Bubble {
@@ -43,6 +44,12 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
   @ViewChild('canvasRef') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   readonly audioService = inject(AudioService);
+  private readonly router = inject(Router);
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.router.navigate(['/']);
+  }
 
   readonly bubbleCount = signal<number>(0);
   readonly chainReaction = signal<boolean>(true);

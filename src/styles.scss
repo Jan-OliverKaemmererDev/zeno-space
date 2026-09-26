@@ -64,6 +64,71 @@
   font-display: swap;
 }
 
+// ==========================================
+// CSS CUSTOM PROPERTIES (:root DESIGN TOKENS)
+// ==========================================
+:root {
+  // — Colors —
+  --zeno-color-bg-deep: #{v.$color-bg-deep};
+  --zeno-color-bg-surface: #{v.$color-bg-surface};
+  --zeno-color-bg-card: #{v.$color-bg-card};
+  --zeno-color-bg-card-hover: #{v.$color-bg-card-hover};
+  --zeno-color-text-primary: #{v.$color-text-primary};
+  --zeno-color-text-secondary: #{v.$color-text-secondary};
+  --zeno-color-text-muted: #{v.$color-text-muted};
+  --zeno-color-text-accent: #{v.$color-text-accent};
+  --zeno-color-white: #{v.$color-white};
+  --zeno-color-bg-darker: #{v.$color-bg-darker};
+  --zeno-color-sky-50: #{v.$color-sky-50};
+  --zeno-color-sky-100: #{v.$color-sky-100};
+  --zeno-color-sky-200: #{v.$color-sky-200};
+  --zeno-color-sky-300: #{v.$color-sky-300};
+  --zeno-color-slate-100: #{v.$color-slate-100};
+  --zeno-color-slate-200: #{v.$color-slate-200};
+  --zeno-color-indigo-400: #{v.$color-indigo-400};
+  --zeno-color-purple-100: #{v.$color-purple-100};
+  --zeno-color-rose-100: #{v.$color-rose-100};
+  --zeno-color-accent-lavender: #{v.$color-accent-lavender};
+  --zeno-color-accent-purple: #{v.$color-accent-purple};
+  --zeno-color-accent-cyan: #{v.$color-accent-cyan};
+  --zeno-color-accent-teal: #{v.$color-accent-teal};
+  --zeno-color-accent-rose: #{v.$color-accent-rose};
+  --zeno-color-accent-peach: #{v.$color-accent-peach};
+  --zeno-color-accent-gold: #{v.$color-accent-gold};
+
+  // — Fonts —
+  --zeno-font-heading: #{v.$font-family-heading};
+  --zeno-font-body: #{v.$font-family-body};
+  --zeno-font-bubble: #{v.$font-family-bubble};
+  --zeno-font-sniglet: #{v.$font-family-sniglet};
+  --zeno-font-sniglet-bold: #{v.$font-family-sniglet-extrabold};
+  --zeno-font-sniglet-regular: #{v.$font-family-sniglet-regular};
+
+  // — Shadows & Glows —
+  --zeno-glass-shadow: #{v.$glass-shadow};
+  --zeno-glass-shadow-hover: #{v.$glass-shadow-hover};
+  --zeno-shadow-glow-cyan-sm: #{v.$shadow-glow-cyan-sm};
+  --zeno-shadow-glow-cyan-md: #{v.$shadow-glow-cyan-md};
+  --zeno-shadow-glow-cyan-lg: #{v.$shadow-glow-cyan-lg};
+  --zeno-shadow-elevation-sm: #{v.$shadow-elevation-sm};
+  --zeno-shadow-elevation-md: #{v.$shadow-elevation-md};
+  --zeno-shadow-elevation-lg: #{v.$shadow-elevation-lg};
+  --zeno-shadow-glass-inner: #{v.$shadow-glass-inner};
+  --zeno-shadow-focus-ring: #{v.$shadow-focus-ring};
+  --zeno-text-shadow-subtle: #{v.$text-shadow-subtle};
+  --zeno-text-shadow-glow: #{v.$text-shadow-glow-cyan};
+
+  // — Glassmorphism —
+  --zeno-glass-blur: 16px;
+  --zeno-glass-border: #{v.$glass-border};
+  --zeno-glass-border-hover: #{v.$glass-border-hover};
+
+  // — Transitions & Easing —
+  --zeno-ease-bounce: #{v.$ease-smooth-bounce};
+  --zeno-ease-expo: #{v.$ease-out-expo};
+  --zeno-transition-default: #{v.$transition-default};
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -89,15 +154,65 @@ body::-webkit-scrollbar,
 
 body {
   min-height: 100vh;
-  background-color: v.$color-bg-deep;
-  color: v.$color-text-primary;
-  font-family: v.$font-family-body;
+  background-color: var(--zeno-color-bg-deep);
+  color: var(--zeno-color-text-primary);
+  font-family: var(--zeno-font-body);
   font-weight: 400;
   line-height: 1.6;
   overflow-x: hidden;
   position: relative;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+// Skip Link for Keyboard Accessibility
+.skip-link {
+  position: fixed;
+  top: -120px;
+  left: 20px;
+  z-index: 99999;
+  padding: 12px 22px;
+  background: var(--zeno-color-bg-surface);
+  color: var(--zeno-color-white);
+  border: 2px solid var(--zeno-color-accent-cyan);
+  border-radius: 999px;
+  font-family: var(--zeno-font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: var(--zeno-shadow-elevation-lg), var(--zeno-shadow-glow-cyan-md);
+  transition: top 0.25s var(--zeno-ease-expo);
+  text-decoration: none;
+
+  &:focus,
+  &:focus-visible {
+    top: 20px;
+    outline: 2px solid var(--zeno-color-accent-cyan);
+    outline-offset: 3px;
+  }
+}
+
+// Screen Reader Only Utility
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Focus Visible Ring
+:focus-visible {
+  outline: 2px solid var(--zeno-color-accent-cyan);
+  outline-offset: 2px;
+}
+
+// Target of skip link does not need jarring outline if focused programmatically
+main#main-content:focus {
+  outline: none;
 }
 
 // Global ambient background glow
@@ -138,10 +253,10 @@ body::after {
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: v.$font-family-heading;
+  font-family: var(--zeno-font-heading);
   font-weight: 700;
   line-height: 1.2;
-  color: v.$color-text-primary;
+  color: var(--zeno-color-text-primary);
   letter-spacing: -0.02em;
 }
 
@@ -155,7 +270,12 @@ button {
   cursor: pointer;
   border: none;
   background: none;
-  outline: none;
+  outline: 2px solid transparent;
+
+  &:focus-visible {
+    outline: 2px solid var(--zeno-color-accent-cyan);
+    outline-offset: 2px;
+  }
 }
 
 
