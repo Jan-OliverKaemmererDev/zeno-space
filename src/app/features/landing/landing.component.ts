@@ -138,6 +138,27 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   readonly isSanctuaryRevealed = signal<boolean>(false);
   private sanctuaryIntersectionObserver: IntersectionObserver | null = null;
 
+  // Free-floating warm letter arrays matching orb-tooltip for sanctuary balloons
+  readonly impressumTooltipLetters: TooltipLetter[] = (() => {
+    const text = 'Impressum';
+    const chars = Array.from(text);
+    const total = chars.length;
+    return chars.map((char, index) => ({
+      char: char === ' ' ? '\u00A0' : char,
+      fromRight: total - 1 - index,
+    }));
+  })();
+
+  readonly datenschutzTooltipLetters: TooltipLetter[] = (() => {
+    const text = 'Datenschutz';
+    const chars = Array.from(text);
+    const total = chars.length;
+    return chars.map((char, index) => ({
+      char: char === ' ' ? '\u00A0' : char,
+      fromRight: total - 1 - index,
+    }));
+  })();
+
   // Audio activation state & fine stardust particles
   readonly isBursting = signal<boolean>(false);
   private wasAwaitingGesture = false;

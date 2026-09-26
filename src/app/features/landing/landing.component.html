@@ -297,10 +297,15 @@
           aria-label="Impressum öffnen – Klick auf den linken Heißluftballon"
         >
           <div class="hotspot-balloon-aura" aria-hidden="true"></div>
-          <div class="hotspot-badge">
-            <span class="badge-icon">📜</span>
-            <span class="badge-text">Impressum</span>
-          </div>
+          
+          <!-- Free-floating warm letter tooltip matching orb-tooltip -->
+          <span class="hotspot-floating-tooltip" aria-hidden="true">
+            @for (letter of impressumTooltipLetters; track $index) {
+              <span class="tooltip-letter-carrier" [style.--char-from-right]="letter.fromRight">
+                <span class="tooltip-letter">{{ letter.char }}</span>
+              </span>
+            }
+          </span>
 
           @if (showImpressum()) {
             <div class="speech-bubble impressum-bubble" (click)="$event.stopPropagation()">
@@ -329,10 +334,15 @@
           aria-label="Datenschutz öffnen – Klick auf den rechten Heißluftballon"
         >
           <div class="hotspot-balloon-aura" aria-hidden="true"></div>
-          <div class="hotspot-badge">
-            <span class="badge-icon">🛡️</span>
-            <span class="badge-text">Datenschutz</span>
-          </div>
+
+          <!-- Free-floating warm letter tooltip matching orb-tooltip -->
+          <span class="hotspot-floating-tooltip" aria-hidden="true">
+            @for (letter of datenschutzTooltipLetters; track $index) {
+              <span class="tooltip-letter-carrier" [style.--char-from-right]="letter.fromRight">
+                <span class="tooltip-letter">{{ letter.char }}</span>
+              </span>
+            }
+          </span>
 
           @if (showDatenschutz()) {
             <div class="speech-bubble datenschutz-bubble" (click)="$event.stopPropagation()">
