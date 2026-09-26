@@ -1682,7 +1682,7 @@
 .sanctuary-swing-item {
   position: absolute;
   transform-origin: 50% 0; // Pivot point at the top wire/chain attachment
-  cursor: pointer;
+  cursor: default; // Atmospheric physics objects, not clickable buttons/links
   z-index: 6;
   pointer-events: auto;
   will-change: transform;

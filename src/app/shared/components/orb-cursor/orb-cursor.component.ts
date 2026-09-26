@@ -279,14 +279,23 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
       { passive: true, signal }
     );
 
-    // Fast event delegation for detecting hover over interactive elements
+    // Fast event delegation for detecting hover over interactive elements (Links, Buttons, Orbs)
     document.addEventListener(
       'mouseover',
       (e: MouseEvent) => {
         const target = e.target as HTMLElement | null;
         if (!target) return;
+
+        // Strictly exclude hanging lanterns, stars, and decorative swinging items in sanctuary
+        if (target.closest('.sanctuary-swing-item')) {
+          if (this.isHovering()) {
+            this.isHovering.set(false);
+          }
+          return;
+        }
+
         const interactive = target.closest(
-          'a, button, [role="button"], input, select, textarea, label, .card-cta, .bubble-card, .sound-btn, .interactive, .sanctuary-swing-item'
+          'a, button, [role="button"], input, select, textarea, label, .card-cta, .bubble-card, .sound-btn, .interactive, .orb-3d-container, .orb-target-btn, .orb-target-zone, .orb-3d-canvas, .liquid-nav-item, .balloon-hotspot'
         );
         const shouldHover = interactive !== null;
         if (this.isHovering() !== shouldHover) {
