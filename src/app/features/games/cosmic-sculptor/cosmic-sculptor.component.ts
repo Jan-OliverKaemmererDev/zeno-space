@@ -12,18 +12,33 @@ import { Router, RouterLink } from '@angular/router';
 import * as THREE from 'three';
 import { AudioService } from '../../../core/services/audio.service';
 
+/**
+ * Represents an orbiting planet mesh along with its orbital physics and visual trail.
+ */
 interface PlanetBody {
+  /** The 3D sphere mesh representing the planet. */
   mesh: THREE.Mesh;
+  /** Radius of the planetary orbit in Three.js units. */
   orbitRadius: number;
+  /** Angular orbital speed in radians per frame. */
   orbitSpeed: number;
+  /** Current orbital angle in radians. */
   angle: number;
+  /** Vertical tilt offset on the Y axis. */
   yOffset: number;
+  /** Self-rotation speed of the planet mesh. */
   rotationSpeed: number;
+  /** Historical trajectory points forming the planetary trail. */
   trailPoints: THREE.Vector3[];
+  /** Three.js line object rendering the trailing path. */
   trailLine: THREE.Line;
+  /** Three.js color instance applied to the planet and trail. */
   color: THREE.Color;
 }
 
+/**
+ * Interactive 3D planetary system simulator using Three.js with realistic orbits, customizable speeds, and orbital trails.
+ */
 @Component({
   selector: 'app-cosmic-sculptor',
   imports: [RouterLink],
@@ -31,19 +46,28 @@ interface PlanetBody {
   styleUrl: './cosmic-sculptor.component.scss',
 })
 export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
+  /** Container element hosting the WebGL renderer canvas. */
   @ViewChild('canvasContainer') containerRef!: ElementRef<HTMLDivElement>;
 
   readonly audioService = inject(AudioService);
   private readonly router = inject(Router);
 
+  /**
+   * Closes the minigame and returns to the home page on Escape key press.
+   *
+   * @returns {void}
+   */
   @HostListener('document:keydown.escape')
   onEscape(): void {
     this.router.navigate(['/']);
   }
 
   // Stats & Controls
+  /** Count of currently orbiting planets in the system. */
   readonly planetCount = signal<number>(0);
+  /** Simulation speed multiplier. */
   readonly timeSpeed = signal<number>(1);
+  /** Whether orbital trail ribbons are rendered behind planets. */
   readonly trailsEnabled = signal<boolean>(true);
 
   // Three.js instances
@@ -73,12 +97,22 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     0x818cf8, // Indigo
   ];
 
+  /**
+   * Lifecycle hook invoked after view initialization to start Three.js setup and render loop.
+   *
+   * @returns {void}
+   */
   ngAfterViewInit(): void {
     this.initThree();
     this.createCosmicScene();
     this.animate();
   }
 
+  /**
+   * Lifecycle hook invoked upon destruction to clean up WebGL contexts and window event listeners.
+   *
+   * @returns {void}
+   */
   ngOnDestroy(): void {
     if (this.animationId !== null) {
       cancelAnimationFrame(this.animationId);
@@ -92,6 +126,11 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Initializes Three.js WebGL renderer, perspective camera, lights, and resize listeners.
+   *
+   * @returns {void}
+   */
   private initThree(): void {
     const container = this.containerRef.nativeElement;
     const width = container.clientWidth;
@@ -123,6 +162,11 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     window.addEventListener('resize', this.onWindowResize);
   }
 
+  /**
+   * Constructs the central glowing star, surrounding corona, background starfield particles, and initial planets.
+   *
+   * @returns {void}
+   */
   private createCosmicScene(): void {
     // 1. Central Glowing Star
     const starGeo = new THREE.SphereGeometry(3.5, 32, 32);
@@ -187,6 +231,16 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     this.spawnPlanet(30, 0.005, 1.7, 0xf472b6);
   }
 
+  /**
+   * Spawns an orbiting planet mesh with customizable or randomized orbital parameters, optional rings, and trails.
+   *
+   * @param {number} [orbitRadius] - Distance from central star in units.
+   * @param {number} [speed] - Orbital speed factor.
+   * @param {number} [size] - Sphere radius of the planet.
+   * @param {number} [hexColor] - Hex color integer.
+   * @param {boolean} [hasRings=false] - Whether to render planetary ring geometry.
+   * @returns {void}
+   */
   spawnPlanet(
     orbitRadius?: number,
     speed?: number,
@@ -262,11 +316,21 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     this.audioService.playChime(noteIndex, 0.2);
   }
 
+  /**
+   * Spawns an additional planet with randomized orbital characteristics and audio effect.
+   *
+   * @returns {void}
+   */
   addRandomPlanet(): void {
     this.spawnPlanet();
     this.audioService.playBubblePop(1.2);
   }
 
+  /**
+   * Clears all existing planets and trails, resetting the solar system to the initial peaceful 3-planet configuration.
+   *
+   * @returns {void}
+   */
   resetCosmos(): void {
     for (const p of this.planets) {
       this.scene.remove(p.mesh);
@@ -283,11 +347,22 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     this.spawnPlanet(30, 0.005, 1.7, 0xf472b6);
   }
 
+  /**
+   * Adjusts the global simulation time speed multiplier.
+   *
+   * @param {number} speed - The new speed multiplier (e.g. 0.5, 1, 2).
+   * @returns {void}
+   */
   setTimeSpeed(speed: number): void {
     this.timeSpeed.set(speed);
     this.audioService.playChime(speed > 1 ? 5 : 2, 0.15);
   }
 
+  /**
+   * Toggles the visibility of planetary orbit trail lines.
+   *
+   * @returns {void}
+   */
   toggleTrails(): void {
     const nextVal = !this.trailsEnabled();
     this.trailsEnabled.set(nextVal);
@@ -296,7 +371,11 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  // Animation Loop
+  /**
+   * Continuous animation loop updating planetary orbits, self-rotation, starfield drifting, and rendering.
+   *
+   * @returns {void}
+   */
   private animate = (): void => {
     this.animationId = requestAnimationFrame(this.animate);
 
@@ -340,12 +419,23 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     this.renderer.render(this.scene, this.camera);
   };
 
-  // Mouse Orbit Controls
+  /**
+   * Handles pointer down to begin camera orbital drag rotation.
+   *
+   * @param {MouseEvent} e - The mouse event.
+   * @returns {void}
+   */
   onMouseDown(e: MouseEvent): void {
     this.isDragging = true;
     this.previousMousePosition = { x: e.clientX, y: e.clientY };
   }
 
+  /**
+   * Handles pointer motion to rotate camera spherical coordinates around origin.
+   *
+   * @param {MouseEvent} e - The mouse event.
+   * @returns {void}
+   */
   onMouseMove(e: MouseEvent): void {
     if (!this.isDragging) return;
 
@@ -362,10 +452,21 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     this.previousMousePosition = { x: e.clientX, y: e.clientY };
   }
 
+  /**
+   * Handles mouse release to stop orbital camera drag.
+   *
+   * @returns {void}
+   */
   onMouseUp(): void {
     this.isDragging = false;
   }
 
+  /**
+   * Handles mouse wheel scrolling to zoom the camera closer or further from the star.
+   *
+   * @param {WheelEvent} e - The mouse wheel event.
+   * @returns {void}
+   */
   onWheel(e: WheelEvent): void {
     e.preventDefault();
     this.cameraSpherical.radius = Math.max(
@@ -375,6 +476,11 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     this.updateCameraPosition();
   }
 
+  /**
+   * Converts spherical coordinates (radius, theta, phi) to Cartesian 3D camera coordinates.
+   *
+   * @returns {void}
+   */
   private updateCameraPosition(): void {
     const { radius, theta, phi } = this.cameraSpherical;
     this.camera.position.x = radius * Math.sin(phi) * Math.cos(theta);
@@ -383,6 +489,11 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     this.camera.lookAt(0, 0, 0);
   }
 
+  /**
+   * Resizes WebGL renderer and updates perspective camera aspect ratio upon container resize.
+   *
+   * @returns {void}
+   */
   private onWindowResize = (): void => {
     if (!this.containerRef?.nativeElement) return;
     const width = this.containerRef.nativeElement.clientWidth;

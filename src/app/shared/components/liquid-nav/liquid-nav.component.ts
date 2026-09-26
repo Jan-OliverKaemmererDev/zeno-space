@@ -13,11 +13,19 @@ import {
 } from '@angular/core';
 import * as THREE from 'three';
 
+/**
+ * Represents a discrete navigational section item.
+ */
 export interface NavSection {
+  /** Unique section identifier matching anchor or section IDs. */
   id: string;
+  /** Human-readable localized section label. */
   label: string;
 }
 
+/**
+ * Vertical fluid navigation component featuring WebGL Three.js liquid simulation with cascading droplets.
+ */
 @Component({
   selector: 'app-liquid-nav',
   standalone: true,
@@ -27,14 +35,18 @@ export interface NavSection {
 export class LiquidNavComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly ngZone = inject(NgZone);
 
+  /** Zero-based index of the currently active navigation section. */
   readonly activeIndex = input<number>(0);
+  /** Whether the user is actively dragging the scroll position. */
   readonly isDragging = input<boolean>(false);
+  /** List of navigation section models rendered along the liquid track. */
   readonly sections = input<NavSection[]>([
     { id: 'hero', label: 'Kosmos' },
     { id: 'bubble-hub', label: 'Welten' },
     { id: 'sanctuary', label: 'Zuflucht' },
   ]);
 
+  /** Emits the newly selected section index when clicked. */
   readonly sectionSelect = output<number>();
 
   @ViewChild('liquidCanvas', { static: true })
@@ -63,6 +75,9 @@ export class LiquidNavComponent implements OnInit, AfterViewInit, OnDestroy {
   private lastIndex = 0;
   private isDestroyed = false;
 
+  /**
+   * Sets up a reactive effect on activeIndex to initiate fluid flow transitions between spheres.
+   */
   constructor() {
     // React to activeIndex changes and trigger fluid flow
     effect(() => {
@@ -72,6 +87,11 @@ export class LiquidNavComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Initializes initial resting fluid coordinates based on current active section.
+   *
+   * @returns {void}
+   */
   ngOnInit(): void {
     const initialIdx = Math.max(0, Math.min(2, this.activeIndex()));
     this.targetY = 1.0 - initialIdx * 1.0;
@@ -81,6 +101,12 @@ export class LiquidNavComponent implements OnInit, AfterViewInit, OnDestroy {
     this.lastIndex = initialIdx;
   }
 
+  /**
+   * Initiates a fluid transfer animation between spheres toward the given target section index.
+   *
+   * @param {number} newIndex - Index of the target sphere (0 to 2).
+   * @returns {void}
+   */
   private triggerFlow(newIndex: number): void {
     const newTargetY = 1.0 - newIndex * 1.0;
     if (newIndex === this.lastIndex && !this.isFlowing) {
@@ -104,6 +130,11 @@ export class LiquidNavComponent implements OnInit, AfterViewInit, OnDestroy {
     this.hasSloshedInTransition = false;
   }
 
+  /**
+   * Lifecycle hook to initialize WebGL rendering outside Angular's zone to prevent change detection overhead.
+   *
+   * @returns {void}
+   */
   ngAfterViewInit(): void {
     if (typeof window === 'undefined') return;
 
@@ -113,6 +144,11 @@ export class LiquidNavComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Cleans up WebGL resources, shaders, geometries, and cancels animation frame requests.
+   *
+   * @returns {void}
+   */
   ngOnDestroy(): void {
     this.isDestroyed = true;
     if (this.animFrameId !== null) {
@@ -136,10 +172,21 @@ export class LiquidNavComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Emits the selected section index when user clicks an orb or label.
+   *
+   * @param {number} index - Index of the clicked navigation section.
+   * @returns {void}
+   */
   onSelect(index: number): void {
     this.sectionSelect.emit(index);
   }
 
+  /**
+   * Sets up Three.js scene, orthographic camera, and custom fluid raymarching shader.
+   *
+   * @returns {void}
+   */
   private initThree(): void {
     const canvas = this.canvasRef.nativeElement;
     const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
@@ -429,6 +476,11 @@ export class LiquidNavComponent implements OnInit, AfterViewInit, OnDestroy {
     this.scene.add(this.mesh);
   }
 
+  /**
+   * Runs the continuous requestAnimationFrame render loop outside Angular zone, updating uniforms and sloshing dynamics.
+   *
+   * @returns {void}
+   */
   private startAnimationLoop(): void {
     this.startTime = performance.now();
     this.lastTime = this.startTime;

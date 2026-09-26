@@ -20,52 +20,94 @@ import { LiquidNavComponent } from '../../shared/components/liquid-nav/liquid-na
 import { OrbNavComponent } from '../../shared/components/orb-nav/orb-nav.component';
 import { Minigame } from '../../core/models/minigame.model';
 
+/**
+ * Character data item with global index for staggered bubble animations.
+ */
 export interface BubbleLetter {
+  /** Character to display. */
   char: string;
+  /** Global sequence index across the phrase. */
   globalIndex: number;
 }
 
+/**
+ * Word grouping of bubble letters.
+ */
 export interface BubbleWord {
+  /** Ordered list of letters within the word. */
   letters: BubbleLetter[];
 }
 
+/**
+ * Phrase grouping of bubble words for structured responsive layout wrapping.
+ */
 export interface BubblePhrase {
+  /** Ordered list of words in the phrase. */
   words: BubbleWord[];
 }
 
+/**
+ * Character data with right-aligned stagger index for wave tooltips.
+ */
 export interface TooltipLetter {
+  /** Character to display. */
   char: string;
+  /** Distance index counted from the right edge. */
   fromRight: number;
 }
 
+/**
+ * Visual spark particle emitted from the sound toggle button burst animation.
+ */
 export interface SoundBurstSpark {
+  /** Unique identifier for the spark. */
   id: number;
+  /** Starting X coordinate. */
   startX: number;
+  /** Starting Y coordinate. */
   startY: number;
+  /** Destination X coordinate. */
   endX: number;
+  /** Destination Y coordinate. */
   endY: number;
+  /** CSS color hex code. */
   color: string;
+  /** Particle size in pixels. */
   size: number;
+  /** Stagger delay in milliseconds. */
   delayMs: number;
 }
 
+/**
+ * Visual micro-spark emitted when selecting a category filter pill button.
+ */
 export interface PillSpark {
+  /** Unique identifier for the spark. */
   id: number;
+  /** Starting X coordinate. */
   startX: number;
+  /** Starting Y coordinate. */
   startY: number;
+  /** Destination X coordinate. */
   endX: number;
+  /** Destination Y coordinate. */
   endY: number;
+  /** CSS color hex code. */
   color: string;
+  /** Particle size in pixels. */
   size: number;
+  /** Stagger delay in milliseconds. */
   delayMs: number;
 }
 
+/**
+ * Main landing page component featuring the animated anime cloudscape, hero text, and interactive bubble minigame hub.
+ */
 @Component({
   selector: 'app-landing',
   imports: [
     RouterLink,
     BubbleCardComponent,
-    // LiquidNavComponent, // Vorerst deaktiviert - jederzeit wieder aktivierbar
     OrbNavComponent,
   ],
   templateUrl: './landing.component.html',
@@ -129,6 +171,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Spawns an explosive burst of 14 delicate micro-sparks radiating outward from the audio toggle button.
+   *
+   * @returns {void}
+   */
   private triggerParticleBurst(): void {
     if (this.burstTimeout) {
       clearTimeout(this.burstTimeout);
@@ -267,6 +314,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 
   private isDestroyed = false;
 
+  /**
+   * Lifecycle hook invoked after view initialization to start audio, scroll observers, and WebGL cloudscape.
+   *
+   * @returns {void}
+   */
   ngAfterViewInit(): void {
     this.smoothScroll.registerContainer(this.scrollBodyRef?.nativeElement ?? null);
     this.initCloudScene();
@@ -288,6 +340,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Lifecycle hook invoked on destruction to release WebGL contexts, observers, and animation frame handles.
+   *
+   * @returns {void}
+   */
   ngOnDestroy(): void {
     this.isDestroyed = true;
     this.smoothScroll.registerContainer(null);
@@ -364,6 +421,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   private lastPhraseRects = new Map<HTMLElement, DOMRect>();
   private isPhraseLayoutInitialized = false;
 
+  /**
+   * Registers ResizeObserver and window listeners to animate heading phrase layout wrapping smoothly via FLIP technique.
+   *
+   * @returns {void}
+   */
   private initPhraseSmoothWrapping(): void {
     const heading = document.querySelector<HTMLElement>('.bubble-letters-heading');
     if (!heading) return;
@@ -377,6 +439,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     window.addEventListener('resize', this.onWindowResizeForPhrases, { passive: true });
   }
 
+  /**
+   * Throttles window resize events via requestAnimationFrame to animate phrase wrapping.
+   *
+   * @returns {void}
+   */
   private onWindowResizeForPhrases = (): void => {
     if (this.phraseRafId !== null) return;
     this.phraseRafId = requestAnimationFrame(() => {
@@ -387,6 +454,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     });
   };
 
+  /**
+   * Computes FLIP layout inversions and smoothly animates phrases into their wrapped positions.
+   *
+   * @returns {void}
+   */
   private animatePhraseWrapping(): void {
     const phrases = Array.from(document.querySelectorAll<HTMLElement>('.bubble-phrase'));
     if (phrases.length === 0) return;
@@ -449,6 +521,12 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   private hubEvadeRafId: number | null = null;
   private lastHubPointerEvent: PointerEvent | null = null;
 
+  /**
+   * Handles pointer motion over the hero title container, scheduling letter evasion calculation.
+   *
+   * @param {PointerEvent} event - The pointer move event.
+   * @returns {void}
+   */
   onHeadingPointerMove(event: PointerEvent): void {
     this.lastPointerEvent = event;
     if (this.mouseEvadeRafId !== null) return;
@@ -460,6 +538,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Resets hero letter evasion transforms upon pointer leaving the hero title area.
+   *
+   * @returns {void}
+   */
   onHeadingPointerLeave(): void {
     if (this.mouseEvadeRafId !== null) {
       cancelAnimationFrame(this.mouseEvadeRafId);
@@ -469,6 +552,12 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     this.resetLettersEvade('.hero-center-container .bubble-letter');
   }
 
+  /**
+   * Handles pointer motion over the bubble hub heading, scheduling letter evasion calculation.
+   *
+   * @param {PointerEvent} event - The pointer move event.
+   * @returns {void}
+   */
   onHubHeadingPointerMove(event: PointerEvent): void {
     this.lastHubPointerEvent = event;
     if (this.hubEvadeRafId !== null) return;
@@ -480,6 +569,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Resets bubble hub letter evasion transforms upon pointer leaving the hub heading area.
+   *
+   * @returns {void}
+   */
   onHubHeadingPointerLeave(): void {
     if (this.hubEvadeRafId !== null) {
       cancelAnimationFrame(this.hubEvadeRafId);
@@ -489,12 +583,19 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     this.resetLettersEvade('.hub-title-container .hub-letter');
   }
 
+  /**
+   * Applies subtle physics-based repulsion vectors to letters matching the given selector based on pointer position.
+   *
+   * @param {PointerEvent} event - The pointer event.
+   * @param {string} selector - CSS selector matching the target letter elements.
+   * @returns {void}
+   */
   private applyEvadeToLetters(event: PointerEvent, selector: string): void {
     const letters = document.querySelectorAll<HTMLElement>(selector);
     const mouseX = event.clientX;
     const mouseY = event.clientY;
     const radius = 90; // Subtle sphere of influence around pointer
-    const maxPush = 14; // Gentle bubble displacement ("nicht zu stark")
+    const maxPush = 14; // Gentle bubble displacement
 
     letters.forEach((el) => {
       const rect = el.getBoundingClientRect();
@@ -526,6 +627,12 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Resets CSS evasion custom properties back to baseline for matching letter elements.
+   *
+   * @param {string} selector - CSS selector for target letters.
+   * @returns {void}
+   */
   private resetLettersEvade(selector: string): void {
     const letters = document.querySelectorAll<HTMLElement>(selector);
     letters.forEach((el) => {
@@ -536,6 +643,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Initializes an IntersectionObserver to trigger bubble hub title entrance animation when scrolled into view.
+   *
+   * @returns {void}
+   */
   private initHubTitleObserver(): void {
     if (typeof window === 'undefined') return;
 
@@ -569,6 +681,12 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   private prompterEvadeRafId: number | null = null;
   private lastPrompterPointerEvent: PointerEvent | null = null;
 
+  /**
+   * Handles pointer move over prompter container to calculate subtle word dodging.
+   *
+   * @param {PointerEvent} event - The pointer move event.
+   * @returns {void}
+   */
   onPrompterPointerMove(event: PointerEvent): void {
     this.lastPrompterPointerEvent = event;
     if (this.prompterEvadeRafId !== null) return;
@@ -580,6 +698,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Resets prompter words evasion upon pointer exit.
+   *
+   * @returns {void}
+   */
   onPrompterPointerLeave(): void {
     if (this.prompterEvadeRafId !== null) {
       cancelAnimationFrame(this.prompterEvadeRafId);
@@ -596,12 +719,18 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Applies gentle evasion transforms to prompter word elements away from the pointer.
+   *
+   * @param {PointerEvent} event - The pointer event.
+   * @returns {void}
+   */
   private applyPrompterWordEvade(event: PointerEvent): void {
     const words = document.querySelectorAll<HTMLElement>('.prompter-word');
     const mouseX = event.clientX;
     const mouseY = event.clientY;
-    const radius = 65; // Sanfter Einflussbereich um den Zeiger
-    const maxPush = 5.5; // Sehr dezente Blasen-Ausweichung
+    const radius = 65; // Gentle influence radius around pointer
+    const maxPush = 5.5; // Subtle bubble displacement
 
     words.forEach((el) => {
       const rect = el.getBoundingClientRect();
@@ -613,7 +742,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 
       if (dist < radius && dist > 0.001) {
         const norm = dist / radius;
-        // Noch weichere Abfallkurve
+        // Soft falloff curve
         const force = Math.pow(1 - norm, 2.0);
         const pushX = (dx / dist) * force * maxPush;
         const pushY = (dy / dist) * force * maxPush;
@@ -636,6 +765,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   private isProgrammaticScroll = false;
   private programmaticScrollTimeout: any = null;
 
+  /**
+   * Listens to window scroll events to update cloud shader parallax uniforms and prompter visibility.
+   *
+   * @returns {void}
+   */
   @HostListener('window:scroll')
   onScroll(): void {
     this.scrollY = window.scrollY;
@@ -657,6 +791,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Re-evaluates viewport position against section anchors to update the active navigation section.
+   *
+   * @returns {void}
+   */
   private updateActiveSection(): void {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
 
@@ -695,6 +834,13 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     this.setSection(0);
   }
 
+  /**
+   * Sets the active navigation section index and triggers directional glide transitions.
+   *
+   * @param {number} index - Target section index (0 for hero, 1 for hub, 2 for sanctuary).
+   * @param {boolean} [playSound=false] - Whether to play a harmonic chime sound.
+   * @returns {void}
+   */
   setSection(index: number, playSound = false): void {
     if (index >= 1) {
       this.isHubTitleVisible.set(true);
@@ -711,6 +857,12 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Initiates a timed directional glide indicator state ('up' or 'down').
+   *
+   * @param {'down' | 'up'} direction - The movement direction.
+   * @returns {void}
+   */
   private triggerGlide(direction: 'down' | 'up'): void {
     if (this.glideTimeout) {
       clearTimeout(this.glideTimeout);
@@ -723,6 +875,12 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     }, 740);
   }
 
+  /**
+   * Smoothly scrolls the window to the designated navigation section anchor.
+   *
+   * @param {number} index - Index of the target section.
+   * @returns {void}
+   */
   scrollToSection(index: number): void {
     if (typeof document === 'undefined') return;
     const section = this.sections[index];
@@ -759,6 +917,12 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   // ----------------------------------------------------
   // Round Glass Orbs with Squeezing Jelly Drag & Click Handling
   // ----------------------------------------------------
+  /**
+   * Handles pointer down on navigation pill buttons supporting both drag scrubbing and single clicks.
+   *
+   * @param {PointerEvent} event - The pointer event.
+   * @returns {void}
+   */
   onPillPointerDown(event: PointerEvent): void {
     event.preventDefault();
     event.stopPropagation();
@@ -806,6 +970,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     window.addEventListener('pointercancel', onPointerUp, { once: true });
   }
 
+  /**
+   * Toggles audio sound muted/unmuted state with particle burst if awaiting first user gesture.
+   *
+   * @returns {void}
+   */
   toggleSound(): void {
     if (this.audioService.isAwaitingUserGesture()) {
       this.triggerParticleBurst();
@@ -813,6 +982,14 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     this.audioService.toggleSound();
   }
 
+  /**
+   * Sets the active minigame category filter, emits particles, and plays audio feedback.
+   *
+   * @param {string} filterValue - The category identifier or 'all'.
+   * @param {MouseEvent} [event] - Optional mouse event from click.
+   * @param {HTMLElement} [targetEl] - Optional specific pill element reference for particle emission.
+   * @returns {void}
+   */
   setFilter(filterValue: string, event?: MouseEvent, targetEl?: HTMLElement): void {
     this.gameRegistry.setSelectedCategory(filterValue === 'all' ? null : filterValue);
     this.audioService.playChime(3, 0.15);
@@ -820,6 +997,12 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     this.triggerPillParticleBurst(filterValue, pillElement);
   }
 
+  /**
+   * Handles category tag clicks on child bubble cards, synchronizing the filter pills.
+   *
+   * @param {string} categoryValue - Selected category string.
+   * @returns {void}
+   */
   onCardCategorySelect(categoryValue: string): void {
     const pillBtn = typeof document !== 'undefined'
       ? (document.querySelector(`.filter-pill[data-category="${categoryValue}"]`) as HTMLElement | null)
@@ -827,6 +1010,13 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     this.setFilter(categoryValue, undefined, pillBtn ?? undefined);
   }
 
+  /**
+   * Emits subtle micro-sparks radiating from a clicked category pill element.
+   *
+   * @param {string} pillValue - Identifier of the active category.
+   * @param {HTMLElement} [pillEl] - Target pill element bounding box origin.
+   * @returns {void}
+   */
   private triggerPillParticleBurst(pillValue: string, pillEl?: HTMLElement): void {
     if (this.pillSparkTimeout) {
       clearTimeout(this.pillSparkTimeout);
@@ -836,7 +1026,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     const rx = rect ? rect.width / 2 : 46;
     const ry = rect ? rect.height / 2 : 16;
 
-    // Spawn 8 delicate micro-sparks shooting gently outward (dezenter als sound-burst)
+    // Spawn 8 delicate micro-sparks shooting gently outward
     const count = 8;
     const sparks: PillSpark[] = [];
     const baseAngle = Math.random() * Math.PI * 2;
@@ -878,11 +1068,21 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
     }, 550);
   }
 
+  /**
+   * Clears the active category filter, restoring display of all minigames.
+   *
+   * @returns {void}
+   */
   resetCategory(): void {
     this.gameRegistry.setSelectedCategory(null);
     this.audioService.playChime(2, 0.15);
   }
 
+  /**
+   * Plays a waterdrop sound and smoothly scrolls down to the minigames bubble hub section.
+   *
+   * @returns {void}
+   */
   scrollToHub(): void {
     this.audioService.playWaterdropScrollDown();
     this.hasPrompterScrolledOnce.set(true);
@@ -898,6 +1098,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   // ----------------------------------------------------
   // Three.js Procedural Anime Cloud Shader & Living Canvas
   // ----------------------------------------------------
+  /**
+   * Initializes Three.js WebGL scene, orthographic camera, and procedural anime cumulus cloud shader.
+   *
+   * @returns {void}
+   */
   private initCloudScene(): void {
     const canvas = this.cloudCanvasRef?.nativeElement;
     if (!canvas) return;
@@ -1034,7 +1239,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
           texUv.x = (uv.x - 0.5) * scale + 0.5;
         }
 
-        // Harmonischer Mittelweg für das Ein- und Ausatmen (~25s Zyklus, ca. 2.6% sanfter Hub)
+        // Balanced breathing cycle (~25s period, approx. 2.6% gentle lift)
         float breath = sin(u_time * 0.255);
         float breatheZoom = 1.018 + breath * 0.013;
         texUv = (texUv - 0.5) / breatheZoom + 0.5;

@@ -1,6 +1,9 @@
 import { Injectable, NgZone, signal, computed, inject } from '@angular/core';
 import { Subject } from 'rxjs';
 
+/**
+ * Configuration options for the smooth scrolling physics.
+ */
 export interface SmoothScrollOptions {
   friction?: number;
   sensitivity?: number;
@@ -9,6 +12,10 @@ export interface SmoothScrollOptions {
   springDamping?: number;
 }
 
+/**
+ * Service that provides custom, physics-based smooth scrolling with elastic overscroll (rubber-band) effects.
+ * Overrides native scrolling to deliver a luxurious, calming interaction experience.
+ */
 @Injectable({
   providedIn: 'root',
 })
@@ -16,10 +23,15 @@ export class SmoothScrollService {
   private readonly ngZone = inject(NgZone);
 
   // Reactive state signals and streams
+  /** Subject that emits the target Y coordinate when a programmatic scroll is triggered. */
   readonly programmaticScroll$ = new Subject<number>();
+  /** Signal containing the current elastic overscroll offset in pixels. */
   readonly overscrollOffset = signal<number>(0);
+  /** Computed signal indicating if an overscroll effect is currently active. */
   readonly isOverscrolling = computed(() => Math.abs(this.overscrollOffset()) > 0.5);
+  /** Signal containing the current absolute Y scroll position. */
   readonly currentScrollY = signal<number>(0);
+  /** Signal indicating whether an active scroll animation or user scroll is occurring. */
   readonly isScrolling = signal<boolean>(false);
 
   // Tuned physics parameters for luxurious, calming zeno-space deceleration
@@ -68,6 +80,8 @@ export class SmoothScrollService {
 
   /**
    * Registers the main page content element that will receive the elastic rubber-band transform.
+   *
+   * @param element - The HTML element to apply the transform to, or null to clear.
    */
   registerContainer(element: HTMLElement | null): void {
     this.registeredContainer = element;
@@ -78,7 +92,9 @@ export class SmoothScrollService {
   }
 
   /**
-   * Enables or disables smooth scrolling.
+   * Enables or disables the custom smooth scrolling behavior.
+   *
+   * @param enabled - Whether smooth scrolling should be active.
    */
   setEnabled(enabled: boolean): void {
     this.isEnabled = enabled;
@@ -90,6 +106,9 @@ export class SmoothScrollService {
 
   /**
    * Smoothly animates the scroll position to the target Y coordinate.
+   *
+   * @param destinationY - The target vertical scroll position in pixels.
+   * @param duration - The estimated duration for programmatic state flag (default 800ms).
    */
   smoothScrollTo(destinationY: number, duration = 800): void {
     if (typeof window === 'undefined') return;

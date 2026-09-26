@@ -16,17 +16,31 @@ import { AudioService } from '../../../core/services/audio.service';
 import { SmoothScrollService } from '../../../core/services/smooth-scroll.service';
 import { GameRegistryService } from '../../../core/services/game-registry.service';
 
+/**
+ * Represents a categorized minigame group with metadata and presentation assets.
+ */
 export interface CategoryItem {
+  /** Unique category identifier string. */
   id: string;
+  /** Display title for the category. */
   title: string;
+  /** Short descriptive subtitle. */
   subtitle: string;
+  /** In-depth description of the category theme. */
   description: string;
+  /** Optional badge label. */
   badge?: string;
+  /** Optional navigation target route. */
   route?: string;
+  /** Sanitized SVG icon markup. */
   iconSvg: SafeHtml;
+  /** Optional tags associated with this category. */
   tags?: string[];
 }
 
+/**
+ * Top navigation bar featuring the animated origami crane, navigation controls, and category dropdown menu.
+ */
 @Component({
   selector: 'app-navbar',
   imports: [RouterLink],
@@ -42,13 +56,18 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly elementRef = inject(ElementRef);
 
+  /** Whether the navigation bar is currently visible on screen. */
   readonly isVisible = signal<boolean>(false);
   private isLandingPage = signal<boolean>(true);
 
   // Origami Crane State
+  /** Current flight state of the origami crane ('flying' during initial entrance or 'landed' when perched). */
   readonly flightState = signal<'flying' | 'landed'>('flying');
+  /** Whether the crane is currently flapping its wings in idle state. */
   readonly isFlapping = signal<boolean>(false);
+  /** Whether the category dropdown menu is currently opened. */
   readonly isDropdownOpen = signal<boolean>(false);
+  /** Whether the category dropdown menu is currently playing its closing transition. */
   readonly isDropdownClosing = signal<boolean>(false);
 
   private flapTimeoutId: number | null = null;
@@ -58,12 +77,18 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   private dropdownOpenScrollY = 0;
   private isDestroyed = false;
 
+  /**
+   * The currently active CategoryItem derived from the game registry selection.
+   */
   readonly selectedCategory = computed(() => {
     const id = this.gameRegistry.selectedCategory();
     if (!id) return null;
     return this.categories.find((c) => c.id.toLowerCase() === id.toLowerCase()) ?? null;
   });
 
+  /**
+   * List of available category items presented in the navigation menu.
+   */
   readonly categories: CategoryItem[] = [
     {
       id: 'mathematik',
@@ -148,6 +173,9 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     },
   ];
 
+  /**
+   * Initializes navigation subscriptions and smooth scroll listeners.
+   */
   constructor() {
     this.router.events
       .pipe(filter((event): event is NavigationEnd => event instanceof NavigationEnd))
@@ -167,12 +195,22 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Lifecycle hook invoked after view initialization to start crane animations.
+   *
+   * @returns {void}
+   */
   ngAfterViewInit(): void {
     this.checkVisibility();
     this.startCraneFlight();
     this.scheduleNextFlap();
   }
 
+  /**
+   * Lifecycle hook invoked when the component is destroyed to clean up timers.
+   *
+   * @returns {void}
+   */
   ngOnDestroy(): void {
     this.isDestroyed = true;
     if (this.flapTimeoutId !== null) {
@@ -186,6 +224,12 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Handles window wheel events to quickly collapse the dropdown on upward scroll.
+   *
+   * @param {WheelEvent} event - The mouse wheel event.
+   * @returns {void}
+   */
   @HostListener('window:wheel', ['$event'])
   onWindowWheel(event: WheelEvent): void {
     // Immediately collapse dropdown on upward scroll gesture
@@ -194,6 +238,11 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Handles window scroll events to recalculate navbar visibility and dismiss dropdown on scroll.
+   *
+   * @returns {void}
+   */
   @HostListener('window:scroll')
   onScroll(): void {
     const currentScrollY = typeof window !== 'undefined' ? window.scrollY : 0;
@@ -215,11 +264,22 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     this.lastScrollY = currentScrollY;
   }
 
+  /**
+   * Closes dropdown and returns focus on Escape keypress.
+   *
+   * @returns {void}
+   */
   @HostListener('document:keydown.escape')
   onEscape(): void {
     this.closeDropdown(false, true);
   }
 
+  /**
+   * Traps keyboard tab focus inside the open dropdown menu.
+   *
+   * @param {KeyboardEvent} event - The keyboard event.
+   * @returns {void}
+   */
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydown(event: KeyboardEvent): void {
     if (!this.isDropdownOpen()) return;
@@ -248,6 +308,12 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Closes dropdown when clicking or tapping outside of the navbar host element.
+   *
+   * @param {PointerEvent} event - The document pointer down event.
+   * @returns {void}
+   */
   @HostListener('document:pointerdown', ['$event'])
   onDocumentPointerDown(event: PointerEvent): void {
     if (!this.isDropdownOpen() && !this.isDropdownClosing()) return;
@@ -257,6 +323,11 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Checks current window scroll position against threshold to determine visibility.
+   *
+   * @returns {void}
+   */
   private checkVisibility(): void {
     if (typeof window === 'undefined') return;
     if (!this.isLandingPage()) {
@@ -268,6 +339,11 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     this.isVisible.set(window.scrollY >= threshold);
   }
 
+  /**
+   * Initiates the crane flight animation sequence, transitioning to landed state after delay.
+   *
+   * @returns {void}
+   */
   private startCraneFlight(): void {
     if (this.flightTimeoutId !== null) {
       clearTimeout(this.flightTimeoutId);
@@ -282,8 +358,9 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Periodically triggers a brief 1-2 wing flap idle motion
-   * matching public/images/1C3E8D36-FF53-4C56-90B4-35DF073A0B54.gif
+   * Periodically triggers a brief 1-2 wing flap idle motion when the crane is landed.
+   *
+   * @returns {void}
    */
   private scheduleNextFlap(): void {
     if (this.isDestroyed) return;
@@ -313,6 +390,11 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     }, delay);
   }
 
+  /**
+   * Toggles the dropdown menu open/closed state with origami sound effect.
+   *
+   * @returns {void}
+   */
   toggleDropdown(): void {
     if (this.isDropdownOpen()) {
       this.closeDropdown(false, true);
@@ -336,6 +418,13 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Closes the dropdown menu with animated origami paper folding sequence.
+   *
+   * @param {boolean} [immediate=false] - Whether to close immediately without delay or animation.
+   * @param {boolean} [returnFocus=false] - Whether to restore focus to the crane toggle button.
+   * @returns {void}
+   */
   closeDropdown(immediate = false, returnFocus = false): void {
     if (!this.isDropdownOpen() && !this.isDropdownClosing()) return;
 
@@ -373,6 +462,13 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     }, 1450);
   }
 
+  /**
+   * Handles keyboard navigation (Arrow keys, Home, End) among category cards in the dropdown menu.
+   *
+   * @param {KeyboardEvent} event - The keyboard event.
+   * @param {number} index - Index of the current active card.
+   * @returns {void}
+   */
   onCategoryKeydown(event: KeyboardEvent, index: number): void {
     const host = this.elementRef.nativeElement as HTMLElement;
     const cards = Array.from(
@@ -397,6 +493,12 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Handles selection of a category item, scrolls to bubble hub or navigates home.
+   *
+   * @param {CategoryItem} cat - The chosen category item.
+   * @returns {void}
+   */
   onCategoryClick(cat: CategoryItem): void {
     this.gameRegistry.setSelectedCategory(cat.id);
     this.closeDropdown(false, true);
@@ -413,6 +515,12 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Resets active category filter to null and scrolls to bubble hub.
+   *
+   * @param {MouseEvent} [event] - Optional click event to prevent propagation.
+   * @returns {void}
+   */
   resetCategory(event?: MouseEvent): void {
     if (event) {
       event.stopPropagation();
@@ -432,6 +540,11 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Toggles the master audio playback state.
+   *
+   * @returns {void}
+   */
   onToggleAudio(): void {
     this.audioService.toggleSound();
   }

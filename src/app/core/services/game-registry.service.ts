@@ -1,12 +1,23 @@
 import { Injectable, signal } from '@angular/core';
 import { Minigame } from '../models/minigame.model';
 
+/**
+ * Service responsible for managing the registry of available minigames.
+ * Provides the central list of games and manages category filtering state.
+ */
 @Injectable({
   providedIn: 'root',
 })
 export class GameRegistryService {
+  /**
+   * Signal containing the currently selected category ID for filtering games.
+   * Null indicates no category is selected.
+   */
   readonly selectedCategory = signal<string | null>(null);
 
+  /**
+   * Signal containing the static array of all registered minigames.
+   */
   readonly games = signal<Minigame[]>([
     {
       id: 'cosmic-sculptor',
@@ -74,10 +85,21 @@ export class GameRegistryService {
     },
   ]);
 
+  /**
+   * Sets the currently active category for filtering the game list.
+   *
+   * @param categoryId - The unique identifier of the category to select, or null to clear the selection.
+   */
   setSelectedCategory(categoryId: string | null): void {
     this.selectedCategory.set(categoryId);
   }
 
+  /**
+   * Retrieves a minigame configuration by its unique identifier.
+   *
+   * @param id - The unique identifier of the game to retrieve.
+   * @returns The Minigame object if found, otherwise undefined.
+   */
   getGameById(id: string): Minigame | undefined {
     return this.games().find((game) => game.id === id);
   }

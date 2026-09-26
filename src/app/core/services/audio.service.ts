@@ -1,5 +1,9 @@
 import { Injectable, signal } from '@angular/core';
 
+/**
+ * Service responsible for managing all audio context, ambient music, and sound effects within the application.
+ * Handles Web Audio API initialization, preloading, and responsive playback with volume fading.
+ */
 @Injectable({
   providedIn: 'root',
 })
@@ -260,7 +264,9 @@ export class AudioService {
   }
 
   /**
-   * Pre-warm AudioContext for instantaneous 0ms playback on interaction
+   * Pre-warm AudioContext for instantaneous 0ms playback on interaction.
+   *
+   * @returns {void}
    */
   warmupAudio(): void {
     if (typeof window === 'undefined') return;
@@ -289,7 +295,9 @@ export class AudioService {
   }
 
   /**
-   * Play or resume ambient music (space-ambient.mp3) with smooth fade-in
+   * Play or resume ambient music (space-ambient.mp3) with smooth fade-in.
+   *
+   * @returns {void}
    */
   playAmbientMusic(): void {
     if (this.isMuted()) return;
@@ -322,7 +330,10 @@ export class AudioService {
   }
 
   /**
-   * Pause ambient music with a quick gentle micro-fade (150ms) to prevent audio clicks
+   * Pause ambient music with a quick gentle micro-fade (150ms) to prevent audio clicks.
+   *
+   * @param {boolean} immediate - If true, pauses instantly without fading.
+   * @returns {void}
    */
   pauseAmbientMusic(immediate = false): void {
     this.isAwaitingUserGesture.set(false);
@@ -369,7 +380,9 @@ export class AudioService {
 
   /**
    * Toggle mute state.
-   * When muted, the song is also paused/stopped as requested.
+   * When muted, the ambient song is also paused/stopped as requested.
+   *
+   * @returns {void}
    */
   toggleSound(): void {
     if (this.isAwaitingUserGesture()) {
@@ -465,6 +478,8 @@ export class AudioService {
   /**
    * Activates audio on first user gesture (click / touch / key anywhere on page or sound button).
    * Plays waterdrop-tone-on.mp3 immediately and starts ambient music with smooth fade-in.
+   *
+   * @returns {void}
    */
   activateSoundFromUserGesture(): void {
     if (this.isMuted()) return;
@@ -516,7 +531,10 @@ export class AudioService {
   }
 
   /**
-   * Play a satisfying soap-bubble pop sound with droplet resonance
+   * Play a satisfying soap-bubble pop sound with droplet resonance.
+   *
+   * @param {number} pitchShift - Multiplier for the base frequency of the bubble sound.
+   * @returns {void}
    */
   playBubblePop(pitchShift = 1): void {
     if (this.isMuted()) return;
@@ -548,7 +566,11 @@ export class AudioService {
   }
 
   /**
-   * Play a gentle bell / chime note
+   * Play a gentle bell / chime note.
+   *
+   * @param {number} scaleIndex - The index in the pentatonic scale array.
+   * @param {number} volume - Target volume for the chime.
+   * @returns {void}
    */
   playChime(scaleIndex = 0, volume = 0.25): void {
     if (this.isMuted()) return;
@@ -577,7 +599,9 @@ export class AudioService {
   }
 
   /**
-   * Soft hover whisper
+   * Play a soft hover whisper sound effect for UI interaction.
+   *
+   * @returns {void}
    */
   playBubbleHover(): void {
     if (this.isMuted()) return;
@@ -605,6 +629,9 @@ export class AudioService {
   /**
    * Plays the waterdrop scroll-down sound (waterdrop-scroll-down.mp3).
    * Gently fades out at the end for a peaceful, calming sensation.
+   *
+   * @param {number} volume - Target volume for the sound.
+   * @returns {void}
    */
   playWaterdropScrollDown(volume = 0.75): void {
     if (this.isMuted()) return;
@@ -728,6 +755,9 @@ export class AudioService {
   /**
    * Plays the particle orb scroll sound (particle-orb-scroll.mp3) directly and without delay.
    * Leverages pre-decoded Web Audio API AudioBuffer for true 0ms latency playback.
+   *
+   * @param {number} volume - Target volume for the sound.
+   * @returns {void}
    */
   playParticleOrbScroll(volume = 1.0): void {
     if (this.isMuted()) return;
@@ -820,6 +850,9 @@ export class AudioService {
   /**
    * Plays the waterdrop tone-on sound (waterdrop-tone-on.mp3) directly without delay.
    * Plays at full clarity and fades out calmly at the end.
+   *
+   * @param {number} volume - Target volume for the sound.
+   * @returns {void}
    */
   playWaterdropToneOn(volume = 1.0): void {
     if (this.isMuted()) return;
@@ -963,6 +996,9 @@ export class AudioService {
 
   /**
    * Plays the origami crane folding sound (crane-folding.mp3) with an organic, gentle fade-out at the end.
+   *
+   * @param {number} volume - Target volume for the sound.
+   * @returns {void}
    */
   playCraneFolding(volume = 0.85): void {
     if (this.isMuted()) return;

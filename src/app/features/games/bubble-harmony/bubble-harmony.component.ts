@@ -11,29 +11,55 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { AudioService } from '../../../core/services/audio.service';
 
+/**
+ * Represents a floating soap bubble on the 2D harmony canvas.
+ */
 interface Bubble {
+  /** Current X coordinate on the canvas. */
   x: number;
+  /** Current Y coordinate on the canvas. */
   y: number;
+  /** Radius of the bubble in pixels. */
   radius: number;
+  /** Horizontal velocity component. */
   vx: number;
+  /** Vertical velocity component. */
   vy: number;
+  /** CSS color string for gradient shading. */
   color: string;
+  /** Primary HSL hue angle (0 to 360). */
   hue: number;
+  /** Speed factor of surface oscillation wobble. */
   wobbleSpeed: number;
+  /** Current phase angle of surface wobble. */
   wobblePhase: number;
+  /** Opacity alpha factor. */
   alpha: number;
 }
 
+/**
+ * Visual particle ejected when a bubble pops.
+ */
 interface Particle {
+  /** Current X coordinate on the canvas. */
   x: number;
+  /** Current Y coordinate on the canvas. */
   y: number;
+  /** Horizontal velocity component. */
   vx: number;
+  /** Vertical velocity component. */
   vy: number;
+  /** Particle radius in pixels. */
   radius: number;
+  /** Current opacity alpha factor. */
   alpha: number;
+  /** CSS color string for rendering. */
   color: string;
 }
 
+/**
+ * Interactive bubble harmony minigame featuring floating iridescent soap bubbles with harmonic audio feedback.
+ */
 @Component({
   selector: 'app-bubble-harmony',
   imports: [RouterLink],
@@ -41,18 +67,27 @@ interface Particle {
   styleUrl: './bubble-harmony.component.scss',
 })
 export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
+  /** Reference to the full-viewport HTML5 2D canvas. */
   @ViewChild('canvasRef') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   readonly audioService = inject(AudioService);
   private readonly router = inject(Router);
 
+  /**
+   * Closes the minigame and returns to the home page on Escape key press.
+   *
+   * @returns {void}
+   */
   @HostListener('document:keydown.escape')
   onEscape(): void {
     this.router.navigate(['/']);
   }
 
+  /** Count of currently floating bubbles on the canvas. */
   readonly bubbleCount = signal<number>(0);
+  /** Whether popped bubbles trigger cascading chain reactions in adjacent bubbles. */
   readonly chainReaction = signal<boolean>(true);
+  /** Total number of bubbles popped in the current session. */
   readonly poppedTotal = signal<number>(0);
 
   private ctx!: CanvasRenderingContext2D;
@@ -62,12 +97,22 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
   private isMouseDown = false;
   private growCurrentBubble: Bubble | null = null;
 
+  /**
+   * Lifecycle hook invoked after view initialization to start canvas setup and animations.
+   *
+   * @returns {void}
+   */
   ngAfterViewInit(): void {
     this.initCanvas();
     this.spawnInitialBubbles();
     this.animate();
   }
 
+  /**
+   * Lifecycle hook invoked on destruction to release animation frame handles and event listeners.
+   *
+   * @returns {void}
+   */
   ngOnDestroy(): void {
     if (this.animationId !== null) {
       cancelAnimationFrame(this.animationId);
@@ -75,6 +120,11 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     window.removeEventListener('resize', this.onResize);
   }
 
+  /**
+   * Initializes 2D canvas context and registers window resize listeners.
+   *
+   * @returns {void}
+   */
   private initCanvas(): void {
     const canvas = this.canvasRef.nativeElement;
     this.ctx = canvas.getContext('2d')!;
@@ -82,12 +132,22 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     window.addEventListener('resize', this.onResize);
   }
 
+  /**
+   * Resizes canvas buffer dimensions to match the browser window viewport.
+   *
+   * @returns {void}
+   */
   private onResize = (): void => {
     const canvas = this.canvasRef.nativeElement;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
   };
 
+  /**
+   * Spawns an initial peaceful distribution of floating bubbles.
+   *
+   * @returns {void}
+   */
   private spawnInitialBubbles(): void {
     const count = Math.min(Math.floor(window.innerWidth / 90), 16);
     for (let i = 0; i < count; i++) {
@@ -99,6 +159,14 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Creates a new floating bubble at the specified coordinates.
+   *
+   * @param {number} x - Horizontal canvas coordinate.
+   * @param {number} y - Vertical canvas coordinate.
+   * @param {number} [radius=30] - Initial radius of the bubble in pixels.
+   * @returns {Bubble} The newly created bubble instance.
+   */
   createBubble(x: number, y: number, radius = 30): Bubble {
     const hues = [280, 200, 330, 45, 170]; // Purple, Cyan, Pink, Gold, Teal
     const hue = hues[Math.floor(Math.random() * hues.length)];
@@ -121,6 +189,13 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     return bubble;
   }
 
+  /**
+   * Pops a bubble at the specified array index, generating harmonic audio, burst particles, and potential chain reactions.
+   *
+   * @param {number} index - Index of the bubble to pop.
+   * @param {boolean} [triggerChain=false] - Whether this pop should trigger chain reactions in nearby bubbles.
+   * @returns {void}
+   */
   popBubble(index: number, triggerChain = false): void {
     if (index < 0 || index >= this.bubbles.length) return;
     const b = this.bubbles[index];
@@ -152,6 +227,15 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Spawns burst particles shooting outward in all directions from a popped bubble center.
+   *
+   * @param {number} x - Center X coordinate.
+   * @param {number} y - Center Y coordinate.
+   * @param {number} hue - Color hue of the bursting bubble.
+   * @param {number} radius - Radius of the bursting bubble.
+   * @returns {void}
+   */
   private createBurstParticles(x: number, y: number, hue: number, radius: number): void {
     const count = Math.floor(radius / 2.5);
     for (let i = 0; i < count; i++) {
@@ -169,6 +253,11 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Spawns an animated cluster of bubbles rising from below the viewport.
+   *
+   * @returns {void}
+   */
   spawnBubbleCluster(): void {
     for (let i = 0; i < 8; i++) {
       setTimeout(() => {
@@ -182,6 +271,11 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     this.audioService.playBubbleHover();
   }
 
+  /**
+   * Sequentially pops all existing bubbles in rapid musical progression.
+   *
+   * @returns {void}
+   */
   popAllSymphony(): void {
     const list = [...this.bubbles];
     list.forEach((_, idx) => {
@@ -193,12 +287,22 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Toggles whether popping a bubble creates cascading chain reactions.
+   *
+   * @returns {void}
+   */
   toggleChain(): void {
     this.chainReaction.update((c) => !c);
     this.audioService.playChime(4, 0.15);
   }
 
-  // Pointer Interactions
+  /**
+   * Handles pointer down events on canvas to either pop an existing bubble or start growing a new one.
+   *
+   * @param {MouseEvent | TouchEvent} e - Pointer down or touch start event.
+   * @returns {void}
+   */
   onPointerDown(e: MouseEvent | TouchEvent): void {
     const pos = this.getEventPos(e);
     // Check if clicked an existing bubble
@@ -216,6 +320,12 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     this.growCurrentBubble = this.createBubble(pos.x, pos.y, 14);
   }
 
+  /**
+   * Handles pointer motion to grow an actively inflated bubble while holding down.
+   *
+   * @param {MouseEvent | TouchEvent} e - Mouse move or touch move event.
+   * @returns {void}
+   */
   onPointerMove(e: MouseEvent | TouchEvent): void {
     if (!this.isMouseDown || !this.growCurrentBubble) return;
     const pos = this.getEventPos(e);
@@ -226,11 +336,22 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Handles pointer release to finish inflating and release the active bubble.
+   *
+   * @returns {void}
+   */
   onPointerUp(): void {
     this.isMouseDown = false;
     this.growCurrentBubble = null;
   }
 
+  /**
+   * Extracts client coordinates from either a mouse or touch interaction event.
+   *
+   * @param {MouseEvent | TouchEvent} e - The interaction event.
+   * @returns {{ x: number; y: number }} Extracted screen coordinates.
+   */
   private getEventPos(e: MouseEvent | TouchEvent): { x: number; y: number } {
     if ('touches' in e && e.touches.length > 0) {
       return { x: e.touches[0].clientX, y: e.touches[0].clientY };
@@ -239,7 +360,11 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     return { x: me.clientX, y: me.clientY };
   }
 
-  // Render Loop
+  /**
+   * Main animation loop updating physics and rendering bubbles and particles.
+   *
+   * @returns {void}
+   */
   private animate = (): void => {
     this.animationId = requestAnimationFrame(this.animate);
     const { width, height } = this.canvasRef.nativeElement;
@@ -294,6 +419,12 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     }
   };
 
+  /**
+   * Renders an iridescent soap bubble with multi-stop radial gradient and specular highlights.
+   *
+   * @param {Bubble} b - The bubble model to render.
+   * @returns {void}
+   */
   private drawSoapBubble(b: Bubble): void {
     const ctx = this.ctx;
     ctx.save();

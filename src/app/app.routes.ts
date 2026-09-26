@@ -1,5 +1,9 @@
 import { Routes } from '@angular/router';
 
+/**
+ * Defines the application routing configuration.
+ * Routes map URL paths to their respective lazily-loaded standalone components.
+ */
 export const routes: Routes = [
   {
     path: '',

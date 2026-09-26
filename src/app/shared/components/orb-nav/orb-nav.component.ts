@@ -17,27 +17,51 @@ import { CommonModule } from '@angular/common';
 import * as THREE from 'three';
 import { AudioService } from '../../../core/services/audio.service';
 
+/**
+ * Represents a navigational section anchor item.
+ */
 export interface NavSection {
+  /** Unique section anchor ID. */
   id: string;
+  /** Localized display label. */
   label: string;
 }
 
+/**
+ * Visual spark particle emitted when clicking an orb.
+ */
 export interface OrbClickSpark {
+  /** Unique identifier for the spark particle. */
   id: number;
+  /** Index of the orb that spawned the spark. */
   orbIndex: number;
+  /** Origin X coordinate relative to orb center. */
   startX: number;
+  /** Origin Y coordinate relative to orb center. */
   startY: number;
+  /** Destination X coordinate after dispersal. */
   endX: number;
+  /** Destination Y coordinate after dispersal. */
   endY: number;
+  /** CSS hex color string for spark rendering. */
   color: string;
+  /** Particle size in pixels. */
   size: number;
 }
 
+/**
+ * Character data for wave-animated tooltip text.
+ */
 export interface TooltipLetter {
+  /** The letter character to display. */
   char: string;
+  /** Stagger distance index counted from the right. */
   fromRight: number;
 }
 
+/**
+ * Internal state and WebGL mesh references for an individual particle sphere.
+ */
 interface ParticleOrbData {
   group: THREE.Group;
   tumbleGroup: THREE.Group;
@@ -53,6 +77,9 @@ interface ParticleOrbData {
   hasDisplaced: boolean;
 }
 
+/**
+ * Interactive 3D particle orb navigation widget utilizing Three.js and custom shaders.
+ */
 @Component({
   selector: 'app-orb-nav',
   standalone: true,
@@ -120,6 +147,9 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly IDLE_DELAY_MS = 5000;
   private readonly FADE_DURATION_MS = 900;
 
+  /**
+   * Initializes effects responding to section changes to trigger dynamic orb rotations.
+   */
   constructor() {
     effect(() => {
       const current = this.activeIndex();
@@ -132,8 +162,18 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Lifecycle hook for component initialization.
+   *
+   * @returns {void}
+   */
   ngOnInit(): void {}
 
+  /**
+   * Lifecycle hook invoked after view initialization to start Three.js rendering and idle detection.
+   *
+   * @returns {void}
+   */
   ngAfterViewInit(): void {
     this.ngZone.runOutsideAngular(() => {
       this.initThree();
@@ -142,6 +182,11 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Lifecycle hook invoked on destruction to release WebGL resources and event listeners.
+   *
+   * @returns {void}
+   */
   ngOnDestroy(): void {
     this.isDestroyed = true;
     this.pauseRenderLoop();
@@ -152,6 +197,11 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
   // ----------------------------------------------------
   // 1. Three.js Initialization (Pure White Pixel Particles)
   // ----------------------------------------------------
+  /**
+   * Initializes Three.js renderer, perspective camera, scene, and orb instances.
+   *
+   * @returns {void}
+   */
   private initThree(): void {
     const canvas = this.canvasRef.nativeElement;
     const width = 76;
@@ -183,6 +233,14 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Creates an individual 3D particle sphere populated with Fibonacci-distributed micro-points and custom shaders.
+   *
+   * @param {number} baseY - Base vertical offset of the orb group.
+   * @param {number} floatSpeed - Speed factor for gentle vertical floating oscillation.
+   * @param {number} floatPhase - Initial phase angle for the floating motion.
+   * @returns {ParticleOrbData} The constructed particle orb configuration object.
+   */
   private createPixelOrb(baseY: number, floatSpeed: number, floatPhase: number): ParticleOrbData {
     const group = new THREE.Group();
     group.position.set(0, baseY, 0);
@@ -336,6 +394,11 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
   // ----------------------------------------------------
   // 2. Render & Physics Loop (with resource-saving pause)
   // ----------------------------------------------------
+  /**
+   * Starts the animation frame render loop.
+   *
+   * @returns {void}
+   */
   private startRenderLoop(): void {
     let lastTime = performance.now();
 
@@ -357,12 +420,22 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     this.animFrameId = requestAnimationFrame(animate);
   }
 
+  /**
+   * Resumes the WebGL render loop when returning from idle state.
+   *
+   * @returns {void}
+   */
   private resumeRenderLoop(): void {
     if (this.isDestroyed || this.isRenderLoopRunning) return;
     this.isRenderLoopRunning = true;
     this.startRenderLoop();
   }
 
+  /**
+   * Pauses the WebGL render loop to save system resources.
+   *
+   * @returns {void}
+   */
   private pauseRenderLoop(): void {
     if (this.animFrameId !== null) {
       cancelAnimationFrame(this.animFrameId);
@@ -371,6 +444,13 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     this.isRenderLoopRunning = false;
   }
 
+  /**
+   * Updates particle physics, mouse repulsion forces, spring damping, and orbital tumbling.
+   *
+   * @param {number} sec - Elapsed time in seconds.
+   * @param {number} dt - Delta time between frames in seconds.
+   * @returns {void}
+   */
   private updatePhysicsAndAnimation(sec: number, dt: number): void {
     if (!this.camera) return;
 
@@ -500,6 +580,12 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
   // ----------------------------------------------------
   // 3. Pointer & Interaction Handlers
   // ----------------------------------------------------
+  /**
+   * Handles pointer motion to project raycast intersections and displace particles near cursor.
+   *
+   * @param {PointerEvent} event - The pointer move event.
+   * @returns {void}
+   */
   onPointerMove(event: PointerEvent): void {
     const canvas = this.canvasRef.nativeElement;
     const rect = canvas.getBoundingClientRect();
@@ -537,6 +623,11 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Handles pointer leave to reset hover index and raycaster targets.
+   *
+   * @returns {void}
+   */
   onPointerLeave(): void {
     this.isPointerOver = false;
     this.mouseNDC.set(-999, -999);
@@ -545,6 +636,12 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     this.activeHoverIndex.set(null);
   }
 
+  /**
+   * Splits a section label into letter objects with right-to-left animation indices, with caching.
+   *
+   * @param {string} label - The text label to decompose.
+   * @returns {TooltipLetter[]} Array of characters with staggered animation indices.
+   */
   getTooltipLetters(label: string): TooltipLetter[] {
     let cached = this.tooltipLettersCache.get(label);
     if (!cached) {
@@ -559,10 +656,21 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     return cached;
   }
 
+  /**
+   * Warms up the web audio context when pointer presses down on an orb.
+   *
+   * @returns {void}
+   */
   onOrbPointerDown(): void {
     this.audioService.warmupAudio();
   }
 
+  /**
+   * Listens to wheel events to spin the active orb along its diagonal tumble axis.
+   *
+   * @param {WheelEvent} event - The wheel scroll event.
+   * @returns {void}
+   */
   @HostListener('window:wheel', ['$event'])
   onWindowWheel(event: WheelEvent): void {
     if (Math.abs(event.deltaY) > 6) {
@@ -585,6 +693,12 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Handles orb clicks to initiate spin burst, spawn sparks, play audio, and emit selection.
+   *
+   * @param {number} index - The index of the selected orb.
+   * @returns {void}
+   */
   onOrbClick(index: number): void {
     const current = this.activeIndex();
     const speed = index >= current ? 12.5 : -12.5;
@@ -597,6 +711,13 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     this.sectionSelect.emit(index);
   }
 
+  /**
+   * Handles keyboard navigation (Arrow keys, Home, End) among navigation orbs.
+   *
+   * @param {KeyboardEvent} event - The keyboard event.
+   * @param {number} index - Index of the currently focused orb.
+   * @returns {void}
+   */
   onOrbKeydown(event: KeyboardEvent, index: number): void {
     const total = this.sections().length;
     let targetIndex = -1;
@@ -621,6 +742,12 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Emits floating micro-sparks shooting outward from a clicked orb center.
+   *
+   * @param {number} orbIndex - Index of the target orb.
+   * @returns {void}
+   */
   private spawnClickSparks(orbIndex: number): void {
     const count = Math.random() < 0.5 ? 2 : 3; // 2 or 3 micro-pixels
     const newSparks: OrbClickSpark[] = [];
@@ -653,10 +780,23 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 650);
   }
 
+  /**
+   * Filters and returns active spark particles belonging to a specific orb.
+   *
+   * @param {number} orbIndex - Index of the orb.
+   * @returns {OrbClickSpark[]} Array of active sparks for the specified orb.
+   */
   getSparksForOrb(orbIndex: number): OrbClickSpark[] {
     return this.activeSparks().filter((s) => s.orbIndex === orbIndex);
   }
 
+  /**
+   * Applies an immediate angular velocity burst to a specific orb while dampening others.
+   *
+   * @param {number} index - Target orb index.
+   * @param {number} [speed=12.5] - Rotational velocity magnitude.
+   * @returns {void}
+   */
   private triggerSpinBurst(index: number, speed = 12.5): void {
     if (index < 0 || index >= this.orbs.length) return;
     // Exclusively spin ONLY the targeted orb
@@ -668,6 +808,11 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     this.orbs[index].clickSpinSpeed = speed;
   }
 
+  /**
+   * Disposes geometries, materials, and WebGL renderer context.
+   *
+   * @returns {void}
+   */
   private disposeThree(): void {
     this.orbs.forEach((orb) => {
       orb.pointsMesh.geometry.dispose();
@@ -683,10 +828,20 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
   // ----------------------------------------------------
   // 3. 5-Second Idle Detection (Fade-out & Resource Savings)
   // ----------------------------------------------------
+  /**
+   * Handles user activity events to reset idle timeouts.
+   *
+   * @returns {void}
+   */
   private readonly onUserActivity = (): void => {
     this.handleActivity();
   };
 
+  /**
+   * Configures global event listeners for detecting user activity outside Angular change detection.
+   *
+   * @returns {void}
+   */
   private setupIdleDetection(): void {
     if (typeof window === 'undefined') return;
 
@@ -704,6 +859,11 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 4400);
   }
 
+  /**
+   * Cleans up global user activity listeners and pending timeout handles.
+   *
+   * @returns {void}
+   */
   private cleanupIdleDetection(): void {
     if (typeof window === 'undefined') return;
     window.removeEventListener('pointermove', this.onUserActivity);
@@ -726,6 +886,11 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Processes user interaction events, waking up rendering if idle and resetting timers.
+   *
+   * @returns {void}
+   */
   private handleActivity(): void {
     // Cancel scheduled render pause if user interacted during fade
     if (this.pauseRenderTimeoutId !== null) {
@@ -745,6 +910,11 @@ export class OrbNavComponent implements OnInit, AfterViewInit, OnDestroy {
     this.resetIdleTimer();
   }
 
+  /**
+   * Restarts the idle timer, scheduling render loop pausing upon inactivity timeout.
+   *
+   * @returns {void}
+   */
   private resetIdleTimer(): void {
     if (this.idleTimeoutId !== null) {
       clearTimeout(this.idleTimeoutId);

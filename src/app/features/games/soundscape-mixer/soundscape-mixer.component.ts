@@ -12,16 +12,29 @@ import { Router, RouterLink } from '@angular/router';
 import { DecimalPipe } from '@angular/common';
 import { AudioService } from '../../../core/services/audio.service';
 
+/**
+ * Represents an individual ambient audio track channel in the soundscape mixer.
+ */
 interface SoundChannel {
+  /** Unique channel identifier. */
   id: string;
+  /** Localized display name. */
   name: string;
+  /** Icon identifier for UI rendering. */
   icon: string;
+  /** Atmospheric description of the sound source. */
   description: string;
+  /** Volume level ranging between 0.0 and 1.0. */
   volume: number;
+  /** Hex color code for the audio visualizer ribbon. */
   color: string;
+  /** Whether this channel is currently active and audible. */
   active: boolean;
 }
 
+/**
+ * Interactive soundscape mixer minigame allowing users to customize and blend ambient space audio layers.
+ */
 @Component({
   selector: 'app-soundscape-mixer',
   imports: [RouterLink, DecimalPipe],
@@ -29,16 +42,25 @@ interface SoundChannel {
   styleUrl: './soundscape-mixer.component.scss',
 })
 export class SoundscapeMixerComponent implements AfterViewInit, OnDestroy {
+  /** Canvas element reference for the animated audio frequency ribbons. */
   @ViewChild('visualizer') canvasRef!: ElementRef<HTMLCanvasElement>;
 
   readonly audioService = inject(AudioService);
   private readonly router = inject(Router);
 
+  /**
+   * Closes the minigame and navigates back to the landing page on Escape key press.
+   *
+   * @returns {void}
+   */
   @HostListener('document:keydown.escape')
   onEscape(): void {
     this.router.navigate(['/']);
   }
 
+  /**
+   * Signal list of available ambient sound channels.
+   */
   readonly channels = signal<SoundChannel[]>([
     {
       id: 'rain',
@@ -82,11 +104,21 @@ export class SoundscapeMixerComponent implements AfterViewInit, OnDestroy {
   private animationId: number | null = null;
   private chimeIntervalId: number | null = null;
 
+  /**
+   * Lifecycle hook invoked after view initialization to start visualizer and chime timers.
+   *
+   * @returns {void}
+   */
   ngAfterViewInit(): void {
     this.initVisualizer();
     this.startChimeLoop();
   }
 
+  /**
+   * Lifecycle hook invoked upon destruction to clean up animation frames and intervals.
+   *
+   * @returns {void}
+   */
   ngOnDestroy(): void {
     if (this.animationId !== null) {
       cancelAnimationFrame(this.animationId);
@@ -97,6 +129,12 @@ export class SoundscapeMixerComponent implements AfterViewInit, OnDestroy {
     window.removeEventListener('resize', this.onResize);
   }
 
+  /**
+   * Toggles the active state of an audio channel.
+   *
+   * @param {string} channelId - The unique identifier of the sound channel.
+   * @returns {void}
+   */
   toggleChannel(channelId: string): void {
     this.channels.update((chs) =>
       chs.map((c) => (c.id === channelId ? { ...c, active: !c.active } : c))
@@ -104,6 +142,13 @@ export class SoundscapeMixerComponent implements AfterViewInit, OnDestroy {
     this.audioService.playBubbleHover();
   }
 
+  /**
+   * Updates the volume level of a given audio channel based on input slider changes.
+   *
+   * @param {string} channelId - The unique identifier of the sound channel.
+   * @param {Event} event - The slider input event.
+   * @returns {void}
+   */
   updateVolume(channelId: string, event: Event): void {
     const input = event.target as HTMLInputElement;
     const val = parseFloat(input.value);
@@ -112,6 +157,11 @@ export class SoundscapeMixerComponent implements AfterViewInit, OnDestroy {
     );
   }
 
+  /**
+   * Starts periodic chime generation for the wind chime channel when enabled.
+   *
+   * @returns {void}
+   */
   private startChimeLoop(): void {
     this.chimeIntervalId = window.setInterval(() => {
       const chimes = this.channels().find((c) => c.id === 'chimes');
@@ -122,6 +172,11 @@ export class SoundscapeMixerComponent implements AfterViewInit, OnDestroy {
     }, 3200);
   }
 
+  /**
+   * Sets up 2D canvas visualizer context and initiates resize listeners and render loop.
+   *
+   * @returns {void}
+   */
   private initVisualizer(): void {
     const canvas = this.canvasRef.nativeElement;
     this.ctx = canvas.getContext('2d')!;
@@ -130,12 +185,22 @@ export class SoundscapeMixerComponent implements AfterViewInit, OnDestroy {
     this.render();
   }
 
+  /**
+   * Handles canvas resize to adjust internal buffer dimensions to client width.
+   *
+   * @returns {void}
+   */
   private onResize = (): void => {
     const canvas = this.canvasRef.nativeElement;
     canvas.width = canvas.parentElement?.clientWidth || 600;
     canvas.height = 200;
   };
 
+  /**
+   * Continuous 2D canvas render loop drawing undulating harmonic ribbons for active channels.
+   *
+   * @returns {void}
+   */
   private render = (): void => {
     this.animationId = requestAnimationFrame(this.render);
     const canvas = this.canvasRef.nativeElement;
