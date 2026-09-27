@@ -1,0 +1,62 @@
+<section class="hero-section" id="hero">
+  <!-- Top-Right: Sound Activation Experience (Lichtpartikel-Orbit, Cosmic Beacon & Toggle) -->
+  <app-sound-beacon variant="hero"></app-sound-beacon>
+
+  <!-- Center: "Willkommen im Zeno-Space" without pill, letters emerging like air bubbles -->
+  <div 
+    class="hero-center-container"
+    (pointermove)="onHeadingPointerMove($event)"
+    (pointerleave)="onHeadingPointerLeave()"
+    (pointerup)="onHeadingPointerLeave()"
+  >
+    <h1 class="bubble-letters-heading" aria-label="Willkommen im Zeno-Space">
+      @for (phrase of textPhrases; track $index) {
+        <span class="bubble-phrase">
+          @for (word of phrase.words; track $index) {
+            <span class="bubble-word">
+              @for (item of word.letters; track item.globalIndex) {
+                <span 
+                  class="bubble-letter-carrier" 
+                  [style.--bubble-index]="item.globalIndex"
+                >
+                  <span class="bubble-letter">{{ item.char }}</span>
+                </span>
+              }
+            </span>
+          }
+        </span>
+      }
+    </h1>
+  </div>
+
+  <!-- Scroll Down Prompter -->
+  <div 
+    class="scroll-prompter hero-ui-fade" 
+    [class.is-hidden]="hasPrompterScrolledOnce() && !isPrompterVisible()"
+    [class.is-waking]="hasPrompterScrolledOnce() && isPrompterVisible()"
+    (click)="onPrompterClick()" 
+    (keydown.enter)="onPrompterClick()"
+    (keydown.space)="onPrompterClick(); $event.preventDefault()"
+    (pointermove)="onPrompterPointerMove($event)"
+    (pointerleave)="onPrompterPointerLeave()"
+    (pointerup)="onPrompterPointerLeave()"
+    role="button" 
+    tabindex="0"
+    aria-label="Nach unten zum Erlebnis-Bereich schweben"
+  >
+    <span class="prompter-text" aria-label="Nach unten schweben">
+      @for (word of prompterWords; track $index) {
+        <span class="prompter-word-carrier" [style.--word-index]="$index">
+          <span class="prompter-word">{{ word }}</span>
+        </span>
+      }
+    </span>
+    <div class="prompter-bubble">
+      <div class="prompter-dot">
+        <span class="prompter-trail trail-1" aria-hidden="true"></span>
+        <span class="prompter-trail trail-2" aria-hidden="true"></span>
+        <span class="prompter-trail trail-3" aria-hidden="true"></span>
+      </div>
+    </div>
+  </div>
+</section>

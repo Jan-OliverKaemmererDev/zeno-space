@@ -1,0 +1,73 @@
+<aside
+  class="sound-container"
+  [class.is-hero]="variant() === 'hero'"
+  [class.is-sanctuary]="variant() === 'sanctuary'"
+  [class.is-revealed]="isRevealed()"
+  [class.is-awaiting]="audioService.isAwaitingUserGesture()"
+  [class.is-bursting]="isBursting()"
+  aria-label="Sound-Steuerung"
+>
+  @if (audioService.isAwaitingUserGesture() || isBursting()) {
+    <span class="sound-invite-tooltip" aria-hidden="true">
+      @for (letter of soundTooltipLetters; track $index) {
+        <span
+          class="tooltip-letter-carrier"
+          [style.--char-from-right]="letter.fromRight"
+        >
+          <span class="tooltip-letter">{{ letter.char }}</span>
+        </span>
+      }
+    </span>
+  }
+
+  <div class="sound-button-anchor">
+    @if (audioService.isAwaitingUserGesture() || isBursting()) {
+      <div class="sound-beacon-halo" aria-hidden="true"></div>
+
+      <div class="orbit-particles-system" aria-hidden="true">
+        @for (idx of orbitParticleIndices; track idx) {
+          <span [class]="'orbit-particle p-' + idx"></span>
+        }
+      </div>
+
+      @for (spark of burstSparks(); track spark.id) {
+        <span
+          class="sound-click-spark"
+          [style.--sx.px]="spark.startX"
+          [style.--sy.px]="spark.startY"
+          [style.--ex.px]="spark.endX"
+          [style.--ey.px]="spark.endY"
+          [style.width.px]="spark.size"
+          [style.height.px]="spark.size"
+          [style.background-color]="spark.color"
+          [style.animation-delay.ms]="spark.delayMs"
+          aria-hidden="true"
+        ></span>
+      }
+    }
+
+    <button
+      type="button"
+      class="sound-toggle-btn"
+      [class.is-playing]="audioService.isAmbientPlaying()"
+      [class.has-orbit-pulse]="audioService.isAwaitingUserGesture()"
+      (click)="toggleSound($event)"
+      [attr.aria-label]="audioService.isAmbientPlaying() ? 'Musik stummschalten' : 'Musik abspielen'"
+      [title]="audioService.isAmbientPlaying() ? 'Musik stummschalten (Space Ambient läuft)' : 'Musik abspielen (Space Ambient)'"
+    >
+      @if (audioService.isAmbientPlaying()) {
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+        </svg>
+      } @else {
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+          <line x1="23" y1="9" x2="17" y2="15" />
+          <line x1="17" y1="9" x2="23" y2="15" />
+        </svg>
+      }
+    </button>
+  </div>
+</aside>
