@@ -1,0 +1,72 @@
+<div 
+  class="origami-dropdown-menu" 
+  [class.is-open]="isOpen()"
+  [class.is-closing]="isClosing()"
+  role="region"
+  aria-label="Kategorien Übersicht"
+>
+  <!-- Top-Right Action: Alle Welten anzeigen (visible when a category is selected) -->
+  @if (selectedCategory()) {
+    <button 
+      type="button" 
+      class="dropdown-all-worlds-btn"
+      (click)="resetCategoryFilter.emit($event)"
+      title="Alle Welten anzeigen"
+      aria-label="Filter zurücksetzen – Alle Welten anzeigen"
+    >
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.85.83 6.72 2.24"/>
+        <polyline points="21 3 21 9 15 9"/>
+      </svg>
+      <span>Alle Welten anzeigen</span>
+    </button>
+  }
+
+  <!-- Decorative Origami Crease Header -->
+  <div class="dropdown-origami-crease-header" aria-hidden="true">
+    <span class="origami-crease-line origami-crease-line--left"></span>
+    <div class="origami-gem-diamond">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <polygon points="12 2 22 12 12 22 2 12" fill="rgba(255, 255, 255, 0.25)" stroke="#bae6fd"/>
+        <circle cx="12" cy="12" r="2.5" fill="#38bdf8"/>
+      </svg>
+    </div>
+    <span class="origami-crease-line origami-crease-line--right"></span>
+  </div>
+
+  <div class="dropdown-intro">
+    <h2 class="dropdown-heading">Entfaltete Welten & Sphären</h2>
+    <p class="dropdown-subline">Wähle eine Kategorie, um in interaktive Klang-, Raum- und Meditationswelten einzutauchen.</p>
+  </div>
+
+  <!-- 6 Categories Grid (Mathematik, Astronomie, Natur, Geräusche, Relax, Abenteuer) -->
+  <ul class="categories-grid" role="listbox" aria-label="Kategorien-Auswahl">
+    @for (cat of categories(); track cat.id; let idx = $index) {
+      <li 
+        class="category-card is-interactive"
+        role="option"
+        [attr.aria-selected]="selectedCategory()?.id === cat.id"
+        [class.is-selected]="selectedCategory()?.id === cat.id"
+        [style.--card-stagger]="idx"
+        (click)="categorySelect.emit(cat)"
+        tabindex="0"
+        (keydown.enter)="categorySelect.emit(cat)"
+        (keydown.space)="categorySelect.emit(cat); $event.preventDefault()"
+        (keydown)="onCategoryKeydown($event, idx)"
+        [attr.aria-label]="cat.title + ' – Welten dieser Kategorie anzeigen'"
+      >
+        <div class="category-card-glow" aria-hidden="true"></div>
+        
+        <div class="category-header">
+          <div class="category-icon-wrapper" [innerHTML]="cat.iconSvg" aria-hidden="true"></div>
+          <h3 class="category-title">{{ cat.title }}</h3>
+        </div>
+
+        <div class="category-body">
+          <span class="category-subtitle">{{ cat.subtitle }}</span>
+          <p class="category-desc">{{ cat.description }}</p>
+        </div>
+      </li>
+    }
+  </ul>
+</div>

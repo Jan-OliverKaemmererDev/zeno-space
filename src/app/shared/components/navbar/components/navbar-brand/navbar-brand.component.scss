@@ -1,0 +1,55 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+:host {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  user-select: none;
+  flex-shrink: 0;
+  font-family: var(--zeno-font-sniglet);
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.02);
+  }
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-title {
+  font-family: var(--zeno-font-sniglet);
+  font-size: 1.20rem;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+  color: var(--zeno-color-white);
+  line-height: 1.1;
+  text-shadow: var(--zeno-text-shadow-subtle);
+
+  .brand-accent {
+    color: var(--pastel-color, #93c5fd);
+    font-weight: 400;
+  }
+}
+
+.brand-tag {
+  font-family: var(--zeno-font-sniglet);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 400;
+  background: linear-gradient(135deg, #bae6fd, #fed7aa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+}

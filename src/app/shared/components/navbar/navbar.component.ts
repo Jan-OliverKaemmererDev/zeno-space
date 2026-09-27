@@ -10,73 +10,39 @@ import {
   OnDestroy,
   ElementRef,
 } from '@angular/core';
-import { RouterLink, Router, NavigationEnd } from '@angular/router';
-import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { Router, NavigationEnd } from '@angular/router';
+import { DomSanitizer } from '@angular/platform-browser';
 import { filter } from 'rxjs/operators';
 import { AudioService } from '../../../core/services/audio.service';
 import { SmoothScrollService } from '../../../core/services/smooth-scroll.service';
 import { GameRegistryService } from '../../../core/services/game-registry.service';
+import {
+  CategoryItem,
+  TooltipLetter,
+  SoundBurstSpark,
+  CraneFlightState,
+} from './navbar.models';
+import { createNavbarCategories } from './category.data';
+import { NavbarBrandComponent } from './components/navbar-brand/navbar-brand.component';
+import { OrigamiCraneComponent } from './components/origami-crane/origami-crane.component';
+import { CategoryDropdownComponent } from './components/category-dropdown/category-dropdown.component';
+import { NavbarSoundComponent } from './components/navbar-sound/navbar-sound.component';
+
+export type { CategoryItem, TooltipLetter, SoundBurstSpark, CraneFlightState };
 
 /**
- * Character data with right-aligned stagger index for wave tooltips.
- */
-export interface TooltipLetter {
-  /** Character to display. */
-  char: string;
-  /** Distance index counted from the right edge. */
-  fromRight: number;
-}
-
-/**
- * Visual spark particle emitted from the sound toggle button burst animation.
- */
-export interface SoundBurstSpark {
-  /** Unique identifier for the spark. */
-  id: number;
-  /** Starting X coordinate. */
-  startX: number;
-  /** Starting Y coordinate. */
-  startY: number;
-  /** Destination X coordinate. */
-  endX: number;
-  /** Destination Y coordinate. */
-  endY: number;
-  /** CSS color hex code. */
-  color: string;
-  /** Particle size in pixels. */
-  size: number;
-  /** Stagger delay in milliseconds. */
-  delayMs: number;
-}
-
-/**
- * Represents a categorized minigame group with metadata and presentation assets.
- */
-export interface CategoryItem {
-  /** Unique category identifier string. */
-  id: string;
-  /** Display title for the category. */
-  title: string;
-  /** Short descriptive subtitle. */
-  subtitle: string;
-  /** In-depth description of the category theme. */
-  description: string;
-  /** Optional badge label. */
-  badge?: string;
-  /** Optional navigation target route. */
-  route?: string;
-  /** Sanitized SVG icon markup. */
-  iconSvg: SafeHtml;
-  /** Optional tags associated with this category. */
-  tags?: string[];
-}
-
-/**
- * Top navigation bar featuring the animated origami crane, navigation controls, and category dropdown menu.
+ * Top navigation bar orchestrator component coordinating glass bar visibility,
+ * origami crane flight states, unfolding categories portal, and global sound experiences.
  */
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink],
+  standalone: true,
+  imports: [
+    NavbarBrandComponent,
+    OrigamiCraneComponent,
+    CategoryDropdownComponent,
+    NavbarSoundComponent,
+  ],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.scss',
 })
@@ -91,11 +57,11 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
 
   /** Whether the navigation bar is currently visible on screen. */
   readonly isVisible = signal<boolean>(false);
-  private isLandingPage = signal<boolean>(true);
+  private readonly isLandingPage = signal<boolean>(true);
 
   // Origami Crane State
-  /** Current flight state of the origami crane ('flying' during initial entrance or 'landed' when perched). */
-  readonly flightState = signal<'flying' | 'landed'>('flying');
+  /** Current flight state of the origami crane ('flying' during entrance or 'landed' when perched). */
+  readonly flightState = signal<CraneFlightState>('flying');
   /** Whether the crane is currently flapping its wings in idle state. */
   readonly isFlapping = signal<boolean>(false);
   /** Whether the category dropdown menu is currently opened. */
@@ -133,6 +99,9 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   private dropdownOpenScrollY = 0;
   private isDestroyed = false;
 
+  /** List of available category items presented in the navigation menu. */
+  readonly categories: CategoryItem[] = createNavbarCategories(this.sanitizer);
+
   /**
    * The currently active CategoryItem derived from the game registry selection.
    */
@@ -141,93 +110,6 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     if (!id) return null;
     return this.categories.find((c) => c.id.toLowerCase() === id.toLowerCase()) ?? null;
   });
-
-  /**
-   * List of available category items presented in the navigation menu.
-   */
-  readonly categories: CategoryItem[] = [
-    {
-      id: 'mathematik',
-      title: 'Mathematik',
-      subtitle: 'Geometrie & Kosmische Ordnung',
-      description: 'Erforsche fraktale Harmonien, geometrische Muster und die mathematische Symmetrie des Raumes.',
-      iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="9" opacity="0.35"/>
-          <polygon points="12 4 20 18 4 18"/>
-          <circle cx="12" cy="13" r="2.5"/>
-          <line x1="12" y1="4" x2="12" y2="18" stroke-dasharray="1.5 2"/>
-        </svg>
-      `),
-    },
-    {
-      id: 'astronomie',
-      title: 'Astronomie',
-      subtitle: 'Sterne, Kosmos & Himmelskörper',
-      description: 'Erkunde die unendlichen Weiten des Weltalls, ferne Galaxien und die Gravitation kosmischer Sphären.',
-      iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="5"/>
-          <ellipse cx="12" cy="12" rx="10" ry="3.5" transform="rotate(-25 12 12)"/>
-          <path d="M19 5 L20 7 L22 7.5 L20 8.5 L19 10.5 L18 8.5 L16 7.5 L18 7 Z" fill="currentColor" stroke="none"/>
-        </svg>
-      `),
-    },
-    {
-      id: 'natur',
-      title: 'Natur',
-      subtitle: 'Organische Welten & Elemente',
-      description: 'Erlebe die beruhigende Kraft der Natur, von sanft fließendem Wasser bis zu lebendigen floralen Strukturen.',
-      iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2C6.5 7 4 12 6 16.5C8 21 16 21 18 16.5C20 12 17.5 7 12 2Z"/>
-          <path d="M12 7V19"/>
-          <path d="M12 12C9.5 13 8 14.5 8 16"/>
-          <path d="M12 10C14.5 11 16 12.5 16 14"/>
-        </svg>
-      `),
-    },
-    {
-      id: 'geraeusche',
-      title: 'Geräusche',
-      subtitle: 'Klanglandschaften & Akustik',
-      description: 'Tauche ein in meditative Frequenzen, atmosphärische Klangflächen und beruhigende akustische Räume.',
-      iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 14h3l3.5-7 3.5 14 3.5-9 2 4h3"/>
-          <circle cx="3" cy="14" r="1.5" fill="currentColor"/>
-          <circle cx="21" cy="16" r="1.5" fill="currentColor"/>
-        </svg>
-      `),
-    },
-    {
-      id: 'relax',
-      title: 'Relax',
-      subtitle: 'Achtsamkeit & Entschleunigung',
-      description: 'Finde innere Ruhe und Balance durch sanfte Interaktionen, meditative Momente und stressfreie Sphären.',
-      iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="10" cy="14" r="6"/>
-          <circle cx="17" cy="8" r="4" opacity="0.75"/>
-          <circle cx="17.5" cy="16.5" r="2.5" opacity="0.6"/>
-          <path d="M7.5 11.5a3 3 0 0 1 3-3" stroke-linecap="round"/>
-        </svg>
-      `),
-    },
-    {
-      id: 'abenteuer',
-      title: 'Abenteuer',
-      subtitle: 'Erkundung & Kosmische Mysterien',
-      description: 'Begib dich auf intuitive Entdeckungsreisen, entschlüssele Geheimnisse und erforsche verborgene Pfade.',
-      iconSvg: this.sanitizer.bypassSecurityTrustHtml(`
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="9"/>
-          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor" fill-opacity="0.2"/>
-          <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
-        </svg>
-      `),
-    },
-  ];
 
   /**
    * Initializes navigation subscriptions and smooth scroll listeners.
@@ -302,7 +184,6 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
    */
   @HostListener('window:wheel', ['$event'])
   onWindowWheel(event: WheelEvent): void {
-    // Immediately collapse dropdown on upward scroll gesture
     if (this.isDropdownOpen() && event.deltaY < -1) {
       this.closeDropdown();
     }
@@ -320,7 +201,6 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
     const wasVisible = this.isVisible();
     this.checkVisibility();
 
-    // Close dropdown on scroll up, or when scrolling away from open point
     if (this.isDropdownOpen()) {
       if (isScrollingUp || Math.abs(currentScrollY - this.dropdownOpenScrollY) > 25) {
         this.closeDropdown();
@@ -361,7 +241,7 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
 
       const focusables = (Array.from(
         dropdown.querySelectorAll('button, [tabindex="0"], a')
-      ) as HTMLElement[]).filter(el => el.offsetParent !== null);
+      ) as HTMLElement[]).filter((el) => el.offsetParent !== null);
 
       if (focusables.length === 0) return;
 
@@ -404,11 +284,9 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
       this.isVisible.set(true);
       return;
     }
-    // On landing page, only show below the hero viewport
     const threshold = window.innerHeight * 0.7;
     let visible = window.scrollY >= threshold;
 
-    // Hide if we reached the sanctuary section
     const sanctuaryElement = document.getElementById('sanctuary');
     if (sanctuaryElement) {
       const rect = sanctuaryElement.getBoundingClientRect();
@@ -445,13 +323,11 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
   private scheduleNextFlap(): void {
     if (this.isDestroyed) return;
 
-    // Random delay between 3.5s and 6.5s
     const delay = 3500 + Math.random() * 3000;
 
     this.flapTimeoutId = window.setTimeout(() => {
       if (this.isDestroyed) return;
 
-      // Flap when perched peacefully, uninterrupted whether menu is open or closed
       if (this.flightState() === 'landed') {
         this.ngZone.run(() => {
           this.isFlapping.set(true);
@@ -488,7 +364,6 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
       this.isDropdownOpen.set(true);
       this.audioService.playCraneFolding(1.0);
 
-      // Focus first category card inside dropdown for immediate keyboard usability
       setTimeout(() => {
         const firstCard = this.elementRef.nativeElement.querySelector('.category-card') as HTMLElement | null;
         if (firstCard) {
@@ -540,37 +415,6 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
       this.isDropdownClosing.set(false);
       this.closeTimeoutId = null;
     }, 1450);
-  }
-
-  /**
-   * Handles keyboard navigation (Arrow keys, Home, End) among category cards in the dropdown menu.
-   *
-   * @param {KeyboardEvent} event - The keyboard event.
-   * @param {number} index - Index of the current active card.
-   * @returns {void}
-   */
-  onCategoryKeydown(event: KeyboardEvent, index: number): void {
-    const host = this.elementRef.nativeElement as HTMLElement;
-    const cards = Array.from(
-      host.querySelectorAll('.category-card')
-    ) as HTMLElement[];
-    if (!cards.length) return;
-
-    let targetIndex = -1;
-    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-      targetIndex = (index + 1) % cards.length;
-    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-      targetIndex = (index - 1 + cards.length) % cards.length;
-    } else if (event.key === 'Home') {
-      targetIndex = 0;
-    } else if (event.key === 'End') {
-      targetIndex = cards.length - 1;
-    }
-
-    if (targetIndex >= 0) {
-      event.preventDefault();
-      cards[targetIndex].focus();
-    }
   }
 
   /**
@@ -637,8 +481,8 @@ export class NavbarComponent implements AfterViewInit, OnDestroy {
 
     for (let i = 0; i < count; i++) {
       const angle = baseAngle + (i * ((Math.PI * 2) / count)) + (Math.random() - 0.5) * 0.22;
-      const startDist = 22 + Math.random() * 3; // Start near button edge
-      const endDist = startDist + 32 + Math.random() * 45; // Explode outward ~32-77px
+      const startDist = 22 + Math.random() * 3;
+      const endDist = startDist + 32 + Math.random() * 45;
       const isBlue = Math.random() < 0.5;
 
       sparks.push({

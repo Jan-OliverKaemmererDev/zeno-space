@@ -1,0 +1,190 @@
+<button 
+  type="button" 
+  class="crane-trigger-btn"
+  [class.is-flying]="flightState() === 'flying'"
+  [class.is-landed]="flightState() === 'landed'"
+  [class.is-flapping]="isFlapping()"
+  [class.is-open]="isOpen()"
+  (click)="toggle.emit()"
+  [attr.aria-expanded]="isOpen()"
+  aria-label="Kategorien-Menü entfalten"
+  title="Origami Kranich – Klicke zum Entfalten der Kategorien"
+>
+  <!-- Origami Crane Perch Ring Glow -->
+  <span class="crane-ambient-halo" aria-hidden="true"></span>
+
+  <!-- Origami Crane Vector Model (Exact Line-Art Geometry + Watercolor Gradients) -->
+  <div class="crane-graphic-wrapper">
+    <svg class="origami-crane-svg" viewBox="85 95 335 275" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <!-- Watercolor / Frosted Crystalline Blue Origami Gradients -->
+        <linearGradient id="craneGradUpperWing" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#bae6fd" stop-opacity="0.95" />
+          <stop offset="50%" stop-color="#7dd3fc" stop-opacity="0.85" />
+          <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.70" />
+        </linearGradient>
+
+        <linearGradient id="craneGradUpperWingR" x1="100%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="#e0f2fe" stop-opacity="0.95" />
+          <stop offset="100%" stop-color="#60a5fa" stop-opacity="0.75" />
+        </linearGradient>
+
+        <linearGradient id="craneGradLowerWingTop" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#bae6fd" stop-opacity="0.92" />
+          <stop offset="60%" stop-color="#7dd3fc" stop-opacity="0.85" />
+          <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.65" />
+        </linearGradient>
+
+        <linearGradient id="craneGradLowerWingBottom" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#0284c7" stop-opacity="0.65" />
+          <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.85" />
+        </linearGradient>
+
+        <linearGradient id="craneGradBodyPeak" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#f0f9ff" stop-opacity="0.98" />
+          <stop offset="50%" stop-color="#bae6fd" stop-opacity="0.90" />
+          <stop offset="100%" stop-color="#38bdf8" stop-opacity="0.80" />
+        </linearGradient>
+
+        <linearGradient id="craneGradBodyLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#bae6fd" stop-opacity="0.90" />
+          <stop offset="100%" stop-color="#0284c7" stop-opacity="0.65" />
+        </linearGradient>
+
+        <linearGradient id="craneGradNeck" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.85" />
+          <stop offset="100%" stop-color="#e0f2fe" stop-opacity="0.95" />
+        </linearGradient>
+
+        <linearGradient id="craneGradTail" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#93c5fd" stop-opacity="0.88" />
+          <stop offset="100%" stop-color="#0284c7" stop-opacity="0.65" />
+        </linearGradient>
+      </defs>
+
+      <!-- Tail (Pointing Up-Left) -->
+      <g class="crane-tail-group">
+        <polygon 
+          class="crane-facet crane-tail" 
+          points="106,162 170,274 218,268" 
+          fill="url(#craneGradTail)" 
+          stroke="rgba(255, 255, 255, 0.90)" 
+          stroke-width="2.5" 
+          stroke-linejoin="round"
+        />
+      </g>
+
+      <!-- Upper Wing (Pointing Up-Right) -->
+      <g class="crane-wing-group crane-wing-upper">
+        <polygon 
+          class="crane-facet crane-wing-upper-left" 
+          points="234,254 238,212 369,108 284,262 258,245" 
+          fill="url(#craneGradUpperWing)" 
+          stroke="rgba(255, 255, 255, 0.95)" 
+          stroke-width="2.5" 
+          stroke-linejoin="round"
+        />
+        <polygon 
+          class="crane-facet crane-wing-upper-right" 
+          points="369,108 298,280 284,262" 
+          fill="url(#craneGradUpperWingR)" 
+          stroke="rgba(255, 255, 255, 0.85)" 
+          stroke-width="2.2" 
+          stroke-linejoin="round"
+        />
+      </g>
+
+      <!-- Body Central Keel & Diamond Pyramid Facets -->
+      <g class="crane-body-group">
+        <!-- Left Body Facet -->
+        <polygon 
+          class="crane-facet crane-body-left" 
+          points="218,268 258,245 244,288" 
+          fill="url(#craneGradBodyLeft)" 
+          stroke="rgba(255, 255, 255, 0.90)" 
+          stroke-width="2.5" 
+          stroke-linejoin="round"
+        />
+        <!-- Right Body Center-Peak Facet -->
+        <polygon 
+          class="crane-facet crane-body-peak" 
+          points="258,245 244,288 309,317" 
+          fill="url(#craneGradBodyPeak)" 
+          stroke="rgba(255, 255, 255, 0.95)" 
+          stroke-width="2.5" 
+          stroke-linejoin="round"
+        />
+        <!-- Lower Keel Shadow Facet -->
+        <polygon 
+          class="crane-facet crane-body-keel" 
+          points="244,288 270,336 313,360 309,317" 
+          fill="rgba(2, 132, 199, 0.50)" 
+          stroke="rgba(255, 255, 255, 0.85)" 
+          stroke-width="2.2" 
+          stroke-linejoin="round"
+        />
+      </g>
+
+      <!-- Lower Wing (Pointing Down-Left in Foreground) -->
+      <g class="crane-wing-group crane-wing-lower">
+        <polygon 
+          class="crane-facet crane-wing-lower-top" 
+          points="97,358 170,274 244,288" 
+          fill="url(#craneGradLowerWingTop)" 
+          stroke="rgba(255, 255, 255, 0.95)" 
+          stroke-width="2.5" 
+          stroke-linejoin="round"
+        />
+        <polygon 
+          class="crane-facet crane-wing-lower-bottom" 
+          points="97,358 244,288 270,336" 
+          fill="url(#craneGradLowerWingBottom)" 
+          stroke="rgba(255, 255, 255, 0.85)" 
+          stroke-width="2.2" 
+          stroke-linejoin="round"
+        />
+      </g>
+
+      <!-- Neck & Head / Beak (Right Side) -->
+      <g class="crane-neck-group">
+        <!-- Neck Stem -->
+        <polygon 
+          class="crane-facet crane-neck" 
+          points="313,360 309,317 344,238 348,251" 
+          fill="url(#craneGradNeck)" 
+          stroke="rgba(255, 255, 255, 0.90)" 
+          stroke-width="2.5" 
+          stroke-linejoin="round"
+        />
+        <!-- Head Top / Beak Upper -->
+        <polygon 
+          class="crane-facet crane-head-upper" 
+          points="344,238 357,220 410,257" 
+          fill="#e0f2fe" 
+          stroke="rgba(255, 255, 255, 0.95)" 
+          stroke-width="2.2" 
+          stroke-linejoin="round"
+        />
+        <!-- Head Chin / Beak Lower -->
+        <polygon 
+          class="crane-facet crane-head-lower" 
+          points="344,238 410,257 348,251" 
+          fill="rgba(147, 197, 253, 0.80)" 
+          stroke="rgba(255, 255, 255, 0.90)" 
+          stroke-width="2.2" 
+          stroke-linejoin="round"
+        />
+      </g>
+    </svg>
+  </div>
+
+  <!-- Pill Label with "Kategorien" or Selected Category & Chevron -->
+  <span class="crane-label" [class.has-selected-category]="!!selectedCategory()">
+    <span class="crane-label-text">
+      {{ selectedCategory() ? selectedCategory()!.title : 'Kategorien' }}
+    </span>
+    <svg class="crane-chevron" [class.is-rotated]="isOpen()" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+  </span>
+</button>
