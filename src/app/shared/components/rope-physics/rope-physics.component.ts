@@ -288,8 +288,8 @@ const DEFAULT_ROPE_CONFIGS: RopeConfig[] = [
   {
     id: 'star-right-4',
     anchorX: 1276,
-    anchorY: 685,
-    length: 23,
+    anchorY: 668,
+    length: 38,
     bodyWidth: 40,
     bodyHeight: 18,
     segments: 5,
