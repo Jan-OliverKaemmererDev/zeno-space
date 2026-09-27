@@ -72,14 +72,14 @@
   "lantern-hanging-right-mid": {
     "id": "lantern-hanging-right-mid",
     "type": "lantern",
-    "x": 1200,
+    "x": 1202,
     "y": 296,
     "w": 40,
     "h": 86,
     "anchorX": 1220,
     "anchorY": 296,
     "length": 86,
-    "left_pct": 87.2093,
+    "left_pct": 87.3547,
     "top_pct": 38.5417,
     "width_pct": 2.907
   },

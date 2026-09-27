@@ -15,6 +15,7 @@
   user-select: none;
   touch-action: none;
   pointer-events: auto;
+  cursor: default;
 
   // Synchronized entrance with "Nach unten schweben" (hero-ui-fade at 3.25s)
   opacity: 0;
@@ -102,6 +103,7 @@
   height: 260px;
   display: block;
   pointer-events: none;
+  cursor: default;
   // Subtle ambient depth glow (shadow is handled directly beneath each orb)
   filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.16));
 }
@@ -187,7 +189,7 @@
   padding: 0;
   margin: 0;
   outline: none;
-  cursor: pointer;
+  cursor: default;
   display: flex;
   align-items: center;
   justify-content: center;

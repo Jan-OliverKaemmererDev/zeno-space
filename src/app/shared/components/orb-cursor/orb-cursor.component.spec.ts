@@ -60,4 +60,34 @@ describe('OrbCursorComponent', () => {
     expect(compiled.querySelectorAll('.cursor-orbit-particle').length).toBe(8);
     expect(compiled.querySelector('.cursor-sparks-canvas')).toBeTruthy();
   });
+
+  it('should not set isHovering when mouse enters .orb-3d-container or its children', () => {
+    window.matchMedia = ((query: string) => ({
+      matches: query === '(pointer: fine)',
+      media: query,
+      onchange: null,
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      dispatchEvent: () => false,
+    })) as any;
+
+    const testFixture = TestBed.createComponent(OrbCursorComponent);
+    const testComp = testFixture.componentInstance;
+    testFixture.detectChanges();
+
+    const container = document.createElement('div');
+    container.className = 'orb-3d-container';
+    const btn = document.createElement('button');
+    btn.className = 'orb-target-btn';
+    container.appendChild(btn);
+    document.body.appendChild(container);
+
+    btn.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+    expect(testComp.isHovering()).toBe(false);
+
+    container.remove();
+    testFixture.destroy();
+  });
 });

@@ -286,8 +286,9 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
         const target = e.target as HTMLElement | null;
         if (!target) return;
 
-        // Strictly exclude hanging lanterns, stars, and decorative swinging items in sanctuary
-        if (target.closest('.sanctuary-swing-item')) {
+        // Strictly exclude hanging lanterns, stars, and decorative swinging items in sanctuary,
+        // as well as the 3D orb navigation container so the cursor does not change on hover
+        if (target.closest('.sanctuary-swing-item, .orb-3d-container')) {
           if (this.isHovering()) {
             this.isHovering.set(false);
           }
@@ -295,7 +296,7 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
         }
 
         const interactive = target.closest(
-          'a, button, [role="button"], input, select, textarea, label, .card-cta, .bubble-card, .sound-btn, .interactive, .orb-3d-container, .orb-target-btn, .orb-target-zone, .orb-3d-canvas, .liquid-nav-item, .balloon-hotspot'
+          'a, button, [role="button"], input, select, textarea, label, .card-cta, .bubble-card, .sound-btn, .interactive, .liquid-nav-item, .balloon-hotspot'
         );
         const shouldHover = interactive !== null;
         if (this.isHovering() !== shouldHover) {
@@ -486,7 +487,7 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
     const speedNorm = Math.min(this.currentSpeed / 750, 1.0);
 
     // 1. Velocity deformation along motion axis (subtle, continuous soft-body elongation)
-    const stretchFactor = 1 + speedNorm * 0.25;
+    const stretchFactor = 1 + speedNorm * 0.28;
     const compressFactor = 1 / Math.sqrt(stretchFactor);
 
     // 2. Wobble resonance on release
@@ -508,7 +509,7 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
     // 4. Asymmetric Border-Radius for soft-body inertia bulge:
     // Leading front (+X, right): streamlined
     // Trailing back (-X, left, opposite to motion): soft rounded bulge forming naturally in the orb
-    const bulgeIntensity = speedNorm * 18;
+    const bulgeIntensity = speedNorm * 21;
     const topBack = 50 + bulgeIntensity;
     const bottomBack = 50 + bulgeIntensity;
     const topFront = Math.max(30, 50 - bulgeIntensity * 0.65);

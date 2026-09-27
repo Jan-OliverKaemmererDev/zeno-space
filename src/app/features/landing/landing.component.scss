@@ -1782,12 +1782,12 @@
   }
 
   &.lantern-hanging-right-mid {
-    left: 87.2093%;
+    left: 87.3547%;
     top: 38.5417%;
     width: 2.9070%;
     --clip-top: 48.8;
-    transform-origin: 50% calc(var(--clip-top) * 1%);
-    .lamp-glow { top: 68%; width: 64px; height: 64px; }
+    transform-origin: 45% calc(var(--clip-top) * 1%);
+    .lamp-glow { top: 68%; left: 45%; width: 64px; height: 64px; }
   }
 
   &.lantern-hanging-right-top {
