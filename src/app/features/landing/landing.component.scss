@@ -1313,9 +1313,8 @@
 .sanctuary-canvas-wrapper {
   position: relative;
   width: 100%;
-  max-width: calc(100vh * (1376 / 768));
   aspect-ratio: 1376 / 768;
-  margin: 0 auto;
+  margin: 0;
   // Background stays strictly static as requested (no whole-scene floating)
 
   // Feather the top edge softly so it seamlessly dissolves into the background
