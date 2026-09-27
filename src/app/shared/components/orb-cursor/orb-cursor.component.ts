@@ -296,7 +296,7 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
         }
 
         const interactive = target.closest(
-          'a, button, [role="button"], input, select, textarea, label, .card-cta, .bubble-card, .sound-btn, .interactive, .liquid-nav-item, .balloon-hotspot'
+          'a, button, [role="button"], input, select, textarea, label, .card-cta, .bubble-card, .sound-btn, .interactive, .balloon-hotspot'
         );
         const shouldHover = interactive !== null;
         if (this.isHovering() !== shouldHover) {
