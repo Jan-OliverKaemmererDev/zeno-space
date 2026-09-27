@@ -1725,7 +1725,7 @@
   // Star Glow moving synchronously with the star lantern
   .star-glow {
     position: absolute;
-    top: 70%;
+    top: 88%;
     left: 50%;
     transform: translate(-50%, -50%);
     border-radius: 50%;
@@ -1745,10 +1745,10 @@
   // Exact Coordinates and Chain Pivot Origins for Hanging Lanterns
   &.lantern-hanging-left-top {
     left: 9.6657%;
-    top: 0.7812%;
+    top: 0%;
     width: 2.8343%;
-    --clip-top: 0;
-    transform-origin: 51% 0%;
+    --clip-top: 29.33;
+    transform-origin: 50% calc(var(--clip-top) * 1%);
     .lamp-glow { top: 68%; width: 58px; height: 58px; }
   }
 
@@ -1766,19 +1766,19 @@
     top: 46.0938%;
     width: 2.3256%;
     --clip-top: 49.0;
-    transform-origin: 44.3% calc(var(--clip-top) * 1%);
-    .lamp-glow { top: 65%; width: 52px; height: 52px; }
+    transform-origin: 40.625% calc(var(--clip-top) * 1%);
+    .lamp-glow { top: 65%; left: 40.625%; width: 52px; height: 52px; }
   }
 
   &.lantern-hanging-center-right {
-    left: 62.5727%;
+    left: 62.6090%;
     top: 51.0417%;
     width: 1.9622%;
-    --clip-top: 32.3;
+    --clip-top: 32.26;
     --clip-right: 29.6%;
     --clip-bottom: 38.7%;
-    transform-origin: 37.3% calc(var(--clip-top) * 1%);
-    .lamp-glow { top: 65%; width: 52px; height: 52px; }
+    transform-origin: 31.48% calc(var(--clip-top) * 1%);
+    .lamp-glow { top: 65%; left: 31.48%; width: 52px; height: 52px; }
   }
 
   &.lantern-hanging-right-mid {
@@ -1792,75 +1792,75 @@
 
   &.lantern-hanging-right-top {
     left: 87.2093%;
-    top: 9.8958%;
+    top: 10.9375%;
     width: 2.3983%;
-    --clip-top: 16.0;
-    transform-origin: 42.9% calc(var(--clip-top) * 1%);
+    --clip-top: 0;
+    transform-origin: 42.9% 0%;
     .lamp-glow { top: 68%; width: 56px; height: 56px; }
   }
 
   // Exact Coordinates for Hanging Star Lanterns (Continuous Unbroken Ropes)
   &.star-left-1 {
-    left: 9.8837%;
-    top: 81.7708%;
+    left: 6.1773%;
+    top: 78.3854%;
     width: 3.9244%;
-    --clip-top: 78.0;
+    --clip-top: 73.73;
     transform-origin: 50% calc(var(--clip-top) * 1%);
-    .star-glow { top: 84%; width: 44px; height: 44px; }
+    .star-glow { top: 86.5%; left: 50%; width: 44px; height: 44px; }
   }
 
   &.star-left-2 {
     left: 14.3169%;
     top: 72.9167%;
     width: 3.3430%;
-    --clip-top: 82.4;
+    --clip-top: 78.82;
     transform-origin: 50% calc(var(--clip-top) * 1%);
-    .star-glow { top: 78%; width: 42px; height: 42px; }
+    .star-glow { top: 89.0%; left: 51%; width: 40px; height: 40px; }
   }
 
   &.star-center {
     left: 35.0291%;
     top: 60.5469%;
     width: 3.3430%;
-    --clip-top: 78.1;
+    --clip-top: 70.31;
     transform-origin: 50% calc(var(--clip-top) * 1%);
-    .star-glow { top: 72%; width: 42px; height: 42px; }
+    .star-glow { top: 85.0%; left: 51%; width: 40px; height: 40px; }
   }
 
   &.star-right-1 {
     left: 83.5756%;
     top: 70.5729%;
     width: 3.6337%;
-    --clip-top: 78.9;
+    --clip-top: 72.22;
     transform-origin: 50% calc(var(--clip-top) * 1%);
-    .star-glow { top: 72%; width: 44px; height: 44px; }
+    .star-glow { top: 85.5%; left: 51%; width: 42px; height: 42px; }
   }
 
   &.star-right-2 {
     left: 85.4651%;
     top: 72.0052%;
     width: 4.2151%;
-    --clip-top: 82.8;
+    --clip-top: 79.14;
     transform-origin: 50% calc(var(--clip-top) * 1%);
-    .star-glow { top: 86%; width: 48px; height: 48px; }
+    .star-glow { top: 89.3%; left: 50%; width: 48px; height: 48px; }
   }
 
   &.star-right-3 {
     left: 88.5174%;
     top: 78.6458%;
     width: 3.0523%;
-    --clip-top: 79.1;
+    --clip-top: 73.13;
     transform-origin: 50% calc(var(--clip-top) * 1%);
-    .star-glow { top: 70%; width: 36px; height: 36px; }
+    .star-glow { top: 85.5%; left: 50%; width: 36px; height: 36px; }
   }
 
   &.star-right-4 {
     left: 91.2791%;
     top: 89.1927%;
     width: 2.9070%;
-    --clip-top: 61.0;
+    --clip-top: 56.10;
     transform-origin: 50% calc(var(--clip-top) * 1%);
-    .star-glow { top: 60%; width: 36px; height: 36px; }
+    .star-glow { top: 75.3%; left: 50%; width: 34px; height: 34px; }
   }
 }
 

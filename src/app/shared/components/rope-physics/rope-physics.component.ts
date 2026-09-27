@@ -60,6 +60,8 @@ export interface RopeConfig {
 /** Runtime state for one rope, combining config and live particle data. */
 interface Rope extends RopeConfig {
   points: RopePoint[];
+  bodyAngle: number;
+  bodyAngleVel: number;
 }
 
 interface DomSyncItem {
@@ -92,11 +94,11 @@ const DEFAULT_ROPE_CONFIGS: RopeConfig[] = [
   {
     id: 'lantern-hanging-left-top',
     anchorX: 152,
-    anchorY: 6,
-    length: 16,
+    anchorY: 0,
+    length: 22,
     bodyWidth: 39,
     bodyHeight: 53,
-    segments: 4,
+    segments: 5,
     thickness: 1.4,
     color: ROPE_COLOR_LANTERN,
     glowColor: ROPE_GLOW_LANTERN,
@@ -123,10 +125,10 @@ const DEFAULT_ROPE_CONFIGS: RopeConfig[] = [
   },
   {
     id: 'lantern-hanging-center-left',
-    anchorX: 502,
+    anchorX: 499,
     anchorY: 354,
     length: 25,
-    bodyWidth: 32,
+    bodyWidth: 17,
     bodyHeight: 26,
     segments: 5,
     thickness: 1.3,
@@ -139,11 +141,11 @@ const DEFAULT_ROPE_CONFIGS: RopeConfig[] = [
   },
   {
     id: 'lantern-hanging-center-right',
-    anchorX: 874,
+    anchorX: 870,
     anchorY: 392,
     length: 20,
-    bodyWidth: 27,
-    bodyHeight: 42,
+    bodyWidth: 12,
+    bodyHeight: 18,
     segments: 4,
     thickness: 1.3,
     color: ROPE_COLOR_LANTERN,
@@ -171,30 +173,30 @@ const DEFAULT_ROPE_CONFIGS: RopeConfig[] = [
   },
   {
     id: 'lantern-hanging-right-top',
-    anchorX: 1216,
-    anchorY: 76,
-    length: 8,
+    anchorX: 1214,
+    anchorY: 38,
+    length: 46,
     bodyWidth: 33,
     bodyHeight: 42,
-    segments: 3,
+    segments: 6,
     thickness: 1.3,
     color: ROPE_COLOR_LANTERN,
     glowColor: ROPE_GLOW_LANTERN,
-    influenceRadius: 36,
-    reactivity: 0.38,
+    influenceRadius: 38,
+    reactivity: 0.40,
     gravityScale: 1.0,
-    damping: 0.974,
+    damping: 0.976,
   },
 
   // ---- Hanging Star Lanterns (7 items) ----
   {
     id: 'star-left-1',
-    anchorX: 163,
-    anchorY: 628,
-    length: 92,
+    anchorX: 112,
+    anchorY: 619,
+    length: 70,
     bodyWidth: 54,
-    bodyHeight: 26,
-    segments: 10,
+    bodyHeight: 31,
+    segments: 9,
     thickness: 1.1,
     color: ROPE_COLOR_STAR,
     glowColor: ROPE_GLOW_STAR,
@@ -207,9 +209,9 @@ const DEFAULT_ROPE_CONFIGS: RopeConfig[] = [
     id: 'star-left-2',
     anchorX: 220,
     anchorY: 560,
-    length: 70,
+    length: 67,
     bodyWidth: 46,
-    bodyHeight: 15,
+    bodyHeight: 18,
     segments: 8,
     thickness: 1.1,
     color: ROPE_COLOR_STAR,
@@ -223,9 +225,9 @@ const DEFAULT_ROPE_CONFIGS: RopeConfig[] = [
     id: 'star-center',
     anchorX: 505,
     anchorY: 465,
-    length: 50,
+    length: 45,
     bodyWidth: 46,
-    bodyHeight: 14,
+    bodyHeight: 19,
     segments: 7,
     thickness: 1.1,
     color: ROPE_COLOR_STAR,
@@ -239,9 +241,9 @@ const DEFAULT_ROPE_CONFIGS: RopeConfig[] = [
     id: 'star-right-1',
     anchorX: 1175,
     anchorY: 542,
-    length: 71,
+    length: 65,
     bodyWidth: 50,
-    bodyHeight: 19,
+    bodyHeight: 25,
     segments: 8,
     thickness: 1.1,
     color: ROPE_COLOR_STAR,
@@ -255,9 +257,9 @@ const DEFAULT_ROPE_CONFIGS: RopeConfig[] = [
     id: 'star-right-2',
     anchorX: 1205,
     anchorY: 553,
-    length: 135,
+    length: 129,
     bodyWidth: 58,
-    bodyHeight: 28,
+    bodyHeight: 34,
     segments: 12,
     thickness: 1.1,
     color: ROPE_COLOR_STAR,
@@ -271,9 +273,9 @@ const DEFAULT_ROPE_CONFIGS: RopeConfig[] = [
     id: 'star-right-3',
     anchorX: 1239,
     anchorY: 604,
-    length: 53,
+    length: 49,
     bodyWidth: 42,
-    bodyHeight: 14,
+    bodyHeight: 18,
     segments: 7,
     thickness: 1.1,
     color: ROPE_COLOR_STAR,
@@ -287,9 +289,9 @@ const DEFAULT_ROPE_CONFIGS: RopeConfig[] = [
     id: 'star-right-4',
     anchorX: 1276,
     anchorY: 685,
-    length: 25,
+    length: 23,
     bodyWidth: 40,
-    bodyHeight: 16,
+    bodyHeight: 18,
     segments: 5,
     thickness: 1.1,
     color: ROPE_COLOR_STAR,
@@ -463,7 +465,12 @@ export class RopePhysicsComponent implements AfterViewInit, OnDestroy {
           pinned: i === 0, // Only top particle is pinned to anchor
         });
       }
-      return { ...cfg, points };
+      return {
+        ...cfg,
+        points,
+        bodyAngle: 0,
+        bodyAngleVel: 0,
+      };
     });
   }
 
@@ -513,7 +520,17 @@ export class RopePhysicsComponent implements AfterViewInit, OnDestroy {
     }
 
     const dt = 1 / 60;
-    this.windPhase += dt * 0.45; // Subtle breeze rhythm
+    this.windPhase += dt * 1.35; // Calming, organic ambient breeze rhythm
+
+    // Decay cursor velocity if mouse stopped moving while still inside
+    if (this.pointerInside && performance.now() - this.pointerTimestamp > 50) {
+      this.pointerVX *= 0.75;
+      this.pointerVY *= 0.75;
+      if (Math.hypot(this.pointerVX, this.pointerVY) < 1) {
+        this.pointerVX = 0;
+        this.pointerVY = 0;
+      }
+    }
 
     // Physics update
     for (const rope of this.ropes) {
@@ -537,8 +554,13 @@ export class RopePhysicsComponent implements AfterViewInit, OnDestroy {
   private updateRope(rope: Rope, dt: number): void {
     const gravity = this.GRAVITY * rope.gravityScale * dt * dt;
 
-    // Organic wind breeze: gentle sine oscillation with spatial phase shift across sanctuary
-    const baseWind = Math.sin(this.windPhase + rope.anchorX * 0.008) * 0.22 * dt;
+    // Organic ambient breeze: gentle dual-sine rhythm with spatial phase shift across sanctuary
+    const phase1 = this.windPhase + rope.anchorX * 0.006;
+    const phase2 = this.windPhase * 0.6 + rope.anchorX * 0.003 + 1.2;
+    const breeze = Math.sin(phase1) * 0.75 + Math.sin(phase2) * 0.25;
+    // Scale slightly for longer ropes so all items sway with a harmonious ~1.8px amplitude
+    const lengthScale = Math.min(1.0, 90 / rope.length);
+    const baseWind = breeze * 0.006 * lengthScale;
 
     for (let i = 1; i < rope.points.length; i++) {
       const point = rope.points[i];
@@ -568,6 +590,17 @@ export class RopePhysicsComponent implements AfterViewInit, OnDestroy {
     for (let iter = 0; iter < this.CONSTRAINT_ITERATIONS; iter++) {
       this.solveConstraints(rope);
     }
+
+    // Pendulum equilibrium angle: aligns with the suspension line from anchor to lastPoint
+    const lastPoint = rope.points[rope.points.length - 1];
+    const pendDx = lastPoint.x - rope.anchorX;
+    const targetDeg = -(pendDx / Math.max(40, rope.length)) * (180 / Math.PI) * 0.65;
+
+    // Harmonic spring tracking the pendulum equilibrium with natural rotational damping
+    const angleSpring = 0.08;
+    const angleDamping = 0.92;
+    rope.bodyAngleVel = (rope.bodyAngleVel + (targetDeg - rope.bodyAngle) * angleSpring) * angleDamping;
+    rope.bodyAngle += rope.bodyAngleVel;
   }
 
   private applyMouseForce(rope: Rope): void {
@@ -580,33 +613,56 @@ export class RopePhysicsComponent implements AfterViewInit, OnDestroy {
     const lastPoint = rope.points[lastIdx];
 
     // --- Zone 1: Body interaction (lantern / star hanging below the last particle) ---
-    // The body center is offset below the last rope particle by half its height.
-    const bodyCenterX = lastPoint.x;
-    const bodyCenterY = lastPoint.y + rope.bodyHeight * 0.5;
-    const bodyDx = bodyCenterX - this.pointerX;
-    const bodyDy = bodyCenterY - this.pointerY;
-    const bodyDist = Math.hypot(bodyDx, bodyDy);
-    // Hit radius is the larger body dimension plus a comfortable margin
-    const bodyRadius = Math.max(rope.bodyWidth, rope.bodyHeight) * 0.75 + rope.influenceRadius * 0.5;
+    const bodyTop = lastPoint.y;
+    const bodyBottom = lastPoint.y + rope.bodyHeight;
 
-    if (bodyDist < bodyRadius && bodyDist > 0.1) {
-      // Force applied ONLY to the last particle – rope follows via constraints.
-      // Pure velocity-direction push (like an air current), NO radial repulsion.
-      // Repulsion would fight the movement direction when hovering from below,
-      // causing counterintuitive tilting.
-      const normDist = bodyDist / bodyRadius;
-      const falloff = 1 - normDist * normDist;
-      const smoothWeight = falloff * falloff;
+    // Strict vertical check: mouse must be vertically within the body (not in empty air above/below)
+    if (this.pointerY >= bodyTop && this.pointerY <= bodyBottom) {
+      const u = (this.pointerY - bodyTop) / (rope.bodyHeight || 60);
 
-      const maxStep = 2.2;
-      const pushX = Math.max(-maxStep, Math.min(maxStep,
-        (this.pointerVX / speed) * speedFactor * smoothWeight * rope.reactivity * 1.1));
-      const pushY = Math.max(-maxStep, Math.min(maxStep,
-        (this.pointerVY / speed) * speedFactor * smoothWeight * rope.reactivity * 0.35));
+      // Visual centerline of the body taking current swing tilt into account
+      const bodyAxisX = lastPoint.x - (u * rope.bodyHeight) * Math.sin((rope.bodyAngle * Math.PI) / 180);
+      const dx = Math.abs(this.pointerX - bodyAxisX);
 
-      lastPoint.x += pushX;
-      lastPoint.y += pushY;
-      return; // Body interaction takes priority – skip rope segment interaction
+      // Natural tapered silhouette (lanterns are wider in upper-mid, narrower at bottom tip)
+      const taper = 0.70 + 0.30 * (1 - u);
+      const halfW = (rope.bodyWidth * 0.5) * taper;
+
+      // Only trigger if mouse actually touches within the visible body silhouette
+      if (dx <= halfW) {
+        const normDist = dx / halfW;
+        const smoothWeight = 1 - normDist * normDist;
+
+        // Controlled, natural swing impulse (calm and atmospheric)
+        const bodySpeedFactor = Math.min(speed / 300, 1.4);
+        const pushStrength = bodySpeedFactor * smoothWeight * rope.reactivity * 2.4;
+        const maxBodyStep = 2.8;
+        const pushX = Math.max(-maxBodyStep, Math.min(maxBodyStep, (this.pointerVX / speed) * pushStrength));
+        const pushY = Math.max(-maxBodyStep * 0.25, Math.min(maxBodyStep * 0.25, (this.pointerVY / speed) * pushStrength * 0.25));
+
+        // Physical lever factor for top pivot displacement:
+        // u = 0.0 (top)    => factor = +1.0 (top moves in push direction)
+        // u = 0.5 (middle) => factor =  0.0 (top does NOT move in push direction)
+        // u = 1.0 (bottom) => factor = -1.0 (top moves in OPPOSITE direction, recoil)
+        const topFactor = 1.0 - 2.0 * u;
+
+        // 1. Gentle instantaneous displacement of top pivot (recoil when hitting bottom)
+        lastPoint.x += pushX * topFactor * 0.22;
+        lastPoint.y += pushY * 0.2;
+
+        // 2. Calm angular torque impulse on the body:
+        // In CSS rotate(), a negative angle swings the bottom to the right.
+        const torqueImpulse = -pushX * u * 1.2;
+        rope.bodyAngleVel += torqueImpulse * 0.4;
+        rope.bodyAngle += torqueImpulse * 0.2;
+
+        // 3. Impart gentle forward pendulum momentum so the lamp sways gracefully
+        for (let i = 1; i <= lastIdx; i++) {
+          const leverage = i / lastIdx;
+          rope.points[i].oldX -= pushX * leverage * 0.25;
+        }
+        return; // Body interaction takes priority – skip rope segment interaction
+      }
     }
 
     // --- Zone 2: Rope segment interaction (upper & middle particles only) ---
@@ -804,10 +860,8 @@ export class RopePhysicsComponent implements AfterViewInit, OnDestroy {
       const dx = (lastPoint.x - syncItem.anchorX) * currentScale;
       const dy = (lastPoint.y - (syncItem.anchorY + syncItem.restLength)) * currentScale;
 
-      // Tangent angle of the bottom rope segment with natural weight damping and bounds
-      const angleRad = Math.atan2(lastPoint.x - prevPoint.x, lastPoint.y - prevPoint.y);
-      const rawDeg = angleRad * (180 / Math.PI) * 0.72;
-      const deg = Math.max(-18, Math.min(18, rawDeg)).toFixed(2);
+      // Bound body angle within realistic swing limits
+      const deg = Math.max(-15, Math.min(15, rope.bodyAngle)).toFixed(2);
 
       syncItem.element.style.transform = `translate3d(${dx.toFixed(1)}px, ${dy.toFixed(1)}px, 0) rotate(${deg}deg)`;
     }
