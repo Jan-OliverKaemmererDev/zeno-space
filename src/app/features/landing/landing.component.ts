@@ -139,6 +139,10 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   // Sanctuary Interactive Balloons & Smooth Scroll Reveal
   readonly showImpressum = signal<boolean>(false);
   readonly showDatenschutz = signal<boolean>(false);
+  readonly closingImpressum = signal<boolean>(false);
+  readonly closingDatenschutz = signal<boolean>(false);
+  private closingImpressumTimeout: ReturnType<typeof setTimeout> | null = null;
+  private closingDatenschutzTimeout: ReturnType<typeof setTimeout> | null = null;
   readonly isSanctuaryRevealed = signal<boolean>(false);
   readonly isInSanctuaryView = signal<boolean>(false);
   private sanctuaryIntersectionObserver: IntersectionObserver | null = null;
@@ -948,6 +952,11 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
       this.isPrompterVisible.set(atTop);
     }
 
+    // Close speech bubbles on scroll
+    if (this.showImpressum() || this.showDatenschutz()) {
+      this.closeBalloons();
+    }
+
     // Only update active section during manual scroll, not during programmatic smooth scroll
     if (!this.isProgrammaticScroll) {
       this.updateActiveSection();
@@ -1603,22 +1612,57 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 
   toggleImpressum(event: Event) {
     event.stopPropagation();
-    this.showImpressum.update(v => !v);
-    this.showDatenschutz.set(false);
+    if (this.showImpressum()) {
+      this.animateCloseBubble('impressum');
+    } else {
+      this.animateCloseBubble('datenschutz');
+      this.showImpressum.set(true);
+    }
     this.resetLettersEvade('.hotspot-floating-tooltip .tooltip-letter');
   }
 
   toggleDatenschutz(event: Event) {
     event.stopPropagation();
-    this.showDatenschutz.update(v => !v);
-    this.showImpressum.set(false);
+    if (this.showDatenschutz()) {
+      this.animateCloseBubble('datenschutz');
+    } else {
+      this.animateCloseBubble('impressum');
+      this.showDatenschutz.set(true);
+    }
     this.resetLettersEvade('.hotspot-floating-tooltip .tooltip-letter');
   }
 
   closeBalloons() {
-    this.showImpressum.set(false);
-    this.showDatenschutz.set(false);
+    this.animateCloseBubble('impressum');
+    this.animateCloseBubble('datenschutz');
     this.resetLettersEvade('.hotspot-floating-tooltip .tooltip-letter');
+  }
+
+  /**
+   * Triggers the reverse balloon-deflate animation, then hides the bubble after animation completes.
+   */
+  private animateCloseBubble(bubble: 'impressum' | 'datenschutz'): void {
+    const DEFLATE_DURATION = 350;
+
+    if (bubble === 'impressum' && this.showImpressum()) {
+      if (this.closingImpressumTimeout) clearTimeout(this.closingImpressumTimeout);
+      this.closingImpressum.set(true);
+      this.closingImpressumTimeout = setTimeout(() => {
+        this.showImpressum.set(false);
+        this.closingImpressum.set(false);
+        this.closingImpressumTimeout = null;
+      }, DEFLATE_DURATION);
+    }
+
+    if (bubble === 'datenschutz' && this.showDatenschutz()) {
+      if (this.closingDatenschutzTimeout) clearTimeout(this.closingDatenschutzTimeout);
+      this.closingDatenschutz.set(true);
+      this.closingDatenschutzTimeout = setTimeout(() => {
+        this.showDatenschutz.set(false);
+        this.closingDatenschutz.set(false);
+        this.closingDatenschutzTimeout = null;
+      }, DEFLATE_DURATION);
+    }
   }
 
   onSanctuaryClick(): void {

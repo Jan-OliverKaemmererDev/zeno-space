@@ -419,15 +419,17 @@
           </span>
 
           @if (showImpressum()) {
-            <div class="speech-bubble impressum-bubble" (click)="$event.stopPropagation()">
+            <div class="speech-bubble impressum-bubble" [class.is-closing]="closingImpressum()" (click)="$event.stopPropagation()">
               <div class="bubble-header">
                 <h4>Impressum</h4>
                 <button type="button" class="bubble-close-btn" (click)="closeBalloons()" aria-label="Schließen">×</button>
               </div>
               <div class="bubble-body">
-                <p class="bubble-brand">zeno-space</p>
-                <p>Private Projekte<br>Jan-Oliver Kämmerer</p>
-                <p class="bubble-sub">Entwickelt mit Liebe zum Detail</p>
+                <p class="bubble-brand">Angaben gemäß §5 TMG</p>
+                <p>Jan-Oliver Kämmerer<br>Berliner Straße 18a<br>63110 Rodgau</p>
+                <p><a href="mailto:info@jan-oliver-kaemmerer.de">info&#64;jan-oliver-kaemmerer.de</a></p>
+                <p><a href="https://jan-oliver-kaemmerer.de/" target="_blank" rel="noopener">jan-oliver-kaemmerer.de</a></p>
+                <p><a href="https://github.com/Jan-OliverKaemmererDev/zeno-space" target="_blank" rel="noopener">GitHub: zeno-space</a></p>
               </div>
             </div>
           }
@@ -462,7 +464,7 @@
           </span>
 
           @if (showDatenschutz()) {
-            <div class="speech-bubble datenschutz-bubble" (click)="$event.stopPropagation()">
+            <div class="speech-bubble datenschutz-bubble" [class.is-closing]="closingDatenschutz()" (click)="$event.stopPropagation()">
               <div class="bubble-header">
                 <h4>Datenschutz</h4>
                 <button type="button" class="bubble-close-btn" (click)="closeBalloons()" aria-label="Schließen">×</button>
