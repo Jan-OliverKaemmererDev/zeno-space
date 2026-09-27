@@ -1,0 +1,65 @@
+:host {
+  display: contents;
+}
+
+// Floating Glassmorphic Plate Background (Dezent & Transparent)
+.orb-glass-plate {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 52px;
+  height: 242px;
+  border-radius: 999px;
+  
+  // Sheer frosted glass with elegant translucency
+  background: linear-gradient(
+    170deg,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(14, 26, 48, 0.44) 40%,
+    rgba(8, 16, 32, 0.35) 100%
+  );
+  
+  // Glassmorphism frosted blur
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  
+  // Fine translucent glass rim with specular light reflection on top
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-top-color: rgba(255, 255, 255, 0.34);
+  border-bottom-color: rgba(255, 255, 255, 0.10);
+  
+  // Deep atmospheric shadow + subtle inner glass bevel
+  box-shadow:
+    0 12px 36px rgba(0, 8, 24, 0.42),
+    0 2px 8px rgba(0, 8, 24, 0.22),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.25),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.32);
+    
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+// Subtle saucer dish indentations on the glass plate under each orb
+.orb-plate-dish {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(255, 255, 255, 0.02) 65%,
+    transparent 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+
+  &-0 { top: 40px; }
+  &-1 { top: 121px; }
+  &-2 { top: 202px; }
+}

@@ -1,0 +1,15 @@
+:host {
+  display: contents;
+}
+
+// Three.js WebGL Canvas
+.orb-3d-canvas {
+  position: absolute;
+  inset: 0;
+  width: 76px;
+  height: 260px;
+  display: block;
+  pointer-events: none;
+  cursor: default;
+  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.16));
+}

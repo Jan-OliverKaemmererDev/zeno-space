@@ -1,0 +1,243 @@
+@use 'styles/variables' as v;
+
+:host {
+  display: contents;
+}
+
+// Overlay with Accessible Target Buttons & Tooltips
+.orb-targets-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.orb-target-zone {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+
+  // Soft floating contact shadow placed directly beneath the sphere bottom
+  &::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: calc(50% + 22px);
+    transform: translate(-50%, -50%);
+    width: 34px;
+    height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(
+      ellipse at center,
+      rgba(0, 6, 20, 0.70) 0%,
+      rgba(0, 8, 24, 0.35) 50%,
+      rgba(0, 10, 30, 0.12) 75%,
+      transparent 90%
+    );
+    filter: blur(3px);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  // Gentle, soft cyan/white aura glow centered exactly on the active orb
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) scale(0.85);
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: radial-gradient(
+      circle,
+      rgba(56, 189, 248, 0.38) 0%,
+      rgba(56, 189, 248, 0.16) 45%,
+      rgba(147, 197, 253, 0.05) 65%,
+      transparent 80%
+    );
+    filter: blur(6px);
+    pointer-events: none;
+    opacity: 0;
+    transition: 
+      opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: -1;
+  }
+
+  &.is-active::after {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.18);
+  }
+}
+
+.orb-target-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  cursor: default;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+
+  &:focus-visible {
+    box-shadow: var(--zeno-shadow-focus-ring), var(--zeno-shadow-glow-cyan-sm);
+  }
+}
+
+// Tooltip: Free-floating transparent Sniglet typography with right-to-left Laola wave & gentle floating
+.orb-tooltip {
+  position: absolute;
+  right: calc(100% + 14px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  pointer-events: none;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  padding: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.22s ease-out, visibility 0.22s ease-out;
+
+  &.is-visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+
+    .tooltip-letter-carrier {
+      animation: 
+        tooltipLaolaWave 0.95s cubic-bezier(0.25, 1, 0.4, 1) forwards calc(var(--char-from-right, 0) * 0.075s),
+        tooltipFloating 3.8s ease-in-out calc(0.95s + var(--char-from-right, 0) * 0.075s) infinite alternate;
+    }
+  }
+}
+
+.orb-target-zone:hover .orb-tooltip {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+
+  .tooltip-letter-carrier {
+    animation: 
+      tooltipLaolaWave 0.95s cubic-bezier(0.25, 1, 0.4, 1) forwards calc(var(--char-from-right, 0) * 0.075s),
+      tooltipFloating 3.8s ease-in-out calc(0.95s + var(--char-from-right, 0) * 0.075s) infinite alternate;
+  }
+}
+
+// Staggered letter carrier (animates right-to-left via --char-from-right)
+.tooltip-letter-carrier {
+  display: inline-block;
+  position: relative;
+  opacity: 0;
+  transform: translate3d(0, 0, 0) scale(0.96);
+  will-change: transform, opacity;
+}
+
+// Inner letter span: DynaPuff-SemiBold bubble-font styling & luminous depth drop-shadow
+.tooltip-letter {
+  display: inline-block;
+  position: relative;
+  font-family: var(--zeno-font-bubble);
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  background: linear-gradient(180deg, var(--zeno-color-white) 0%, var(--zeno-color-sky-100) 55%, var(--zeno-color-sky-200) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: 
+    drop-shadow(0 2px 4px rgba(0, 8, 24, 0.95))
+    drop-shadow(0 4px 14px rgba(0, 0, 0, 0.70))
+    drop-shadow(0 0 12px rgba(56, 189, 248, 0.55));
+}
+
+// Flatter, slower horizontal Laola wave sweeping right to left (from the orb outward)
+@keyframes tooltipLaolaWave {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.96);
+  }
+  42% {
+    opacity: 1;
+    transform: translate3d(0, -4px, 0) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+// Calming, gentle floating motion matching "Willkommen im Zeno-Space"
+@keyframes tooltipFloating {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -3px, 0) scale(1.01);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+// Micro-Pixel Sparks (2-3 dezent herausschießende Pixel beim Klick)
+.orb-click-spark {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 0;
+  pointer-events: none;
+  z-index: 15;
+  box-shadow: 
+    0 0 4px rgba(125, 211, 252, 0.95),
+    0 0 2px rgba(255, 255, 255, 0.85);
+  animation: sparkShootOut 0.62s cubic-bezier(0.12, 0.9, 0.28, 1) forwards;
+}
+
+@keyframes sparkShootOut {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) translate(var(--sx), var(--sy)) scale(1.1);
+  }
+  35% {
+    opacity: 0.92;
+  }
+  75% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) translate(var(--ex), var(--ey)) scale(0.3);
+  }
+}
+
+// Screen-reader utility
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
