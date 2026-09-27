@@ -419,17 +419,44 @@
           </span>
 
           @if (showImpressum()) {
-            <div class="speech-bubble impressum-bubble" [class.is-closing]="closingImpressum()" (click)="$event.stopPropagation()">
+            <div 
+              class="speech-bubble impressum-bubble" 
+              [class.is-closing]="closingImpressum()" 
+              (click)="$event.stopPropagation()"
+              (wheel)="onSpeechBubbleWheel($event)"
+            >
               <div class="bubble-header">
-                <h4>Impressum</h4>
+                <h4>Impressum & Credits</h4>
                 <button type="button" class="bubble-close-btn" (click)="closeBalloons()" aria-label="Schließen">×</button>
               </div>
               <div class="bubble-body">
-                <p class="bubble-brand">Angaben gemäß §5 TMG</p>
-                <p>Jan-Oliver Kämmerer<br>Berliner Straße 18a<br>63110 Rodgau</p>
-                <p><a href="mailto:info@jan-oliver-kaemmerer.de">info&#64;jan-oliver-kaemmerer.de</a></p>
-                <p><a href="https://jan-oliver-kaemmerer.de/" target="_blank" rel="noopener">jan-oliver-kaemmerer.de</a></p>
-                <p><a href="https://github.com/Jan-OliverKaemmererDev/zeno-space" target="_blank" rel="noopener">GitHub: zeno-space</a></p>
+                <p class="bubble-brand">Angaben gemäß § 5 TMG</p>
+                <p class="bubble-text-sm">
+                  Jan-Oliver Kämmerer<br>
+                  Berliner Straße 18a<br>
+                  63110 Rodgau
+                </p>
+                <p class="bubble-text-sm">
+                  E-Mail: <a href="mailto:info@jan-oliver-kaemmerer.de">info&#64;jan-oliver-kaemmerer.de</a><br>
+                  Web: <a href="https://jan-oliver-kaemmerer.de/" target="_blank" rel="noopener">jan-oliver-kaemmerer.de</a><br>
+                  Projekt: <a href="https://github.com/Jan-OliverKaemmererDev/zeno-space" target="_blank" rel="noopener">GitHub: zeno-space</a>
+                </p>
+
+                <p class="bubble-section-title">Quellen & Nachweise</p>
+                <ul class="bubble-list">
+                  <li>
+                    <strong>Sound-Effekte:</strong> Pixabay.com (Pixabay License) & YouTube (Marimba FX)
+                  </li>
+                  <li>
+                    <strong>Hintergrundmusik:</strong> „Dream“ (Album „Calmness“) von Blue Wave Studio (via YouTube)
+                  </li>
+                  <li>
+                    <strong>Schriftarten:</strong> „Sniglet“ (Elena Albertoni) & „DynaPuff“ (Toshi Omagari) via Google Fonts (SIL Open Font License)
+                  </li>
+                  <li>
+                    <strong>Grafiken & Sprites:</strong> Wale, Laternen, Sterne & Himmelskörper erstellt mit Unterstützung von Google Gemini (KI-generiert)
+                  </li>
+                </ul>
               </div>
             </div>
           }
@@ -464,14 +491,33 @@
           </span>
 
           @if (showDatenschutz()) {
-            <div class="speech-bubble datenschutz-bubble" [class.is-closing]="closingDatenschutz()" (click)="$event.stopPropagation()">
+            <div 
+              class="speech-bubble datenschutz-bubble" 
+              [class.is-closing]="closingDatenschutz()" 
+              (click)="$event.stopPropagation()"
+              (wheel)="onSpeechBubbleWheel($event)"
+            >
               <div class="bubble-header">
-                <h4>Datenschutz</h4>
+                <h4>Datenschutzerklärung</h4>
                 <button type="button" class="bubble-close-btn" (click)="closeBalloons()" aria-label="Schließen">×</button>
               </div>
               <div class="bubble-body">
                 <p class="bubble-brand">100% Privat & Lokal</p>
-                <p>Keine Tracking-Cookies.<br>Keine Datenspeicherung.<br>Alle Minispiele und Audios laufen direkt in deinem Browser.</p>
+                <p class="bubble-text-sm">
+                  <strong>Verantwortlicher:</strong> Jan-Oliver Kämmerer (Kontaktdaten siehe Impressum).
+                </p>
+                <p class="bubble-text-sm">
+                  <strong>Kein Tracking & keine Cookies:</strong> Diese Website verwendet keine zustimmungspflichtigen Cookies, keine Werbetracker und keine Webanalyse-Tools.
+                </p>
+                <p class="bubble-text-sm">
+                  <strong>Lokale Schriften & Medien:</strong> Alle Schriftarten, Sounds und Grafiken sind lokal auf dem Server hinterlegt. Beim Aufruf der Seite werden keine Daten an Server von Google, YouTube oder Drittanbietern übertragen.
+                </p>
+                <p class="bubble-text-sm">
+                  <strong>Hosting & Server-Logs:</strong> Beim Besuch der Website erfasst der Hosting-Server technisch bedingt Verbindungsdaten (z.&nbsp;B. IP-Adresse, Zeitpunkt, User-Agent) zur Auslieferung und Systemsicherheit (Art. 6 Abs. 1 lit. f DSGVO).
+                </p>
+                <p class="bubble-text-sm">
+                  <strong>Betroffenenrechte:</strong> Dir stehen nach der DSGVO die Rechte auf Auskunft, Berichtigung, Löschung und Einschränkung sowie das Beschwerderecht bei einer Aufsichtsbehörde zu.
+                </p>
                 <p class="bubble-sub">Genieße deine Auszeit ohne Sorgen!</p>
               </div>
             </div>

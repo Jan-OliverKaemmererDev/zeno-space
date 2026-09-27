@@ -150,6 +150,12 @@ export class SmoothScrollService {
     if (event.defaultPrevented) return;
     if (event.ctrlKey || event.metaKey) return; // Allow browser pinch-to-zoom
 
+    // Prevent page scroll when hovering/scrolling inside local scroll containers (e.g. speech bubbles)
+    const target = event.target as HTMLElement | null;
+    if (target && target.closest('.speech-bubble, [data-local-scroll]')) {
+      return;
+    }
+
     const maxScroll = this.getMaxScroll();
     if (maxScroll <= 5 && this.currentOverscroll === 0 && Math.abs(event.deltaY) < 1) {
       return;

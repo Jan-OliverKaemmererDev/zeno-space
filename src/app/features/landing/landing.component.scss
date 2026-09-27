@@ -1287,7 +1287,7 @@
   overflow: hidden;
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-end;
 
   // Fully hidden at first until scrolled down into it
   opacity: 0;
@@ -1313,11 +1313,9 @@
 .sanctuary-canvas-wrapper {
   position: relative;
   width: 100%;
+  max-width: calc(100vh * (1376 / 768));
   aspect-ratio: 1376 / 768;
-  min-height: 100vh;
-  min-width: calc(100vh * (1376 / 768));
-  left: 50%;
-  transform: translateX(-50%);
+  margin: 0 auto;
   // Background stays strictly static as requested (no whole-scene floating)
 
   // Feather the top edge softly so it seamlessly dissolves into the background
@@ -1899,23 +1897,27 @@
   top: calc(100% + 22px);
   left: 50%;
   transform: translateX(-50%);
-  width: 290px;
-  max-width: 90vw;
-  padding: 18px 22px;
+  width: 330px;
+  max-width: min(350px, 88vw);
+  max-height: min(480px, 75vh);
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
   border-radius: 20px;
   cursor: default;
   z-index: 50;
   pointer-events: auto;
+  overscroll-behavior: contain;
 
   // Glassmorphism background
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(24px) saturate(1.4);
-  -webkit-backdrop-filter: blur(24px) saturate(1.4);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(15, 23, 42, 0.62);
+  backdrop-filter: blur(28px) saturate(1.45);
+  -webkit-backdrop-filter: blur(28px) saturate(1.45);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow:
-    0 16px 40px rgba(0, 0, 0, 0.45),
-    0 0 24px rgba(251, 191, 36, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    0 16px 40px rgba(0, 0, 0, 0.55),
+    0 0 24px rgba(251, 191, 36, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
   color: #f1f5f9;
 
   // Balloon-inflate animation (from DABubble dialog-shell)
@@ -1931,8 +1933,8 @@
     transform: translateX(-50%);
     border-width: 0 10px 10px 10px;
     border-style: solid;
-    border-color: transparent transparent rgba(15, 23, 42, 0.45) transparent;
-    filter: drop-shadow(0 -2px 4px rgba(0, 0, 0, 0.15));
+    border-color: transparent transparent rgba(15, 23, 42, 0.62) transparent;
+    filter: drop-shadow(0 -2px 4px rgba(0, 0, 0, 0.2));
   }
 
   .bubble-header {
@@ -1940,16 +1942,17 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    padding-bottom: 8px;
+    flex-shrink: 0;
 
     h4 {
       margin: 0;
       color: #fef3c7;
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       font-family: var(--zeno-font-bubble);
       letter-spacing: 0.03em;
-      text-shadow: 0 1px 6px rgba(251, 191, 36, 0.3);
+      text-shadow: 0 1px 6px rgba(251, 191, 36, 0.35);
     }
 
     .bubble-close-btn {
@@ -1957,7 +1960,7 @@
       border: none;
       font-size: 1.4rem;
       line-height: 1;
-      color: rgba(255, 255, 255, 0.5);
+      color: rgba(255, 255, 255, 0.55);
       cursor: pointer;
       padding: 0 4px;
       border-radius: 6px;
@@ -1971,9 +1974,24 @@
   }
 
   .bubble-body {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     line-height: 1.5;
     color: #e2e8f0;
+    max-height: min(390px, 62vh);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 2px;
+    overscroll-behavior: contain;
+
+    // Completely hide scrollbar across all browsers while keeping scrolling fully functional
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
+    }
 
     p {
       margin: 0 0 8px 0;
@@ -1986,14 +2004,51 @@
     .bubble-brand {
       font-weight: 700;
       color: #fef3c7;
-      font-size: 1.05rem;
+      font-size: 1rem;
+      margin-bottom: 6px;
+    }
+
+    .bubble-section-title {
+      font-weight: 700;
+      color: #fef3c7;
+      font-size: 0.92rem;
+      margin-top: 12px;
+      margin-bottom: 6px;
+      text-shadow: 0 1px 4px rgba(251, 191, 36, 0.25);
+    }
+
+    .bubble-text-sm {
+      font-size: 0.85rem;
+      line-height: 1.45;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+
+      strong {
+        color: #fef3c7;
+      }
+    }
+
+    .bubble-list {
+      margin: 0 0 10px 0;
+      padding-left: 18px;
+      font-size: 0.83rem;
+      color: #cbd5e1;
+
+      li {
+        margin-bottom: 6px;
+        line-height: 1.42;
+
+        strong {
+          color: #f8fafc;
+        }
+      }
     }
 
     .bubble-sub {
-      font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.84rem;
+      color: rgba(254, 243, 199, 0.75);
       font-style: italic;
-      margin-top: 6px;
+      margin-top: 8px;
     }
 
     a {

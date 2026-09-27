@@ -1639,6 +1639,23 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
+   * Prevents mouse wheel scrolling over speech bubbles from scrolling the landing page,
+   * routing wheel impulses smoothly to the bubble content body.
+   *
+   * @param {WheelEvent} event - The mouse wheel event.
+   */
+  onSpeechBubbleWheel(event: WheelEvent): void {
+    event.stopPropagation();
+    const target = event.target as HTMLElement | null;
+    const bubble = event.currentTarget as HTMLElement | null;
+    const body = bubble?.querySelector('.bubble-body') as HTMLElement | null;
+    if (body && target && !body.contains(target)) {
+      body.scrollTop += event.deltaY;
+      event.preventDefault();
+    }
+  }
+
+  /**
    * Triggers the reverse balloon-deflate animation, then hides the bubble after animation completes.
    */
   private animateCloseBubble(bubble: 'impressum' | 'datenschutz'): void {
