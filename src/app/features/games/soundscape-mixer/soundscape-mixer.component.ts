@@ -59,6 +59,35 @@ export class SoundscapeMixerComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
+   * Toggles sound channels via number keys 1-4 or mutes/unmutes via Spacebar.
+   */
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent): void {
+    // Avoid interfering with inputs if any
+    if (event.target instanceof HTMLInputElement) return;
+
+    if (event.key === ' ' || event.code === 'Space') {
+      event.preventDefault();
+      this.audioService.toggleSound();
+      return;
+    }
+
+    const channelMap: Record<string, string> = {
+      '1': 'rain',
+      '2': 'drone',
+      '3': 'fire',
+      '4': 'chimes',
+    };
+
+    const targetId = channelMap[event.key];
+    if (targetId) {
+      event.preventDefault();
+      this.toggleChannel(targetId);
+    }
+  }
+
+
+  /**
    * Signal list of available ambient sound channels.
    */
   readonly channels = signal<SoundChannel[]>([

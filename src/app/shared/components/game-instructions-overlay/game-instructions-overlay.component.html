@@ -1,0 +1,199 @@
+<div 
+  class="overlay-backdrop" 
+  [class.is-closing]="isClosing()"
+  (click)="onBackdropClick($event)"
+  role="dialog"
+  aria-modal="true"
+  [attr.aria-label]="game.title + ' – Spiel-Vorschau und Steuerung'"
+>
+  <div 
+    class="overlay-card"
+    [style.--game-color]="game.primaryColor"
+    [style.--game-glow]="game.glowColor"
+  >
+    <!-- Ambient glowing backdrop effect -->
+    <div class="card-glow" aria-hidden="true"></div>
+
+    <!-- Header: Badge & Close Button -->
+    <header class="overlay-header">
+      <div class="header-badge-wrapper">
+        <span class="game-badge">{{ game.badge }}</span>
+        @if (game.category) {
+          <span class="category-pill">{{ game.category }}</span>
+        }
+      </div>
+
+      <button 
+        type="button" 
+        class="btn-close" 
+        (click)="handleClose()" 
+        aria-label="Vorschau schließen"
+        title="Schließen (ESC)"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </header>
+
+    <!-- Main Content: Titles & Description -->
+    <div class="overlay-intro">
+      <h2 class="game-title">{{ game.title }}</h2>
+      <p class="game-subtitle">{{ game.subtitle }}</p>
+      <p class="game-description">{{ game.description }}</p>
+      
+      @if (game.controls?.objective) {
+        <div class="game-objective">
+          <span class="objective-spark" aria-hidden="true">✦</span>
+          <p class="objective-text">{{ game.controls?.objective }}</p>
+        </div>
+      }
+    </div>
+
+    <!-- Controls Section: Only relevant keys & mouse inputs -->
+    <div class="overlay-controls">
+      <h3 class="controls-heading">
+        <span>Steuerung</span>
+        <span class="controls-tag">Eingabe-Hinweise</span>
+      </h3>
+
+      <div class="controls-grid">
+        <!-- 1. Keyboard Controls (Only shown if keyboard is configured) -->
+        @if (game.controls?.keyboard && game.controls!.keyboard!.length > 0) {
+          <div class="control-panel panel--keyboard">
+            <div class="panel-header">
+              <span class="panel-icon" aria-hidden="true">⌨️</span>
+              <span class="panel-title">Tastatur</span>
+            </div>
+
+            <div class="keyboard-groups">
+              @for (ctrl of game.controls!.keyboard; track ctrl.label) {
+                <div class="keyboard-group">
+                  <!-- WASD 2-Row Layout -->
+                  @if (ctrl.type === 'wasd') {
+                    <div class="wasd-layout" aria-label="Tasten W, A, S, D">
+                      <div class="wasd-row wasd-row--top">
+                        <span class="keycap keycap--w" style="--key-delay: 0s">W</span>
+                      </div>
+                      <div class="wasd-row wasd-row--bottom">
+                        <span class="keycap keycap--a" style="--key-delay: 0.25s">A</span>
+                        <span class="keycap keycap--s" style="--key-delay: 0.5s">S</span>
+                        <span class="keycap keycap--d" style="--key-delay: 0.75s">D</span>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Wide Spacebar Layout -->
+                  @else if (ctrl.type === 'space') {
+                    <div class="space-layout" aria-label="Leertaste">
+                      <span class="keycap keycap--space" style="--key-delay: 0.2s">
+                        <span class="space-label">{{ ctrl.keys[0] }}</span>
+                      </span>
+                    </div>
+                  }
+
+                  <!-- Inline Keys (e.g. 1, 2, 3, 4 or R, S or ESC) -->
+                  @else {
+                    <div class="inline-keys-layout">
+                      @for (key of ctrl.keys; track key; let idx = $index) {
+                        <span class="keycap keycap--inline" [style.--key-delay]="(idx * 0.2) + 's'">
+                          {{ key }}
+                        </span>
+                      }
+                    </div>
+                  }
+
+                  <p class="control-action-label">{{ ctrl.label }}</p>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- 2. Mouse Controls (Only shown if mouse is configured) -->
+        @if (game.controls?.mouse) {
+          <div class="control-panel panel--mouse">
+            <div class="panel-header">
+              <span class="panel-icon" aria-hidden="true">🖱️</span>
+              <span class="panel-title">Maus & Touch</span>
+            </div>
+
+            <div class="mouse-showcase">
+              <!-- Visual Animated Mouse Illustration -->
+              <div class="mouse-chassis" aria-hidden="true">
+                <div class="mouse-buttons-row">
+                  <div 
+                    class="mouse-button mouse-left"
+                    [class.is-active]="game.controls!.mouse!.leftClick"
+                  >
+                    <span class="btn-indicator">LMB</span>
+                  </div>
+                  <div class="mouse-divider"></div>
+                  <div 
+                    class="mouse-button mouse-right"
+                    [class.is-active]="game.controls!.mouse!.rightClick"
+                  >
+                    <span class="btn-indicator">RMB</span>
+                  </div>
+                </div>
+
+                <!-- Animated Scroll Wheel -->
+                <div 
+                  class="mouse-wheel-carrier"
+                  [class.is-scrolling]="game.controls!.mouse!.wheel"
+                >
+                  <div class="mouse-wheel"></div>
+                </div>
+
+                <!-- Mouse body contour -->
+                <div class="mouse-palm">
+                  @if (game.controls!.mouse!.drag) {
+                    <div class="drag-motion-hint">
+                      <svg width="24" height="12" viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="1.8">
+                        <path d="M7 6H1M1 6L4 3M1 6L4 9" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M17 6H23M23 6L20 3M23 6L20 9" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- Mouse Action Label -->
+              <p class="control-action-label">{{ game.controls!.mouse!.label }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Footer: Cancel / ESC Hint & Primary "Spiel starten" Button on Bottom Right -->
+    <footer class="overlay-footer">
+      <div class="footer-left">
+        <button 
+          type="button" 
+          class="btn-cancel" 
+          (click)="handleClose()"
+          title="Zurück zur Welten-Übersicht"
+        >
+          Zurück
+        </button>
+      </div>
+
+      <div class="footer-right">
+        <button 
+          type="button" 
+          class="btn-start-game" 
+          (click)="handleStartGame()"
+          [attr.aria-label]="game.title + ' jetzt starten'"
+        >
+          <span class="btn-text">Spiel starten</span>
+          <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <div class="btn-glow" aria-hidden="true"></div>
+        </button>
+      </div>
+    </footer>
+  </div>
+</div>

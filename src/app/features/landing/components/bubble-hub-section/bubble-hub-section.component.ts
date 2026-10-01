@@ -6,9 +6,12 @@ import {
   AfterViewInit,
   OnDestroy,
 } from '@angular/core';
+import { Router } from '@angular/router';
+import { Minigame } from '../../../../core/models/minigame.model';
 import { GameRegistryService } from '../../../../core/services/game-registry.service';
 import { AudioService } from '../../../../core/services/audio.service';
 import { BubbleCardComponent } from '../../../../shared/components/bubble-card/bubble-card.component';
+import { GameInstructionsOverlayComponent } from '../../../../shared/components/game-instructions-overlay/game-instructions-overlay.component';
 import { BubblePhrase } from '../hero-section/hero-section.component';
 
 /**
@@ -40,13 +43,18 @@ export interface PillSpark {
 @Component({
   selector: 'app-bubble-hub-section',
   standalone: true,
-  imports: [BubbleCardComponent],
+  imports: [BubbleCardComponent, GameInstructionsOverlayComponent],
   templateUrl: './bubble-hub-section.component.html',
   styleUrl: './bubble-hub-section.component.scss',
 })
 export class BubbleHubSectionComponent implements AfterViewInit, OnDestroy {
   readonly gameRegistry = inject(GameRegistryService);
   readonly audioService = inject(AudioService);
+  private readonly router = inject(Router);
+
+  /** Currently selected minigame to preview in the instructions overlay. */
+  readonly previewGame = signal<Minigame | null>(null);
+
 
   // Structured phrases ("Interaktive" and "Welten") with bubble letters
   readonly hubPhrases: BubblePhrase[] = (() => {
@@ -303,4 +311,30 @@ export class BubbleHubSectionComponent implements AfterViewInit, OnDestroy {
     this.gameRegistry.setSelectedCategory(null);
     this.audioService.playChime(2, 0.15);
   }
+
+  /**
+   * Opens the game instructions and controls overlay for a clicked minigame.
+   */
+  onGameSelect(game: Minigame): void {
+    this.previewGame.set(game);
+  }
+
+  /**
+   * Closes the game instructions overlay without launching.
+   */
+  onClosePreview(): void {
+    this.previewGame.set(null);
+  }
+
+  /**
+   * Navigates to the selected minigame when "Spiel starten" is clicked.
+   */
+  onStartGame(game: Minigame): void {
+    this.previewGame.set(null);
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', '/#bubble-hub');
+    }
+    this.router.navigateByUrl(game.route);
+  }
 }
+

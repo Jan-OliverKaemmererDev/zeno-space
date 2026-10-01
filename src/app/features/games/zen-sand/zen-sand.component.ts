@@ -69,6 +69,22 @@ export class ZenSandComponent implements AfterViewInit, OnDestroy {
     this.router.navigate(['/'], { fragment: 'bubble-hub' });
   }
 
+  /**
+   * Switches tools (R = Rake, S = Stone) and clears sand (C) via keyboard.
+   */
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent): void {
+    const key = event.key.toLowerCase();
+    if (key === 'r') {
+      this.setTool('rake');
+    } else if (key === 's') {
+      this.setTool('stone');
+    } else if (key === 'c') {
+      this.clearSand();
+    }
+  }
+
+
   /** Count of placed stones currently on the sand canvas. */
   readonly stoneCount = signal<number>(0);
   /** Currently selected user interaction tool ('rake' or 'stone'). */

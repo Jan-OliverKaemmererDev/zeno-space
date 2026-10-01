@@ -31,8 +31,14 @@ export class BubbleCardComponent {
    */
   readonly categorySelect = output<string>();
 
+  /**
+   * Emits when the user requests to open/preview the game.
+   */
+  readonly launchRequested = output<Minigame>();
+
   private readonly router = inject(Router);
   private readonly audioService = inject(AudioService);
+
   private readonly gameRegistry = inject(GameRegistryService);
   private readonly el = inject(ElementRef);
 
@@ -149,7 +155,7 @@ export class BubbleCardComponent {
   }
 
   /**
-   * Initiates the game launch sequence, playing a bubble pop animation and navigating to the game route.
+   * Initiates the game launch sequence by emitting launchRequested.
    *
    * @param {MouseEvent} [event] - Optional mouse event to stop bubbling.
    * @returns {void}
@@ -158,16 +164,8 @@ export class BubbleCardComponent {
     if (event) {
       event.stopPropagation();
     }
-    if (this.isPopping) return;
-    this.isPopping = true;
-    this.audioService.playBubblePop();
-
-    // Short pop animation before navigation
-    setTimeout(() => {
-      if (typeof window !== 'undefined') {
-        window.history.replaceState(null, '', '/#bubble-hub');
-      }
-      this.router.navigateByUrl(this.game.route);
-    }, 350);
+    this.audioService.playBubbleHover();
+    this.launchRequested.emit(this.game);
   }
 }
+

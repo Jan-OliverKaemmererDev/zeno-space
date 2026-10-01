@@ -62,6 +62,35 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     this.router.navigate(['/'], { fragment: 'bubble-hub' });
   }
 
+  /**
+   * Controls 3D orbital camera orientation via WASD or Arrow keys.
+   */
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent): void {
+    const key = event.key.toLowerCase();
+    const step = 0.08;
+    let handled = false;
+
+    if (key === 'a' || key === 'arrowleft') {
+      this.cameraSpherical.theta += step;
+      handled = true;
+    } else if (key === 'd' || key === 'arrowright') {
+      this.cameraSpherical.theta -= step;
+      handled = true;
+    } else if (key === 'w' || key === 'arrowup') {
+      this.cameraSpherical.phi = Math.max(0.1, this.cameraSpherical.phi - step);
+      handled = true;
+    } else if (key === 's' || key === 'arrowdown') {
+      this.cameraSpherical.phi = Math.min(Math.PI - 0.1, this.cameraSpherical.phi + step);
+      handled = true;
+    }
+
+    if (handled) {
+      this.updateCameraPosition();
+    }
+  }
+
+
   // Stats & Controls
   /** Count of currently orbiting planets in the system. */
   readonly planetCount = signal<number>(0);

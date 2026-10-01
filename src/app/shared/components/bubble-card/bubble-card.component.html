@@ -11,6 +11,7 @@
     class="glass-bubble-card"
     [class]="'glass-bubble-card card--' + game.id"
     [style.transform]="'perspective(1400px) rotateX(' + tiltX + 'deg) rotateY(' + tiltY + 'deg)'"
+    (click)="openGame($event)"
   >
     <!-- Soft Glass Highlights -->
     <div class="card-glass-sheen" aria-hidden="true"></div>

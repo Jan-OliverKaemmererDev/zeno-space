@@ -83,6 +83,16 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     this.router.navigate(['/'], { fragment: 'bubble-hub' });
   }
 
+  /**
+   * Spawns an animated cluster of bubbles upon pressing Spacebar.
+   */
+  @HostListener('document:keydown.space', ['$event'])
+  onSpace(event: Event): void {
+    event.preventDefault();
+    this.spawnBubbleCluster();
+  }
+
+
   /** Count of currently floating bubbles on the canvas. */
   readonly bubbleCount = signal<number>(0);
   /** Whether popped bubbles trigger cascading chain reactions in adjacent bubbles. */

@@ -34,6 +34,27 @@ export class GameRegistryService {
       floatDelay: '0s',
       floatDuration: '9s',
       sizeClass: 'bubble--lg',
+      controls: {
+        keyboard: [
+          {
+            type: 'wasd',
+            keys: ['W', 'A', 'S', 'D'],
+            label: 'Kamera im 3D-Raum drehen',
+          },
+          {
+            type: 'inline',
+            keys: ['ESC'],
+            label: 'Zurück zur Übersicht',
+          },
+        ],
+        mouse: {
+          leftClick: true,
+          drag: true,
+          wheel: true,
+          label: 'Maus ziehen zum Rotieren & Mausrad zum Zoomen',
+        },
+        objective: 'Erschaffe leuchtende Himmelskörper und beobachte sanfte Gravitationsbahnen im All.',
+      },
     },
     {
       id: 'bubble-harmony',
@@ -50,6 +71,26 @@ export class GameRegistryService {
       floatDelay: '1.4s',
       floatDuration: '10.5s',
       sizeClass: 'bubble--md',
+      controls: {
+        keyboard: [
+          {
+            type: 'space',
+            keys: ['LEERTASTE'],
+            label: 'Schwarm schillernder Blasen aufsteigen lassen',
+          },
+          {
+            type: 'inline',
+            keys: ['ESC'],
+            label: 'Zurück zur Übersicht',
+          },
+        ],
+        mouse: {
+          leftClick: true,
+          drag: true,
+          label: 'Klicken zum Platzen & Halten zum Aufblasen',
+        },
+        objective: 'Bringe Seifenblasen mit harmonischen pentatonischen Tönen zum Klingen.',
+      },
     },
     {
       id: 'zen-sand',
@@ -66,6 +107,31 @@ export class GameRegistryService {
       floatDelay: '0.8s',
       floatDuration: '8.5s',
       sizeClass: 'bubble--md',
+      controls: {
+        keyboard: [
+          {
+            type: 'inline',
+            keys: ['R', 'S'],
+            label: 'Werkzeug wechseln: R = Harke, S = Stein',
+          },
+          {
+            type: 'inline',
+            keys: ['C'],
+            label: 'Sand glätten & zurücksetzen',
+          },
+          {
+            type: 'inline',
+            keys: ['ESC'],
+            label: 'Zurück zur Übersicht',
+          },
+        ],
+        mouse: {
+          leftClick: true,
+          drag: true,
+          label: 'Ziehen für Rillen oder Klicken für Zen-Steine',
+        },
+        objective: 'Ziehe meditative Muster in den Sand und platziere schimmernde Kieselsteine.',
+      },
     },
     {
       id: 'soundscape-mixer',
@@ -82,6 +148,31 @@ export class GameRegistryService {
       floatDelay: '2.1s',
       floatDuration: '9.8s',
       sizeClass: 'bubble--sm',
+      controls: {
+        keyboard: [
+          {
+            type: 'inline',
+            keys: ['1', '2', '3', '4'],
+            label: 'Kanäle 1 bis 4 direkt umschalten',
+          },
+          {
+            type: 'space',
+            keys: ['LEERTASTE'],
+            label: 'Audio stummschalten / fortsetzen',
+          },
+          {
+            type: 'inline',
+            keys: ['ESC'],
+            label: 'Zurück zur Übersicht',
+          },
+        ],
+        mouse: {
+          leftClick: true,
+          drag: true,
+          label: 'Kanäle per Klick aktivieren & Lautstärke regeln',
+        },
+        objective: 'Mische Regen, Knisterfeuer und Sphärenklänge zu deiner persönlichen Traumkulisse.',
+      },
     },
   ]);
 
