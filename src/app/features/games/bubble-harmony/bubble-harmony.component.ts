@@ -80,7 +80,7 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
    */
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/'], { fragment: 'bubble-hub' });
   }
 
   /** Count of currently floating bubbles on the canvas. */

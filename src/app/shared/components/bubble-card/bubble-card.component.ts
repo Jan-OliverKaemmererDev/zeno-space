@@ -164,6 +164,9 @@ export class BubbleCardComponent {
 
     // Short pop animation before navigation
     setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        window.history.replaceState(null, '', '/#bubble-hub');
+      }
       this.router.navigateByUrl(this.game.route);
     }, 350);
   }

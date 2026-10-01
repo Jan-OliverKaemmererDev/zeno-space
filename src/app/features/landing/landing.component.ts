@@ -8,6 +8,8 @@ import {
   OnDestroy,
   HostListener,
 } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { GameRegistryService } from '../../core/services/game-registry.service';
 import { AudioService } from '../../core/services/audio.service';
 import { SmoothScrollService } from '../../core/services/smooth-scroll.service';
@@ -38,6 +40,8 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   readonly gameRegistry = inject(GameRegistryService);
   readonly audioService = inject(AudioService);
   readonly smoothScroll = inject(SmoothScrollService);
+  private readonly route = inject(ActivatedRoute);
+  private fragmentSub?: Subscription;
 
   @ViewChild('scrollBody') scrollBodyRef!: ElementRef<HTMLElement>;
 
@@ -56,23 +60,39 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
 
   private isProgrammaticScroll = false;
   private programmaticScrollTimeout: ReturnType<typeof setTimeout> | null = null;
+  private hasTriggeredHubScroll = false;
 
   ngAfterViewInit(): void {
     this.smoothScroll.registerContainer(this.scrollBodyRef?.nativeElement ?? null);
+    this.smoothScroll.syncWithCurrentScroll();
     this.initSanctuaryObserver();
     this.audioService.playAmbientMusic();
     this.updateActiveSection();
 
+    this.fragmentSub = this.route.fragment.subscribe((fragment) => {
+      if (fragment === 'bubble-hub') {
+        this.triggerHubScroll();
+      }
+    });
+
     if (typeof window !== 'undefined') {
       if (window.location.hash === '#bubble-hub' || this.gameRegistry.selectedCategory()) {
-        setTimeout(() => {
-          this.scrollToHub();
-        }, 150);
+        this.triggerHubScroll();
       }
     }
   }
 
+  private triggerHubScroll(): void {
+    if (this.hasTriggeredHubScroll) return;
+    this.hasTriggeredHubScroll = true;
+    setTimeout(() => {
+      this.scrollToHub();
+      this.hasTriggeredHubScroll = false;
+    }, 150);
+  }
+
   ngOnDestroy(): void {
+    this.fragmentSub?.unsubscribe();
     this.smoothScroll.registerContainer(null);
     this.audioService.pauseAmbientMusic();
     if (this.programmaticScrollTimeout) {
@@ -217,11 +237,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   }
 
   scrollToHub(): void {
+    this.scrollToSection(1);
     this.audioService.playWaterdropScrollDown();
-    const hubElement = document.getElementById('bubble-hub');
-    if (hubElement) {
-      const targetY = hubElement.getBoundingClientRect().top + window.scrollY;
-      this.smoothScroll.smoothScrollTo(targetY);
-    }
   }
 }

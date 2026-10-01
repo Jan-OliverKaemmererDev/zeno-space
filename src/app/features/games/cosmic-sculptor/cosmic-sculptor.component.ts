@@ -59,7 +59,7 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
    */
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/'], { fragment: 'bubble-hub' });
   }
 
   // Stats & Controls

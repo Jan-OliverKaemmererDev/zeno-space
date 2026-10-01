@@ -66,7 +66,7 @@ export class ZenSandComponent implements AfterViewInit, OnDestroy {
    */
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.router.navigate(['/']);
+    this.router.navigate(['/'], { fragment: 'bubble-hub' });
   }
 
   /** Count of placed stones currently on the sand canvas. */
