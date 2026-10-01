@@ -96,9 +96,14 @@
   }
 
   @media (max-width: 768px) {
-    width: 290px;
+    width: min(290px, calc(100vw - 32px));
     min-height: 275px;
-    padding: 26px 20px;
+    padding: 24px 18px;
+  }
+
+  @include m.mobile-se {
+    width: min(280px, calc(100vw - 28px));
+    padding: 22px 16px;
   }
 
   // Hover state: gentle highlight and pastel glow

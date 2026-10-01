@@ -3,6 +3,7 @@ import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
 import { OrbCursorComponent } from './shared/components/orb-cursor/orb-cursor.component';
+import { OrientationGuardComponent } from './shared/components/orientation-guard/orientation-guard.component';
 
 /**
  * Root component of the application.
@@ -10,7 +11,7 @@ import { OrbCursorComponent } from './shared/components/orb-cursor/orb-cursor.co
  */
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, NavbarComponent, OrbCursorComponent],
+  imports: [RouterOutlet, NavbarComponent, OrbCursorComponent, OrientationGuardComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

@@ -1,4 +1,5 @@
 @use 'styles/variables' as v;
+@use 'styles/mixins' as m;
 
 :host {
   display: block;
@@ -16,6 +17,14 @@
   touch-action: none;
   pointer-events: auto;
   cursor: default;
+
+  @include m.mobile-landscape-short {
+    display: none !important;
+  }
+
+  @media (max-width: 640px), (pointer: coarse) {
+    display: none !important;
+  }
 
   // Synchronized entrance with "Nach unten schweben" (hero-ui-fade at 3.25s)
   opacity: 0;

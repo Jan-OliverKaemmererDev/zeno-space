@@ -37,6 +37,18 @@
   justify-content: space-between;
   pointer-events: none;
   z-index: 10;
+
+  @include m.mobile-landscape-short {
+    top: 10px;
+    left: 14px;
+    right: 14px;
+  }
+
+  @include m.mobile-se {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+  }
 }
 
 .back-link {
@@ -54,9 +66,19 @@
   font-weight: 600;
   transition: all 0.25s ease;
 
+  @include m.mobile-landscape-short {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    gap: 6px;
+  }
+
   .back-icon {
     font-size: 1.1rem;
     transition: transform 0.25s ease;
+
+    @include m.mobile-landscape-short {
+      font-size: 0.95rem;
+    }
   }
 
   &:hover {
@@ -82,6 +104,11 @@
   font-size: 0.85rem;
   color: var(--zeno-color-text-secondary);
 
+  @include m.mobile-landscape-short {
+    padding: 5px 12px;
+    font-size: 0.75rem;
+  }
+
   .status-dot {
     width: 8px;
     height: 8px;
@@ -106,6 +133,12 @@
   z-index: 10;
   width: calc(100% - 48px);
   max-width: 680px;
+
+  @include m.mobile-landscape-short {
+    bottom: 8px;
+    gap: 4px;
+    width: calc(100% - 24px);
+  }
 }
 
 .dock-panel {
@@ -125,6 +158,12 @@
     0 0 25px rgba(139, 92, 246, 0.15);
   flex-wrap: wrap;
 
+  @include m.mobile-landscape-short {
+    padding: 6px 12px;
+    gap: 6px;
+    flex-wrap: nowrap;
+  }
+
   @media (max-width: 550px) {
     border-radius: 24px;
     padding: 14px;
@@ -140,6 +179,12 @@
   font-size: 0.85rem;
   font-weight: 600;
   transition: all 0.25s ease;
+
+  @include m.mobile-landscape-short {
+    padding: 4px 10px;
+    font-size: 0.76rem;
+    gap: 4px;
+  }
 
   .btn-emoji {
     font-size: 1rem;
@@ -239,4 +284,8 @@
   padding: 4px 14px;
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.06);
+
+  @include m.mobile-landscape-short {
+    display: none;
+  }
 }

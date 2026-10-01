@@ -5,6 +5,7 @@ import {
   signal,
   effect,
   ViewChild,
+  ElementRef,
   OnDestroy,
   HostListener,
 } from '@angular/core';
@@ -35,13 +36,18 @@ export class SanctuarySectionComponent implements OnDestroy {
   /** Whether the sanctuary section is currently in the active viewport. */
   readonly isInView = input<boolean>(false);
 
-  // Sanctuary Interactive Balloons & Speech Bubbles
+  // Sanctuary Interactive Balloons & Speech Bubbles (Desktop)
   readonly showImpressum = signal<boolean>(false);
   readonly showDatenschutz = signal<boolean>(false);
   readonly closingImpressum = signal<boolean>(false);
   readonly closingDatenschutz = signal<boolean>(false);
   private closingImpressumTimeout: ReturnType<typeof setTimeout> | null = null;
   private closingDatenschutzTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  // Smart-Device Top-Layer Dialog References & Signals
+  @ViewChild('legalDialog') legalDialogRef?: ElementRef<HTMLDialogElement>;
+  readonly activeSmartModal = signal<'impressum' | 'datenschutz' | null>(null);
+  readonly isSmartModalClosing = signal<boolean>(false);
 
   // Free-floating warm letter arrays matching orb-tooltip for sanctuary balloons
   readonly impressumTooltipLetters: TooltipLetter[] = (() => {
@@ -91,6 +97,7 @@ export class SanctuarySectionComponent implements OnDestroy {
     this.isDestroyed = true;
     if (typeof document !== 'undefined') {
       document.body.classList.remove('in-sanctuary');
+      document.body.style.overflow = '';
     }
     this.audioService.stopSanctuaryWhales();
 
@@ -110,6 +117,19 @@ export class SanctuarySectionComponent implements OnDestroy {
 
   @HostListener('window:scroll')
   onScroll(): void {
+    if (typeof window !== 'undefined' && window.matchMedia('(hover: none) and (pointer: coarse), (max-width: 1024px)').matches) {
+      return; // Do not close fullscreen modal on mobile/touch scroll
+    }
+    if (this.showImpressum() || this.showDatenschutz()) {
+      this.closeBalloons();
+    }
+  }
+
+  @HostListener('window:keydown.escape')
+  onEscape(): void {
+    if (this.activeSmartModal()) {
+      this.closeSmartDialog();
+    }
     if (this.showImpressum() || this.showDatenschutz()) {
       this.closeBalloons();
     }
@@ -207,8 +227,21 @@ export class SanctuarySectionComponent implements OnDestroy {
     });
   }
 
+  isSmartDevice(): boolean {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(hover: none) and (pointer: coarse), (max-width: 1024px)').matches;
+  }
+
   toggleImpressum(event: Event): void {
     event.stopPropagation();
+    if (this.isSmartDevice()) {
+      if (this.activeSmartModal() === 'impressum') {
+        this.closeSmartDialog();
+      } else {
+        this.openSmartDialog('impressum');
+      }
+      return;
+    }
     if (this.showImpressum()) {
       this.animateCloseBubble('impressum');
     } else {
@@ -220,6 +253,14 @@ export class SanctuarySectionComponent implements OnDestroy {
 
   toggleDatenschutz(event: Event): void {
     event.stopPropagation();
+    if (this.isSmartDevice()) {
+      if (this.activeSmartModal() === 'datenschutz') {
+        this.closeSmartDialog();
+      } else {
+        this.openSmartDialog('datenschutz');
+      }
+      return;
+    }
     if (this.showDatenschutz()) {
       this.animateCloseBubble('datenschutz');
     } else {
@@ -229,7 +270,62 @@ export class SanctuarySectionComponent implements OnDestroy {
     this.resetLettersEvade('.hotspot-floating-tooltip .tooltip-letter');
   }
 
+  openSmartDialog(type: 'impressum' | 'datenschutz'): void {
+    this.animateCloseBubble('impressum');
+    this.animateCloseBubble('datenschutz');
+    this.activeSmartModal.set(type);
+    this.isSmartModalClosing.set(false);
+
+    if (typeof document !== 'undefined') {
+      document.body.style.overflow = 'hidden';
+    }
+
+    setTimeout(() => {
+      const dialog = this.legalDialogRef?.nativeElement;
+      if (dialog) {
+        if (typeof dialog.showModal === 'function') {
+          if (!dialog.open) {
+            dialog.showModal();
+          }
+        } else {
+          dialog.setAttribute('open', '');
+        }
+      }
+    }, 0);
+  }
+
+  closeSmartDialog(): void {
+    if (!this.activeSmartModal() || this.isSmartModalClosing()) return;
+    this.isSmartModalClosing.set(true);
+    setTimeout(() => {
+      const dialog = this.legalDialogRef?.nativeElement;
+      if (dialog) {
+        if (typeof dialog.close === 'function') {
+          if (dialog.open) {
+            dialog.close();
+          }
+        } else {
+          dialog.removeAttribute('open');
+        }
+      }
+      this.activeSmartModal.set(null);
+      this.isSmartModalClosing.set(false);
+      if (typeof document !== 'undefined') {
+        document.body.style.overflow = '';
+      }
+    }, 250);
+  }
+
+  onBackdropClick(event: MouseEvent): void {
+    if (event.target === this.legalDialogRef?.nativeElement) {
+      this.closeSmartDialog();
+    }
+  }
+
   closeBalloons(): void {
+    if (this.activeSmartModal()) {
+      this.closeSmartDialog();
+    }
     this.animateCloseBubble('impressum');
     this.animateCloseBubble('datenschutz');
     this.resetLettersEvade('.hotspot-floating-tooltip .tooltip-letter');

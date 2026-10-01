@@ -20,6 +20,15 @@
   padding: 36px 24px 44px;
   background: transparent;
   overflow: hidden;
+
+  @include m.mobile-landscape-short {
+    padding: 16px 14px 20px;
+    justify-content: space-around;
+  }
+
+  @include m.mobile-se {
+    padding: 24px 14px 28px;
+  }
 }
 
 // UI Fade-in: Appears only AFTER "Willkommen im Zeno-Space" wave animation completes (~3.2s)
@@ -56,6 +65,11 @@
   width: 100%;
   max-width: min(96vw, 1560px);
   padding: 20px 24px;
+
+  @include m.mobile-landscape-short {
+    padding: 4px 12px;
+    margin: 4px 0;
+  }
 }
 
 // Heading containing each individual bubble word
@@ -93,6 +107,15 @@
 
   @media (max-width: 480px) {
     font-size: 2.2rem;
+  }
+
+  @media (max-width: 380px) {
+    font-size: 1.85rem;
+  }
+
+  @include m.mobile-landscape-short {
+    font-size: 2.05rem;
+    row-gap: 0.12em;
   }
 }
 

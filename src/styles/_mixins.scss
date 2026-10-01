@@ -138,3 +138,25 @@
     transform: scale(1.2);
   }
 }
+
+// ==========================================
+// RESPONSIVE BREAKPOINT MIXINS
+// ==========================================
+@mixin mobile-se {
+  @media (max-width: v.$bp-mobile-se) {
+    @content;
+  }
+}
+
+@mixin mobile-landscape-short {
+  @media (max-height: v.$bp-height-short) and (orientation: landscape) {
+    @content;
+  }
+}
+
+@mixin mobile-portrait {
+  @media screen and (orientation: portrait) and ((hover: none) and (pointer: coarse)),
+         screen and (orientation: portrait) and (max-width: v.$bp-tablet-lg) {
+    @content;
+  }
+}

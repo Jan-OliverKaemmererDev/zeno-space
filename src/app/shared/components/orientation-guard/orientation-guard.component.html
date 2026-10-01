@@ -1,0 +1,99 @@
+<div 
+  class="orientation-guard-overlay" 
+  [class.is-dismissed]="isDismissed()" 
+  role="region" 
+  aria-live="polite"
+  aria-label="Hinweis: Bitte Gerät ins Querformat drehen"
+>
+  <!-- Atmospheric cosmic glow background -->
+  <div class="ambient-glow glow-cyan" aria-hidden="true"></div>
+  <div class="ambient-glow glow-lavender" aria-hidden="true"></div>
+
+  <!-- Subtle ambient floating stars/bubbles -->
+  <div class="cosmic-sparkles" aria-hidden="true">
+    <span class="sparkle sparkle-1"></span>
+    <span class="sparkle sparkle-2"></span>
+    <span class="sparkle sparkle-3"></span>
+    <span class="sparkle sparkle-4"></span>
+  </div>
+
+  <div class="guard-card">
+    <!-- Top cozy badge -->
+    <div class="guard-badge">
+      <span class="badge-dot" aria-hidden="true"></span>
+      <span class="badge-text">Querformat empfohlen</span>
+    </div>
+
+    <!-- Centerpiece Animated Rotating Device Graphic -->
+    <div class="device-animation-stage" aria-hidden="true">
+      <!-- Curved Rotation Guidance Arc -->
+      <svg class="rotation-arc" viewBox="0 0 160 160" fill="none">
+        <path 
+          d="M 130 50 A 55 55 0 0 1 50 130" 
+          stroke="url(#arcGradient)" 
+          stroke-width="3" 
+          stroke-linecap="round" 
+          stroke-dasharray="6 6"
+        />
+        <!-- Arrow head -->
+        <polygon points="50,135 40,126 56,121" fill="var(--zeno-color-accent-cyan)" />
+        <defs>
+          <linearGradient id="arcGradient" x1="130" y1="50" x2="50" y2="130" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="var(--zeno-color-accent-rose)" stop-opacity="0.4" />
+            <stop offset="50%" stop-color="var(--zeno-color-accent-purple)" stop-opacity="0.8" />
+            <stop offset="100%" stop-color="var(--zeno-color-accent-cyan)" />
+          </linearGradient>
+        </defs>
+      </svg>
+
+      <!-- Rotating Smart Device Element -->
+      <div class="smart-device">
+        <div class="device-body">
+          <!-- Dynamic Island / Speaker Notch -->
+          <div class="device-notch"></div>
+          
+          <!-- Glossy Screen with simulated cosmic landscape preview -->
+          <div class="device-screen">
+            <div class="screen-preview">
+              <div class="preview-bubble preview-bubble-1"></div>
+              <div class="preview-bubble preview-bubble-2"></div>
+              <div class="preview-horizon"></div>
+            </div>
+            <!-- Shimmer light reflection -->
+            <div class="screen-sheen"></div>
+          </div>
+
+          <!-- Bottom Home Indicator Bar -->
+          <div class="device-chin">
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Copy & Instructions -->
+    <div class="guard-text-content">
+      <h2 class="guard-title">Bitte drehe dein Gerät</h2>
+      <p class="guard-desc">
+        Zeno-Space entfaltet seine Magie, Klänge und interaktiven Welten am schönsten im 
+        <strong>Querformat</strong> (Landscape).
+      </p>
+    </div>
+
+    <!-- Supported devices pill -->
+    <div class="device-pills">
+      <span class="device-chip">📱 iPhone SE & Co.</span>
+      <span class="device-chip">📲 Tablets & iPads</span>
+    </div>
+
+    <!-- Developer / Tester Bypass button -->
+    <button 
+      type="button" 
+      class="guard-bypass-btn" 
+      (click)="dismiss()"
+      aria-label="Trotzdem im Hochformat fortfahren"
+    >
+      Trotzdem im Hochformat ansehen
+    </button>
+  </div>
+</div>

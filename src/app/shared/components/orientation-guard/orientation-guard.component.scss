@@ -1,0 +1,399 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+// ==========================================
+// ORIENTATION GUARD OVERLAY
+// Visible on smartphones & tablets in portrait mode
+// ==========================================
+.orientation-guard-overlay {
+  display: none; // Hidden by default on desktop/landscape
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 16px;
+  background: radial-gradient(
+    circle at 50% 40%,
+    rgba(14, 26, 48, 0.96) 0%,
+    rgba(8, 17, 30, 0.98) 60%,
+    #050812 100%
+  );
+  backdrop-filter: blur(28px) saturate(1.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+  overflow-y: auto;
+  overflow-x: hidden;
+  user-select: none;
+  font-family: var(--zeno-font-sniglet);
+
+  // Activate strictly on smartphones and tablets held in portrait mode
+  @include m.mobile-portrait {
+    display: flex;
+  }
+
+  &.is-dismissed {
+    display: none !important;
+  }
+}
+
+// Ambient Glow Orbs
+.ambient-glow {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(70px);
+  opacity: 0.35;
+  will-change: transform, opacity;
+
+  &.glow-cyan {
+    top: 15%;
+    left: 15%;
+    width: 220px;
+    height: 220px;
+    background: radial-gradient(circle, var(--zeno-color-accent-cyan) 0%, transparent 70%);
+    animation: pulseGlow 4s infinite ease-in-out alternate;
+  }
+
+  &.glow-lavender {
+    bottom: 20%;
+    right: 15%;
+    width: 240px;
+    height: 240px;
+    background: radial-gradient(circle, var(--zeno-color-accent-purple) 0%, transparent 70%);
+    animation: pulseGlow 5s infinite ease-in-out alternate 1s;
+  }
+}
+
+// Sparkling dots
+.cosmic-sparkles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+
+  .sparkle {
+    position: absolute;
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 0 6px #ffffff;
+    animation: twinkle 3s infinite ease-in-out;
+
+    &-1 { top: 22%; left: 28%; animation-delay: 0.2s; }
+    &-2 { top: 35%; right: 24%; animation-delay: 1.1s; }
+    &-3 { bottom: 28%; left: 32%; animation-delay: 2s; }
+    &-4 { bottom: 22%; right: 30%; animation-delay: 0.7s; }
+  }
+}
+
+// Guard Card
+.guard-card {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: min(340px, calc(100vw - 32px));
+  padding: 30px 22px 24px;
+  border-radius: 36px;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(14, 26, 48, 0.5) 45%,
+    rgba(8, 16, 32, 0.65) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-top-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 
+    0 24px 60px rgba(0, 5, 18, 0.65),
+    0 0 35px rgba(56, 189, 248, 0.2),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: cardFloatIn 0.65s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes cardFloatIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// Top Badge
+.guard-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.2);
+  margin-bottom: 22px;
+
+  .badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--zeno-color-accent-cyan);
+    box-shadow: 0 0 8px var(--zeno-color-accent-cyan);
+    animation: pulseGlow 1.8s infinite ease-in-out;
+  }
+
+  .badge-text {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--zeno-color-sky-200);
+  }
+}
+
+// Device Animation Stage
+.device-animation-stage {
+  position: relative;
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.rotation-arc {
+  position: absolute;
+  inset: -8px;
+  width: calc(100% + 16px);
+  height: calc(100% + 16px);
+  pointer-events: none;
+  animation: arcPulse 3.4s infinite ease-in-out;
+}
+
+@keyframes arcPulse {
+  0%, 100% {
+    opacity: 0.55;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+// Smart Device Graphic
+.smart-device {
+  position: relative;
+  width: 58px;
+  height: 104px;
+  transform-origin: center center;
+  animation: rotateSmartDevice 3.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  will-change: transform;
+}
+
+@keyframes rotateSmartDevice {
+  // 0% - 20%: Portrait rest
+  0%, 18% {
+    transform: rotate(0deg) scale(1);
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+  }
+  // 20% - 50%: Smooth 90-degree rotation to landscape
+  42%, 78% {
+    transform: rotate(-90deg) scale(1.06);
+    box-shadow: 0 0 28px rgba(192, 132, 252, 0.45);
+  }
+  // 78% - 100%: Smooth reset to portrait
+  94%, 100% {
+    transform: rotate(0deg) scale(1);
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.25);
+  }
+}
+
+.device-body {
+  width: 100%;
+  height: 100%;
+  border-radius: 14px;
+  background: #0f172a;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.8),
+    0 10px 24px rgba(0, 0, 0, 0.5),
+    0 0 16px rgba(56, 189, 248, 0.3);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  overflow: hidden;
+  position: relative;
+}
+
+.device-notch {
+  width: 18px;
+  height: 4px;
+  border-radius: 999px;
+  background: #020617;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.device-screen {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  margin: 3px 0;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1e1b4b 0%, #0c1a30 50%, #032030 100%);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.screen-preview {
+  position: absolute;
+  inset: 0;
+
+  .preview-bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(56, 189, 248, 0.6) 0%, rgba(139, 92, 246, 0.2) 100%);
+    box-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+
+    &-1 {
+      top: 20%;
+      left: 20%;
+      width: 12px;
+      height: 12px;
+    }
+
+    &-2 {
+      bottom: 25%;
+      right: 18%;
+      width: 16px;
+      height: 16px;
+    }
+  }
+
+  .preview-horizon {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 35%;
+    background: linear-gradient(to top, rgba(56, 189, 248, 0.25), transparent);
+  }
+}
+
+.screen-sheen {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.25) 50%,
+    transparent 60%
+  );
+  animation: screenSheenSweep 3.4s infinite;
+  pointer-events: none;
+}
+
+@keyframes screenSheenSweep {
+  0%, 35% {
+    transform: translate(-60%, -60%);
+  }
+  55%, 100% {
+    transform: translate(60%, 60%);
+  }
+}
+
+.device-chin {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1px;
+}
+
+.home-indicator {
+  width: 18px;
+  height: 2.5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+// Text & Copy
+.guard-text-content {
+  margin-bottom: 18px;
+
+  .guard-title {
+    font-family: var(--zeno-font-bubble);
+    font-size: 1.45rem;
+    font-weight: 600;
+    color: var(--zeno-color-white);
+    letter-spacing: 0.02em;
+    line-height: 1.25;
+    margin-bottom: 8px;
+    background: linear-gradient(180deg, #ffffff 0%, var(--zeno-color-sky-100) 60%, var(--zeno-color-sky-200) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.6));
+  }
+
+  .guard-desc {
+    font-family: var(--zeno-font-sniglet);
+    font-size: 0.90rem;
+    line-height: 1.5;
+    color: var(--zeno-color-slate-100);
+    margin: 0;
+
+    strong {
+      color: var(--zeno-color-sky-200);
+      font-weight: 700;
+    }
+  }
+}
+
+// Device chips
+.device-pills {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+
+  .device-chip {
+    font-size: 0.76rem;
+    font-weight: 500;
+    color: var(--zeno-color-text-muted);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+}
+
+// Tester / Bypass button
+.guard-bypass-btn {
+  font-family: var(--zeno-font-sniglet);
+  background: none;
+  border: none;
+  color: var(--zeno-color-text-muted);
+  font-size: 0.78rem;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: var(--zeno-color-white);
+  }
+}
