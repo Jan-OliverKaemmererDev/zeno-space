@@ -1,0 +1,155 @@
+<div class="pi-spiral-wrapper" role="application" aria-label="Pi Spiral Horizon – Mathematische Mosaik-Meditation">
+  <!-- Interactive 3D WebGL Canvas Container -->
+  <div 
+    #canvasContainer
+    class="canvas-container"
+    role="img"
+    aria-label="3D-Ansicht der Pi-Spirale mit schwebenden Pastell-Mosaiksteinen"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerUp($event)"
+    (pointerleave)="onPointerLeave()"
+    (wheel)="onWheel($event)"
+    (dblclick)="onDoubleClick()"
+  ></div>
+
+  <!-- Top Glass HUD Header -->
+  <header class="game-hud-header">
+    <a routerLink="/" fragment="bubble-hub" class="back-link" aria-label="Zurückkehren">
+      <span class="back-icon" aria-hidden="true">←</span>
+      <span>Zurückkehren</span>
+    </a>
+
+    <!-- Pi Live Snippet & Stats -->
+    <div class="hud-stats" aria-live="polite">
+      <div class="stat-pill pi-snippet-pill" title="Aktueller Ziffernverlauf">
+        <span class="pi-symbol" aria-hidden="true">π</span>
+        <span class="pi-text">≈ {{ currentPiSnippet() }}</span>
+      </div>
+
+      <div class="stat-bubble" title="Gesamtzahl der Nachkommastellen">
+        <span class="stat-num">{{ totalDecimalsFormatted() }}</span>
+        <span class="stat-text">Ziffern</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Bottom Floating Control Dock -->
+  <nav class="game-controls-dock" aria-label="Spirale-Steuerung">
+    <div class="dock-panel" role="toolbar" aria-label="Mosaik-Aktionen">
+      <!-- Action: +5 Digits (Primary) -->
+      <button 
+        type="button" 
+        class="dock-btn dock-btn--primary"
+        (click)="addFiveDigits()"
+        aria-label="Fünf weitere Ziffern der Kreiszahl Pi erzeugen"
+        title="Fünf weitere Ziffern hinzufügen (Shortcut: Leertaste)"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/>
+          <line x1="12" y1="8" x2="12" y2="16"/>
+          <line x1="8" y1="12" x2="16" y2="12"/>
+        </svg>
+        <span>+5 Ziffern</span>
+      </button>
+
+      <!-- Toggle: Auto-Flow Mode -->
+      <button 
+        type="button" 
+        class="dock-btn dock-btn--secondary dock-btn--autoflow"
+        [class.active]="isAutoFlowActive()"
+        [attr.aria-pressed]="isAutoFlowActive()"
+        (click)="toggleAutoFlow()"
+        aria-label="Auto-Flow Meditations-Modus umschalten"
+        title="Automatischer Ziffern-Fluss (Shortcut: A)"
+      >
+        @if (isAutoFlowActive()) {
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="10" y1="5" x2="10" y2="19"/>
+            <line x1="14" y1="5" x2="14" y2="19"/>
+          </svg>
+        } @else {
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="5 3 19 12 5 21 5 3"/>
+          </svg>
+        }
+        <span>{{ isAutoFlowActive() ? 'Pause' : 'Auto-Flow' }}</span>
+      </button>
+
+      <!-- Action: Center View -->
+      <button 
+        type="button" 
+        class="dock-btn dock-btn--secondary"
+        (click)="resetCameraView()"
+        aria-label="Kamera zentrieren und gesamte Spirale überblicken"
+        title="Ansicht zentrieren (Shortcut: C)"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M3 12h3M18 12h3M12 3v3M12 18v3"/>
+        </svg>
+        <span>Zentrieren</span>
+      </button>
+
+      <!-- Toggle: Sound Chimes -->
+      <button 
+        type="button" 
+        class="dock-btn dock-btn--secondary"
+        [class.active]="isSoundEnabled()"
+        [attr.aria-pressed]="isSoundEnabled()"
+        (click)="toggleSound()"
+        aria-label="Klang-Chimes an- oder ausschalten"
+        title="Klang-Chimes an/aus"
+      >
+        @if (isSoundEnabled()) {
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>
+          </svg>
+        } @else {
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+            <line x1="23" y1="9" x2="17" y2="15"/>
+            <line x1="17" y1="9" x2="23" y2="15"/>
+          </svg>
+        }
+        <span>Klang</span>
+      </button>
+
+      <div class="dock-divider" aria-hidden="true"></div>
+
+      <!-- Action: Reset Spiral -->
+      <button 
+        type="button" 
+        class="dock-btn dock-btn--ghost"
+        (click)="resetSpiral()"
+        aria-label="Spirale auf 3,14 zurücksetzen"
+        title="Spirale neu starten (Shortcut: R)"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+        </svg>
+        <span>Neustart</span>
+      </button>
+    </div>
+
+    <!-- Instruction Hint -->
+    <aside class="interaction-hint" aria-label="Bedienungshinweise">
+      <span class="hint-item">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 8v8M8 12h8"/>
+        </svg>
+        <span>Klick auf Fläche / Leertaste für +5 Ziffern</span>
+      </span>
+      <span aria-hidden="true">•</span>
+      <span>Ziehen: 3D-Neigen</span>
+      <span aria-hidden="true">•</span>
+      <span>Mausrad: Zoomen</span>
+      <span aria-hidden="true">•</span>
+      <span>ESC: Menü</span>
+    </aside>
+  </nav>
+</div>

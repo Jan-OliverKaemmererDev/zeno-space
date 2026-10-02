@@ -65,6 +65,18 @@
 }
 
 // ==========================================
+// CUSTOM SCI-FI FONT: ORBITRON
+// ==========================================
+@font-face {
+  font-family: 'Orbitron';
+  src: url('/fonts/Orbitron/static/Orbitron-Regular.ttf') format('truetype'),
+       url('../public/fonts/Orbitron/static/Orbitron-Regular.ttf') format('truetype');
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+// ==========================================
 // CSS CUSTOM PROPERTIES (:root DESIGN TOKENS)
 // ==========================================
 :root {

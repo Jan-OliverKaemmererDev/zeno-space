@@ -1,0 +1,526 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+.pi-spiral-wrapper {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background-color: #0c0b16;
+  user-select: none;
+  touch-action: none;
+}
+
+.canvas-container {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+
+  canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Top Glass HUD Header
+// ---------------------------------------------------------------------------
+
+.game-hud-header {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 10;
+  gap: 16px;
+
+  @include m.mobile-landscape-short {
+    top: 10px;
+    left: 14px;
+    right: 14px;
+  }
+
+  @include m.mobile-se {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+  }
+}
+
+.back-link {
+  font-family: $font-sniglet;
+  pointer-events: auto;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    rgba(186, 230, 253, 0.26) 0%,
+    rgba(56, 189, 248, 0.32) 50%,
+    rgba(96, 165, 250, 0.38) 100%
+  );
+  border: 1px solid rgba(147, 197, 253, 0.48);
+  color: var(--zeno-color-white);
+  font-size: 0.96rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-shadow: 
+    0 1px 4px rgba(7, 20, 50, 0.95),
+    0 2px 8px rgba(0, 0, 0, 0.7);
+  box-shadow: 
+    0 4px 14px rgba(14, 116, 144, 0.24),
+    0 0 16px rgba(56, 189, 248, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s ease;
+  cursor: pointer;
+  text-decoration: none;
+
+  @include m.mobile-landscape-short {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    gap: 6px;
+  }
+
+  @media (max-width: 500px) {
+    padding: 8px 14px;
+    font-size: 0.84rem;
+  }
+
+  .back-icon {
+    font-size: 1.15rem;
+    transition: transform 0.25s ease;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+  }
+
+  &:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(224, 242, 254, 0.38) 0%,
+      rgba(56, 189, 248, 0.48) 50%,
+      rgba(96, 165, 250, 0.52) 100%
+    );
+    border-color: rgba(224, 242, 254, 0.72);
+    box-shadow: 
+      0 6px 22px rgba(0, 0, 0, 0.4),
+      0 0 22px rgba(56, 189, 248, 0.38),
+      inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    transform: translateY(-2px);
+
+    .back-icon {
+      transform: translateX(-4px);
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.hud-stats {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  @include m.mobile-landscape-short {
+    gap: 8px;
+  }
+}
+
+.stat-pill {
+  font-family: $font-sniglet;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    rgba(186, 230, 253, 0.22) 0%,
+    rgba(56, 189, 248, 0.26) 50%,
+    rgba(96, 165, 250, 0.30) 100%
+  );
+  border: 1px solid rgba(147, 197, 253, 0.45);
+  box-shadow: 
+    0 4px 14px rgba(0, 0, 0, 0.35),
+    0 0 14px rgba(56, 189, 248, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-size: 0.90rem;
+  color: #ffffff;
+  text-shadow: 
+    0 1px 4px rgba(7, 20, 50, 0.95),
+    0 2px 8px rgba(0, 0, 0, 0.7);
+
+  @include m.mobile-landscape-short {
+    padding: 5px 12px;
+    font-size: 0.75rem;
+  }
+
+  @media (max-width: 720px) {
+    display: none;
+  }
+
+  .pi-symbol {
+    font-size: 1.12rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #bae6fd;
+    text-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+  }
+
+  .pi-text {
+    font-family: monospace, sans-serif;
+    letter-spacing: 0.5px;
+    color: #f1f5f9;
+  }
+}
+
+.stat-bubble {
+  font-family: $font-sniglet;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    rgba(186, 230, 253, 0.24) 0%,
+    rgba(56, 189, 248, 0.28) 50%,
+    rgba(96, 165, 250, 0.34) 100%
+  );
+  border: 1px solid rgba(147, 197, 253, 0.48);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    0 0 16px rgba(56, 189, 248, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #ffffff;
+  text-shadow: 
+    0 1px 4px rgba(7, 20, 50, 0.95),
+    0 2px 8px rgba(0, 0, 0, 0.7);
+
+  @include m.mobile-landscape-short {
+    padding: 5px 12px;
+  }
+
+  .stat-num {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #ffffff;
+    font-family: $font-sniglet;
+    text-shadow: 0 0 12px rgba(56, 189, 248, 0.5);
+
+    @include m.mobile-landscape-short {
+      font-size: 0.95rem;
+    }
+  }
+
+  .stat-text {
+    font-size: 0.82rem;
+    color: #cbd5e1;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Bottom Floating Control Dock (Modeled after game-instructions-card)
+// ---------------------------------------------------------------------------
+
+.game-controls-dock {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  z-index: 10;
+  width: max-content;
+  max-width: calc(100% - 24px);
+
+  @include m.mobile-landscape-short {
+    bottom: 6px;
+    gap: 4px;
+    max-width: calc(100% - 16px);
+  }
+}
+
+.dock-panel {
+  font-family: $font-sniglet;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.13) 0%,
+    rgba(14, 26, 48, 0.45) 45%,
+    rgba(8, 16, 32, 0.55) 100%
+  );
+  backdrop-filter: blur(26px) saturate(135%);
+  -webkit-backdrop-filter: blur(26px) saturate(135%);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  box-shadow:
+    0 20px 48px -10px rgba(0, 0, 0, 0.55),
+    0 0 35px -4px rgba(56, 189, 248, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @include m.mobile-landscape-short {
+    padding: 5px 10px;
+    gap: 5px;
+  }
+
+  @media (max-width: 550px) {
+    border-radius: 999px;
+    padding: 6px 10px;
+    gap: 5px;
+  }
+}
+
+.dock-btn {
+  font-family: $font-sniglet;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  @include m.mobile-landscape-short {
+    padding: 4px 10px;
+    font-size: 0.76rem;
+    gap: 4px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    gap: 4px;
+  }
+
+  svg {
+    flex-shrink: 0;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+  }
+
+  // Primary Action: +5 Digits (Styled directly after btn-start-game)
+  &--primary {
+    padding: 7px 16px;
+    background: linear-gradient(
+      135deg,
+      rgba(186, 230, 253, 0.32) 0%,
+      rgba(56, 189, 248, 0.42) 50%,
+      rgba(96, 165, 250, 0.48) 100%
+    );
+    border: 1px solid rgba(224, 242, 254, 0.60);
+    color: #ffffff;
+    font-weight: 600;
+    text-shadow: 
+      0 1px 4px rgba(7, 20, 50, 0.95),
+      0 2px 8px rgba(0, 0, 0, 0.7);
+    box-shadow: 
+      0 4px 14px rgba(14, 116, 144, 0.28),
+      0 0 18px rgba(56, 189, 248, 0.28),
+      inset 0 1px 0 rgba(255, 255, 255, 0.48);
+
+    &:hover {
+      background: linear-gradient(
+        135deg,
+        rgba(224, 242, 254, 0.42) 0%,
+        rgba(56, 189, 248, 0.54) 50%,
+        rgba(96, 165, 250, 0.58) 100%
+      );
+      border-color: rgba(224, 242, 254, 0.85);
+      box-shadow: 
+        0 6px 22px rgba(0, 0, 0, 0.4),
+        0 0 24px rgba(56, 189, 248, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.60);
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+
+  &--secondary {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(56, 189, 248, 0.12) 100%
+    );
+    border: 1px solid rgba(147, 197, 253, 0.28);
+    color: #e0f2fe;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    box-shadow: 
+      0 2px 8px rgba(0, 0, 0, 0.20),
+      inset 0 1px 0 rgba(255, 255, 255, 0.20);
+
+    &:hover {
+      background: linear-gradient(
+        135deg,
+        rgba(186, 230, 253, 0.22) 0%,
+        rgba(56, 189, 248, 0.32) 100%
+      );
+      border-color: rgba(147, 197, 253, 0.60);
+      color: #ffffff;
+      box-shadow: 
+        0 4px 14px rgba(0, 0, 0, 0.3),
+        0 0 16px rgba(56, 189, 248, 0.30),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      transform: translateY(-2px);
+    }
+
+    &.active {
+      background: linear-gradient(
+        135deg,
+        rgba(56, 189, 248, 0.38) 0%,
+        rgba(96, 165, 250, 0.48) 100%
+      );
+      border-color: rgba(224, 242, 254, 0.75);
+      color: #ffffff;
+      text-shadow: 
+        0 1px 4px rgba(7, 20, 50, 0.95),
+        0 2px 8px rgba(0, 0, 0, 0.7);
+      box-shadow: 
+        0 4px 16px rgba(14, 116, 144, 0.30),
+        0 0 20px rgba(56, 189, 248, 0.40),
+        inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+
+  // Fixed width for Auto-Flow button so it never shrinks when toggling between 'Auto-Flow' and 'Pause'
+  &--autoflow {
+    width: 126px;
+    min-width: 126px;
+    justify-content: center;
+
+    @include m.mobile-landscape-short {
+      width: 104px;
+      min-width: 104px;
+    }
+
+    @media (max-width: 480px) {
+      width: 106px;
+      min-width: 106px;
+    }
+  }
+
+  &--ghost {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(224, 242, 254, 0.75);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+
+    &:hover {
+      background: rgba(239, 68, 68, 0.20);
+      border-color: rgba(248, 113, 113, 0.45);
+      color: #fecaca;
+      box-shadow: 0 0 14px rgba(239, 68, 68, 0.32);
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+}
+
+.dock-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.22);
+  flex-shrink: 0;
+  margin: 0 2px;
+
+  @media (max-width: 480px) {
+    display: none;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Instruction Hint Banner (Frosted glass capsule)
+// ---------------------------------------------------------------------------
+
+.interaction-hint {
+  font-family: $font-sniglet;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.10) 0%,
+    rgba(14, 26, 48, 0.38) 100%
+  );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 0.80rem;
+  color: #cbd5e1;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.20);
+
+  @include m.mobile-landscape-short {
+    display: none;
+  }
+
+  @media (max-width: 600px) {
+    display: none;
+  }
+
+  .hint-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+}

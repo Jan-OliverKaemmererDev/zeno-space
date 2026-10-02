@@ -25,9 +25,9 @@ export const routes: Routes = [
       ),
   },
   {
-    path: 'game/zen-sand',
+    path: 'game/pi-spiral',
     loadComponent: () =>
-      import('./features/games/zen-sand/zen-sand.component').then((m) => m.ZenSandComponent),
+      import('./features/games/pi-spiral/pi-spiral.component').then((m) => m.PiSpiralComponent),
   },
   {
     path: 'game/soundscape-mixer',
