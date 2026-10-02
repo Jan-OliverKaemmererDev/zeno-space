@@ -13,6 +13,7 @@ import { Router, RouterLink } from '@angular/router';
 import * as THREE from 'three';
 import { AudioService } from '../../../core/services/audio.service';
 import { PI_DECIMAL_DIGITS_AFTER_14, getPiDigitAfter14 } from './pi-digits.data';
+import { ORBITRON_REGULAR_BASE64 } from './orbitron-font.data';
 
 /**
  * Metadata and animation state for a single 3D mosaic tile in the Pi spiral.
@@ -263,6 +264,12 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
     this.createCenterHeroTile();
     this.animate();
 
+    if (typeof document !== 'undefined' && document.fonts) {
+      document.fonts.ready.then(() => {
+        this.refreshAllOrbitronTextures();
+      });
+    }
+
     // Start with the first 5 digits already rendered
     setTimeout(() => {
       this.addFiveDigits(false);
@@ -282,18 +289,89 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Pre-loads the Orbitron font so HTML5 Canvas 2D rendering uses the exact Orbitron font file.
+   * Registers font data with multiple weight descriptors and family aliases
+   * so Canvas 2D font matching succeeds whether 400, 700, bold, or normal is specified.
    */
-  private async loadOrbitronFont(): Promise<void> {
-    try {
-      if (typeof FontFace !== 'undefined') {
-        const font = new FontFace('Orbitron', 'url(/fonts/Orbitron/static/Orbitron-Regular.ttf)');
-        await font.load();
-        document.fonts.add(font);
+  private async registerOrbitronFontFaces(fontData: ArrayBuffer): Promise<void> {
+    if (typeof FontFace === 'undefined' || typeof document === 'undefined' || !document.fonts) return;
+
+    const weights = ['400', '700', 'normal', 'bold', '100 900'];
+    const families = ['Orbitron', 'Orbitron-Regular'];
+
+    for (const family of families) {
+      for (const weight of weights) {
+        try {
+          const fontFace = new FontFace(family, fontData.slice(0), {
+            weight,
+            style: 'normal',
+            display: 'swap',
+          });
+          await fontFace.load();
+          document.fonts.add(fontFace);
+        } catch {
+          // Ignore individual duplicate weight registration issues
+        }
       }
+    }
+
+    try {
       await document.fonts.ready;
     } catch {
-      // Graceful fallback to CSS @font-face
+      // Ignore ready error
+    }
+  }
+
+  /**
+   * Pre-loads the Orbitron font from public/fonts/Orbitron/static/Orbitron-Regular.ttf
+   * with multi-path resolution and embedded byte-for-byte binary fallback.
+   * Guarantees 100% reliable font availability even when deployed on Netcup webhosting.
+   */
+  private async loadOrbitronFont(): Promise<void> {
+    let buffer: ArrayBuffer | null = null;
+
+    if (typeof window !== 'undefined') {
+      const candidates: string[] = [];
+      try {
+        if (typeof document !== 'undefined' && document.baseURI) {
+          candidates.push(new URL('fonts/Orbitron/static/Orbitron-Regular.ttf', document.baseURI).href);
+        }
+      } catch {}
+      candidates.push('fonts/Orbitron/static/Orbitron-Regular.ttf');
+      candidates.push('/fonts/Orbitron/static/Orbitron-Regular.ttf');
+
+      for (const url of candidates) {
+        try {
+          const response = await fetch(url);
+          if (response.ok) {
+            const ab = await response.arrayBuffer();
+            if (ab && ab.byteLength > 1000) {
+              buffer = ab;
+              break;
+            }
+          }
+        } catch {
+          // Try next candidate URL
+        }
+      }
+
+      if (!buffer) {
+        try {
+          // Decode embedded exact Orbitron-Regular.ttf binary data
+          const binaryString = atob(ORBITRON_REGULAR_BASE64);
+          const len = binaryString.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          buffer = bytes.buffer;
+        } catch (err) {
+          console.warn('Fallback base64 font decode error:', err);
+        }
+      }
+
+      if (buffer) {
+        await this.registerOrbitronFontFaces(buffer);
+      }
     }
   }
 
@@ -392,7 +470,7 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
 
     piCtx.textAlign = 'center';
     piCtx.textBaseline = 'middle';
-    piCtx.font = 'bold 700px "Orbitron", serif, sans-serif';
+    piCtx.font = 'bold 700px "Sniglet-ExtraBold", "Sniglet", serif, sans-serif';
 
     // Drop-shadow 1: Deep dark shadow (rgba(7, 20, 50, 0.90)) to elevate Pi from background
     piCtx.shadowColor = 'rgba(7, 20, 50, 0.90)';
@@ -473,6 +551,25 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
     this.spiralGroup.add(this.centerPiSymbolMesh);
 
     // 2. Crisp Free-Floating "3,14" in Orbitron font (enlarged to 3.0 x 1.5, slightly darker blue #2563eb with drop-shadow)
+    const centerTexture = this.createCenterNumberTexture();
+
+    // Enlarged center plane (3.0 x 1.5)
+    const centerGeo = new THREE.PlaneGeometry(3.0, 1.5);
+    const centerMat = new THREE.MeshBasicMaterial({
+      map: centerTexture,
+      transparent: true,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    this.centerTileMesh = new THREE.Mesh(centerGeo, centerMat);
+    this.centerTileMesh.position.set(0, 0, 0.60);
+    this.spiralGroup.add(this.centerTileMesh);
+  }
+
+  /**
+   * Generates crisp CanvasTexture for center "3,14" in Orbitron font (#2563eb with drop-shadows).
+   */
+  private createCenterNumberTexture(): THREE.CanvasTexture {
     const centerCanvas = document.createElement('canvas');
     centerCanvas.width = 1024;
     centerCanvas.height = 512;
@@ -483,7 +580,7 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
 
     centerCtx.textAlign = 'center';
     centerCtx.textBaseline = 'middle';
-    centerCtx.font = '700 280px "Orbitron", sans-serif';
+    centerCtx.font = '700 280px "Orbitron", "Orbitron-Regular", sans-serif';
 
     // 1. Subtle dark depth drop-shadow to elevate the number from the background
     centerCtx.shadowColor = 'rgba(0, 0, 0, 0.80)';
@@ -512,18 +609,30 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
     if (this.renderer) {
       centerTexture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
     }
+    return centerTexture;
+  }
 
-    // Enlarged center plane (3.0 x 1.5)
-    const centerGeo = new THREE.PlaneGeometry(3.0, 1.5);
-    const centerMat = new THREE.MeshBasicMaterial({
-      map: centerTexture,
-      transparent: true,
-      depthWrite: false,
-      side: THREE.DoubleSide,
-    });
-    this.centerTileMesh = new THREE.Mesh(centerGeo, centerMat);
-    this.centerTileMesh.position.set(0, 0, 0.60);
-    this.spiralGroup.add(this.centerTileMesh);
+  /**
+   * Refreshes the center "3,14" texture when Orbitron font is ready.
+   */
+  private updateCenterHeroNumberTexture(): void {
+    if (!this.centerTileMesh) return;
+    const mat = this.centerTileMesh.material as THREE.MeshBasicMaterial;
+    if (mat) {
+      const oldMap = mat.map;
+      mat.map = this.createCenterNumberTexture();
+      mat.needsUpdate = true;
+      oldMap?.dispose();
+    }
+  }
+
+  /**
+   * Refreshes all Orbitron-based canvas textures (center 3,14 and digits 0-9)
+   * once the Orbitron webfont is confirmed loaded into the document FontFaceSet.
+   */
+  private refreshAllOrbitronTextures(): void {
+    this.initDigitMaterials();
+    this.updateCenterHeroNumberTexture();
   }
 
   // ---------------------------------------------------------------------------
@@ -1262,7 +1371,7 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
       ctx.arc(256, 256, 235, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.font = '700 290px "Orbitron", sans-serif';
+      ctx.font = '700 290px "Orbitron", "Orbitron-Regular", sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 

@@ -88,6 +88,11 @@ Options -Indexes -MultiViews
 
     # XSS Protection for legacy browsers
     Header always set X-XSS-Protection "1; mode=block"
+
+    # Allow cross-origin font loading (CORS) for Canvas 2D and FontFace API
+    <FilesMatch "\.(ttf|otf|eot|woff|woff2)$">
+        Header set Access-Control-Allow-Origin "*"
+    </FilesMatch>
 </IfModule>
 
 # ------------------------------------------------------------------------------
