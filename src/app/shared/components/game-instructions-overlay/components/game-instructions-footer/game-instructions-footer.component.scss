@@ -1,0 +1,155 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+:host {
+  display: block;
+}
+
+.game-instructions-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.footer-action {
+  display: flex;
+  justify-content: flex-end;
+}
+
+// Primary Launcher Button styled directly after card-cta in glass-bubble-card
+.btn-start-game {
+  font-family: $font-sniglet;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    rgba(186, 230, 253, 0.26) 0%,
+    rgba(56, 189, 248, 0.32) 50%,
+    rgba(96, 165, 250, 0.38) 100%
+  );
+  border: 1px solid rgba(147, 197, 253, 0.48);
+  color: var(--zeno-color-white);
+  font-size: 0.96rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-shadow: 
+    0 1px 4px rgba(7, 20, 50, 0.95),
+    0 2px 8px rgba(0, 0, 0, 0.7);
+  box-shadow: 
+    0 4px 14px rgba(14, 116, 144, 0.24),
+    0 0 16px var(--game-glow, rgba(56, 189, 248, 0.22)),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all 0.25s ease;
+  cursor: pointer;
+  outline: none;
+  overflow: hidden;
+
+  .btn-text {
+    position: relative;
+    z-index: 2;
+  }
+
+  .btn-icon {
+    position: relative;
+    z-index: 2;
+    transition: transform 0.25s ease;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+  }
+
+  .btn-glow {
+    position: absolute;
+    inset: -20px;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.45) 0%, transparent 65%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+
+  &:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(224, 242, 254, 0.38) 0%,
+      rgba(56, 189, 248, 0.48) 50%,
+      rgba(96, 165, 250, 0.52) 100%
+    );
+    border-color: rgba(224, 242, 254, 0.72);
+    box-shadow: 
+      0 6px 22px rgba(0, 0, 0, 0.4),
+      0 0 22px var(--game-glow, rgba(56, 189, 248, 0.38)),
+      inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    transform: translateY(-2px);
+
+    .btn-icon {
+      transform: translateX(4px);
+    }
+
+    .btn-glow {
+      opacity: 0.35;
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// Mobile Smart Devices (max-width: 640px)
+@media (max-width: v.$bp-mobile-md) {
+  .game-instructions-footer {
+    padding-top: 1rem;
+    justify-content: center;
+
+    .footer-action,
+    .btn-start-game {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn-start-game {
+      min-height: 46px;
+      font-size: 0.95rem;
+      padding: 0.75rem 1.25rem;
+    }
+  }
+}
+
+// Landscape Mode on Smart Devices
+@include m.mobile-landscape-short {
+  .game-instructions-footer {
+    padding-top: 0.45rem;
+    justify-content: flex-end;
+
+    .footer-action {
+      width: auto;
+    }
+
+    .btn-start-game {
+      width: auto;
+      min-height: 38px;
+      padding: 0.45rem 1.15rem;
+      font-size: 0.88rem;
+    }
+  }
+}
+
+// Touch ergonomics
+@media (hover: none) and (pointer: coarse) {
+  .btn-start-game {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .btn-start-game:active {
+    transform: scale(0.96);
+  }
+}

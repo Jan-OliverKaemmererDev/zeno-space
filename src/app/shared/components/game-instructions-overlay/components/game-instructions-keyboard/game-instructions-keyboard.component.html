@@ -1,0 +1,47 @@
+<div class="control-panel panel--keyboard">
+  <div class="panel-header">
+    <span class="panel-title">Tastatur</span>
+  </div>
+
+  <div class="keyboard-groups">
+    @for (ctrl of controls; track ctrl.label) {
+      <div class="keyboard-group">
+        <!-- WASD 2-Row Layout -->
+        @if (ctrl.type === 'wasd') {
+          <div class="wasd-layout" aria-label="Tasten W, A, S, D">
+            <div class="wasd-row wasd-row--top">
+              <span class="keycap keycap--w" style="--key-delay: 0s">W</span>
+            </div>
+            <div class="wasd-row wasd-row--bottom">
+              <span class="keycap keycap--a" style="--key-delay: 0.25s">A</span>
+              <span class="keycap keycap--s" style="--key-delay: 0.5s">S</span>
+              <span class="keycap keycap--d" style="--key-delay: 0.75s">D</span>
+            </div>
+          </div>
+        }
+
+        <!-- Wide Spacebar Layout -->
+        @else if (ctrl.type === 'space') {
+          <div class="space-layout" aria-label="Leertaste">
+            <span class="keycap keycap--space" style="--key-delay: 0.2s">
+              <span class="space-label">{{ ctrl.keys[0] }}</span>
+            </span>
+          </div>
+        }
+
+        <!-- Inline Keys (e.g. 1, 2, 3, 4 or R, S or ESC) -->
+        @else {
+          <div class="inline-keys-layout">
+            @for (key of ctrl.keys; track key; let idx = $index) {
+              <span class="keycap keycap--inline" [style.--key-delay]="(idx * 0.2) + 's'">
+                {{ key }}
+              </span>
+            }
+          </div>
+        }
+
+        <p class="control-action-label">{{ ctrl.label }}</p>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,296 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+:host {
+  display: contents;
+}
+
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 1.15rem 1.25rem;
+  border-radius: 20px;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.09) 0%,
+    rgba(14, 26, 48, 0.28) 50%,
+    rgba(8, 16, 32, 0.38) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 
+    0 8px 24px -4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.panel-title {
+  font-family: $font-sniglet;
+  font-size: 0.825rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #cbd5e1;
+}
+
+/* Mouse Showcase */
+.mouse-showcase {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.mouse-chassis {
+  position: relative;
+  width: 58px;
+  height: 92px;
+  border-radius: 28px 28px 24px 24px;
+  background: linear-gradient(180deg, #2b2545 0%, #1a1630 100%);
+  border: 2px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 
+    0 8px 18px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.mouse-buttons-row {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 42px;
+  display: flex;
+}
+
+.mouse-button {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 6px;
+  cursor: default;
+
+  .btn-indicator {
+    font-family: $font-sniglet;
+    font-size: 0.52rem;
+    font-weight: 700;
+    color: #64748b;
+    opacity: 0.6;
+    letter-spacing: 0.04em;
+  }
+
+  &.mouse-left {
+    border-top-left-radius: 26px;
+
+    &.is-active {
+      background: radial-gradient(circle at 50% 30%, var(--game-glow, rgba(196, 181, 253, 0.45)), transparent 75%);
+      animation: mouseLmbPulse 1.9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+
+      .btn-indicator {
+        color: var(--game-color, #c4b5fd);
+        opacity: 1;
+      }
+    }
+  }
+
+  &.mouse-right {
+    border-top-right-radius: 26px;
+
+    &.is-active {
+      background: radial-gradient(circle at 50% 30%, var(--game-glow, rgba(196, 181, 253, 0.45)), transparent 75%);
+      animation: mouseLmbPulse 1.9s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      animation-delay: 0.3s;
+
+      .btn-indicator {
+        color: var(--game-color, #c4b5fd);
+        opacity: 1;
+      }
+    }
+  }
+}
+
+.mouse-divider {
+  width: 1px;
+  height: 38px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.mouse-wheel-carrier {
+  position: absolute;
+  top: 14px;
+  z-index: 2;
+  width: 12px;
+  height: 22px;
+  border-radius: 6px;
+  background: #141126;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+
+  &.is-scrolling {
+    border-color: var(--game-color, #c4b5fd);
+    box-shadow: 0 0 8px var(--game-glow, rgba(196, 181, 253, 0.4));
+
+    .mouse-wheel {
+      animation: wheelScroll 1.6s ease-in-out infinite;
+    }
+  }
+}
+
+.mouse-wheel {
+  width: 6px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--game-color, #c4b5fd);
+  box-shadow: 0 0 6px var(--game-glow, rgba(196, 181, 253, 0.6));
+}
+
+.mouse-palm {
+  margin-top: 50px;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.drag-motion-hint {
+  color: var(--game-color, #c4b5fd);
+  opacity: 0.7;
+  animation: dragMotionSway 2s ease-in-out infinite;
+}
+
+.control-action-label {
+  font-family: $font-sniglet;
+  font-size: 0.825rem;
+  line-height: 1.4;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* Mouse LMB Press Pulse */
+@keyframes mouseLmbPulse {
+  0%, 100% {
+    transform: translateY(0);
+    opacity: 0.9;
+  }
+  30% {
+    transform: translateY(2px);
+    opacity: 1;
+    filter: brightness(1.3);
+  }
+}
+
+/* Wheel Scroll */
+@keyframes wheelScroll {
+  0%, 100% {
+    transform: translateY(-2px);
+  }
+  50% {
+    transform: translateY(2px);
+  }
+}
+
+/* Drag Sway */
+@keyframes dragMotionSway {
+  0%, 100% {
+    transform: translateX(-4px);
+  }
+  50% {
+    transform: translateX(4px);
+  }
+}
+
+// Mobile Smart Devices (max-width: 640px)
+@media (max-width: v.$bp-mobile-md) {
+  .control-panel {
+    padding: 0.95rem 1rem;
+    border-radius: 16px;
+  }
+
+  .panel-header {
+    margin-bottom: 0.75rem;
+  }
+
+  .mouse-chassis {
+    width: 50px;
+    height: 80px;
+    border-radius: 24px 24px 20px 20px;
+  }
+
+  .mouse-buttons-row {
+    height: 36px;
+  }
+
+  .mouse-wheel-carrier {
+    top: 11px;
+    width: 10px;
+    height: 19px;
+
+    .mouse-wheel {
+      width: 5px;
+      height: 10px;
+    }
+  }
+
+  .mouse-palm {
+    margin-top: 42px;
+  }
+
+  .control-action-label {
+    font-size: 0.78rem;
+  }
+}
+
+// Compact Mobile Smart Devices (max-width: 380px)
+@include m.mobile-se {
+  .mouse-chassis {
+    width: 44px;
+    height: 72px;
+  }
+
+  .mouse-buttons-row {
+    height: 32px;
+  }
+
+  .mouse-palm {
+    margin-top: 36px;
+  }
+}
+
+// Landscape Mode on Smart Devices
+@include m.mobile-landscape-short {
+  .control-panel {
+    padding: 0.6rem 0.75rem;
+    border-radius: 14px;
+  }
+
+  .panel-header {
+    margin-bottom: 0.35rem;
+  }
+
+  .mouse-chassis {
+    width: 40px;
+    height: 64px;
+  }
+
+  .mouse-buttons-row {
+    height: 28px;
+  }
+
+  .mouse-palm {
+    margin-top: 30px;
+  }
+}

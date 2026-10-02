@@ -1,0 +1,16 @@
+<footer class="game-instructions-footer">
+  <div class="footer-action">
+    <button 
+      type="button" 
+      class="btn-start-game" 
+      (click)="startGame.emit()"
+      [attr.aria-label]="gameTitle + ' jetzt starten'"
+    >
+      <span class="btn-text">Spiel starten</span>
+      <svg class="btn-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+      </svg>
+      <div class="btn-glow" aria-hidden="true"></div>
+    </button>
+  </div>
+</footer>

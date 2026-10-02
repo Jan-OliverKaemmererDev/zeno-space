@@ -88,4 +88,20 @@ describe('GameInstructionsOverlayComponent', () => {
     component.onEscape();
     expect(component.isClosing()).toBe(true);
   });
+
+  it('should close when clicking the backdrop', () => {
+    const backdrop = fixture.nativeElement.querySelector('.game-instructions-backdrop') as HTMLElement;
+    backdrop.click();
+    expect(component.isClosing()).toBe(true);
+  });
+
+  it('should lock document body scroll on init and unlock on destroy', () => {
+    expect(document.body.style.overflow).toBe('hidden');
+    expect(document.documentElement.style.overflow).toBe('hidden');
+
+    fixture.destroy();
+
+    expect(document.body.style.overflow).toBe('');
+    expect(document.documentElement.style.overflow).toBe('');
+  });
 });

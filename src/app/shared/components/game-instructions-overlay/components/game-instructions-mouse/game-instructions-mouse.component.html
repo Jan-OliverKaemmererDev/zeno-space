@@ -1,0 +1,49 @@
+<div class="control-panel panel--mouse">
+  <div class="panel-header">
+    <span class="panel-title">Maus & Touch</span>
+  </div>
+
+  <div class="mouse-showcase">
+    <!-- Visual Animated Mouse Illustration -->
+    <div class="mouse-chassis" aria-hidden="true">
+      <div class="mouse-buttons-row">
+        <div 
+          class="mouse-button mouse-left"
+          [class.is-active]="mouse.leftClick"
+        >
+          <span class="btn-indicator">LMB</span>
+        </div>
+        <div class="mouse-divider"></div>
+        <div 
+          class="mouse-button mouse-right"
+          [class.is-active]="mouse.rightClick"
+        >
+          <span class="btn-indicator">RMB</span>
+        </div>
+      </div>
+
+      <!-- Animated Scroll Wheel -->
+      <div 
+        class="mouse-wheel-carrier"
+        [class.is-scrolling]="mouse.wheel"
+      >
+        <div class="mouse-wheel"></div>
+      </div>
+
+      <!-- Mouse body contour -->
+      <div class="mouse-palm">
+        @if (mouse.drag) {
+          <div class="drag-motion-hint">
+            <svg width="24" height="12" viewBox="0 0 24 12" fill="none" stroke="currentColor" stroke-width="1.8">
+              <path d="M7 6H1M1 6L4 3M1 6L4 9" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M17 6H23M23 6L20 3M23 6L20 9" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Mouse Action Label -->
+    <p class="control-action-label">{{ mouse.label }}</p>
+  </div>
+</div>

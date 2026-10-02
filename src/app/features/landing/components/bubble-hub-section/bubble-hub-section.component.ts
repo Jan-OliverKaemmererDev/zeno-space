@@ -11,7 +11,6 @@ import { Minigame } from '../../../../core/models/minigame.model';
 import { GameRegistryService } from '../../../../core/services/game-registry.service';
 import { AudioService } from '../../../../core/services/audio.service';
 import { BubbleCardComponent } from '../../../../shared/components/bubble-card/bubble-card.component';
-import { GameInstructionsOverlayComponent } from '../../../../shared/components/game-instructions-overlay/game-instructions-overlay.component';
 import { BubblePhrase } from '../hero-section/hero-section.component';
 
 /**
@@ -43,7 +42,7 @@ export interface PillSpark {
 @Component({
   selector: 'app-bubble-hub-section',
   standalone: true,
-  imports: [BubbleCardComponent, GameInstructionsOverlayComponent],
+  imports: [BubbleCardComponent],
   templateUrl: './bubble-hub-section.component.html',
   styleUrl: './bubble-hub-section.component.scss',
 })
@@ -53,7 +52,7 @@ export class BubbleHubSectionComponent implements AfterViewInit, OnDestroy {
   private readonly router = inject(Router);
 
   /** Currently selected minigame to preview in the instructions overlay. */
-  readonly previewGame = signal<Minigame | null>(null);
+  readonly previewGame = this.gameRegistry.previewGame;
 
 
   // Structured phrases ("Interaktive" and "Welten") with bubble letters

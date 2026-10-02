@@ -8,16 +8,18 @@ import {
   OnDestroy,
   HostListener,
 } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { GameRegistryService } from '../../core/services/game-registry.service';
 import { AudioService } from '../../core/services/audio.service';
 import { SmoothScrollService } from '../../core/services/smooth-scroll.service';
+import { Minigame } from '../../core/models/minigame.model';
 import { CloudCanvasComponent } from './components/cloud-canvas/cloud-canvas.component';
 import { HeroSectionComponent } from './components/hero-section/hero-section.component';
 import { BubbleHubSectionComponent } from './components/bubble-hub-section/bubble-hub-section.component';
 import { SanctuarySectionComponent } from './components/sanctuary-section/sanctuary-section.component';
 import { OrbNavComponent, NavSection } from '../../shared/components/orb-nav/orb-nav.component';
+import { GameInstructionsOverlayComponent } from '../../shared/components/game-instructions-overlay/game-instructions-overlay.component';
 
 /**
  * Main landing page orchestrator component.
@@ -32,6 +34,7 @@ import { OrbNavComponent, NavSection } from '../../shared/components/orb-nav/orb
     BubbleHubSectionComponent,
     SanctuarySectionComponent,
     OrbNavComponent,
+    GameInstructionsOverlayComponent,
   ],
   templateUrl: './landing.component.html',
   styleUrl: './landing.component.scss',
@@ -41,6 +44,7 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   readonly audioService = inject(AudioService);
   readonly smoothScroll = inject(SmoothScrollService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private fragmentSub?: Subscription;
 
   @ViewChild('scrollBody') scrollBodyRef!: ElementRef<HTMLElement>;
@@ -239,5 +243,13 @@ export class LandingComponent implements AfterViewInit, OnDestroy {
   scrollToHub(): void {
     this.scrollToSection(1);
     this.audioService.playWaterdropScrollDown();
+  }
+
+  onStartGame(game: Minigame): void {
+    this.gameRegistry.previewGame.set(null);
+    if (typeof window !== 'undefined') {
+      window.history.replaceState(null, '', '/#bubble-hub');
+    }
+    this.router.navigateByUrl(game.route);
   }
 }

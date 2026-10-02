@@ -105,14 +105,5 @@
       </aside>
     }
   </div>
-
-  <!-- Interactive Minigame Controls & Tutorial Overlay -->
-  @if (previewGame()) {
-    <app-game-instructions-overlay
-      [game]="previewGame()!"
-      (close)="onClosePreview()"
-      (startGame)="onStartGame($event)"
-    ></app-game-instructions-overlay>
-  }
 </section>
 

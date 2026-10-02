@@ -23,4 +23,13 @@
     [sections]="sections"
     (sectionSelect)="scrollToSection($event)"
   ></app-orb-nav>
+
+  <!-- Interactive Minigame Controls & Tutorial Overlay -->
+  @if (gameRegistry.previewGame()) {
+    <app-game-instructions-overlay
+      [game]="gameRegistry.previewGame()!"
+      (close)="gameRegistry.previewGame.set(null)"
+      (startGame)="onStartGame($event)"
+    ></app-game-instructions-overlay>
+  }
 </div>

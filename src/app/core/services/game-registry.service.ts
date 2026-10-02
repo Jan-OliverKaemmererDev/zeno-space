@@ -16,6 +16,11 @@ export class GameRegistryService {
   readonly selectedCategory = signal<string | null>(null);
 
   /**
+   * Signal containing the minigame currently displayed in the instructions overlay.
+   */
+  readonly previewGame = signal<Minigame | null>(null);
+
+  /**
    * Signal containing the static array of all registered minigames.
    */
   readonly games = signal<Minigame[]>([

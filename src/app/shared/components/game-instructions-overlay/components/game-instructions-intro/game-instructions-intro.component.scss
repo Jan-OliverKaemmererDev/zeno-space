@@ -1,0 +1,100 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+:host {
+  display: block;
+}
+
+.game-instructions-intro {
+  margin-bottom: 1.75rem;
+}
+
+.game-subtitle {
+  font-family: $font-sniglet;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin: 0 0 0.85rem;
+  color: var(--game-color, #c4b5fd);
+  letter-spacing: 0.02em;
+}
+
+.game-description {
+  font-family: $font-sniglet;
+  font-size: 0.925rem;
+  line-height: 1.6;
+  color: #cbd5e1;
+  margin: 0;
+}
+
+.game-objective {
+  margin-top: 0.9rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 3px solid var(--game-color, #c4b5fd);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.objective-text {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #e2e8f0;
+  margin: 0;
+}
+
+// Mobile Smart Devices (max-width: 640px)
+@media (max-width: v.$bp-mobile-md) {
+  .game-instructions-intro {
+    margin-bottom: 1.25rem;
+  }
+
+  .game-subtitle {
+    font-size: 0.88rem;
+    margin-bottom: 0.65rem;
+  }
+
+  .game-description {
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+
+  .game-objective {
+    margin-top: 0.75rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: 10px;
+
+    .objective-text {
+      font-size: 0.82rem;
+    }
+  }
+}
+
+// Landscape Mode on Smart Devices
+@include m.mobile-landscape-short {
+  .game-instructions-intro {
+    margin-bottom: 0.65rem;
+  }
+
+  .game-subtitle {
+    font-size: 0.8rem;
+    margin: 0 0 0.25rem;
+  }
+
+  .game-description {
+    font-size: 0.8rem;
+    line-height: 1.35;
+  }
+
+  .game-objective {
+    margin-top: 0.35rem;
+    padding: 0.35rem 0.6rem;
+
+    .objective-text {
+      font-size: 0.75rem;
+    }
+  }
+}

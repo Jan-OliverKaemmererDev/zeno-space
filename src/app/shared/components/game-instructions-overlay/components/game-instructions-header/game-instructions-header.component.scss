@@ -1,0 +1,106 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+:host {
+  display: block;
+}
+
+.game-instructions-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.35rem;
+}
+
+.game-title {
+  font-family: 'DynaPuff', 'DynaPuff-SemiBold', cursive, sans-serif;
+  font-size: 1.85rem;
+  line-height: 1.2;
+  margin: 0;
+  color: #ffffff;
+  text-shadow: 0 2px 14px var(--game-glow, rgba(196, 181, 253, 0.4));
+  flex: 1;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.btn-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+    transform: scale(1.08) rotate(90deg);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+// Tablet & Medium Smart Devices (max-width: 768px)
+@media (max-width: v.$bp-tablet) {
+  .game-title {
+    font-size: 1.6rem;
+  }
+}
+
+// Mobile Smart Devices (max-width: 640px)
+@media (max-width: v.$bp-mobile-md) {
+  .game-instructions-header {
+    margin-bottom: 0.35rem;
+  }
+
+  .game-title {
+    font-size: 1.35rem;
+  }
+}
+
+// Compact Mobile Smart Devices (max-width: 380px)
+@include m.mobile-se {
+  .game-title {
+    font-size: 1.22rem;
+  }
+}
+
+// Landscape Mode on Smart Devices
+@include m.mobile-landscape-short {
+  .game-instructions-header {
+    margin-bottom: 0.45rem;
+  }
+
+  .btn-close {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  .game-title {
+    font-size: 1.15rem;
+    margin: 0;
+  }
+}
+
+// Touch ergonomics
+@media (hover: none) and (pointer: coarse) {
+  .btn-close {
+    -webkit-tap-highlight-color: transparent;
+
+    &:active {
+      transform: scale(0.92);
+    }
+  }
+}

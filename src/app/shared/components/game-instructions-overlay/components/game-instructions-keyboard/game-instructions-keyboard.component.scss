@@ -1,0 +1,254 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+:host {
+  display: contents;
+}
+
+.control-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 1.15rem 1.25rem;
+  border-radius: 20px;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.09) 0%,
+    rgba(14, 26, 48, 0.28) 50%,
+    rgba(8, 16, 32, 0.38) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 
+    0 8px 24px -4px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.panel-title {
+  font-family: $font-sniglet;
+  font-size: 0.825rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #cbd5e1;
+}
+
+.keyboard-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.keyboard-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.65rem;
+}
+
+/* 3D Keycaps with Bobbing Animation */
+.keycap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: 38px;
+  padding: 0 0.5rem;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #332d4e 0%, #201b38 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  font-family: $font-sniglet;
+  font-size: 0.95rem;
+  font-weight: 700;
+  box-shadow: 
+    0 5px 0 #120e24,
+    0 6px 10px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  user-select: none;
+  animation: keyBobPress 2.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  animation-delay: var(--key-delay, 0s);
+
+  &.keycap--space {
+    min-width: 140px;
+    height: 36px;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    color: var(--game-color, #c4b5fd);
+  }
+
+  &.keycap--inline {
+    min-width: 36px;
+    height: 36px;
+    font-size: 0.85rem;
+  }
+}
+
+/* WASD Block */
+.wasd-layout {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.wasd-row {
+  display: flex;
+  gap: 0.35rem;
+}
+
+/* Space Layout */
+.space-layout {
+  display: flex;
+  justify-content: center;
+}
+
+/* Inline Keys Layout */
+.inline-keys-layout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.control-action-label {
+  font-family: $font-sniglet;
+  font-size: 0.825rem;
+  line-height: 1.4;
+  color: #94a3b8;
+  margin: 0;
+}
+
+/* Keycap 3D Press Bobbing Animation */
+@keyframes keyBobPress {
+  0%, 100% {
+    transform: translateY(0);
+    box-shadow: 
+      0 5px 0 #120e24,
+      0 6px 10px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    background: linear-gradient(180deg, #332d4e 0%, #201b38 100%);
+  }
+  25% {
+    transform: translateY(3.5px);
+    box-shadow: 
+      0 1.5px 0 #120e24,
+      0 2px 5px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    background: linear-gradient(180deg, #423b63 0%, #2b2548 100%);
+  }
+  50% {
+    transform: translateY(0);
+    box-shadow: 
+      0 5px 0 #120e24,
+      0 6px 10px rgba(0, 0, 0, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    background: linear-gradient(180deg, #332d4e 0%, #201b38 100%);
+  }
+}
+
+// Mobile Smart Devices (max-width: 640px)
+@media (max-width: v.$bp-mobile-md) {
+  .control-panel {
+    padding: 0.95rem 1rem;
+    border-radius: 16px;
+  }
+
+  .panel-header {
+    margin-bottom: 0.75rem;
+  }
+
+  .keycap {
+    min-width: 34px;
+    height: 34px;
+    font-size: 0.88rem;
+    border-radius: 8px;
+
+    &.keycap--space {
+      min-width: 110px;
+      height: 34px;
+      font-size: 0.7rem;
+    }
+
+    &.keycap--inline {
+      min-width: 32px;
+      height: 32px;
+      font-size: 0.8rem;
+    }
+  }
+
+  .wasd-layout {
+    gap: 0.28rem;
+
+    .wasd-row {
+      gap: 0.28rem;
+    }
+  }
+
+  .control-action-label {
+    font-size: 0.78rem;
+  }
+}
+
+// Compact Mobile Smart Devices (max-width: 380px)
+@include m.mobile-se {
+  .keycap {
+    min-width: 30px;
+    height: 30px;
+    font-size: 0.82rem;
+    padding: 0 0.35rem;
+
+    &.keycap--space {
+      min-width: 95px;
+      height: 30px;
+      font-size: 0.65rem;
+    }
+
+    &.keycap--inline {
+      min-width: 28px;
+      height: 28px;
+      font-size: 0.75rem;
+    }
+  }
+}
+
+// Landscape Mode on Smart Devices
+@include m.mobile-landscape-short {
+  .control-panel {
+    padding: 0.6rem 0.75rem;
+    border-radius: 14px;
+  }
+
+  .panel-header {
+    margin-bottom: 0.35rem;
+  }
+
+  .keycap {
+    min-width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+
+    &.keycap--space {
+      min-width: 85px;
+      height: 28px;
+      font-size: 0.65rem;
+    }
+
+    &.keycap--inline {
+      min-width: 26px;
+      height: 26px;
+      font-size: 0.72rem;
+    }
+  }
+}
