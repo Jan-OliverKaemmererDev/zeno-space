@@ -85,12 +85,38 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
   /** Whether sound chimes are enabled. */
   readonly isSoundEnabled = signal<boolean>(true);
 
+  /** Whether the Pi speech bubble is currently open. */
+  readonly showPiBubble = signal<boolean>(false);
+
+  /** Whether the balloon deflate closing animation is running. */
+  readonly closingPiBubble = signal<boolean>(false);
+
+  /** Whether the generated Pi string was recently copied to clipboard. */
+  readonly isPiCopied = signal<boolean>(false);
+
+  private closingPiBubbleTimeout: ReturnType<typeof setTimeout> | null = null;
+  private copyPiTimeout: ReturnType<typeof setTimeout> | null = null;
+
   /** Short formatted string showing the latest digits for the top HUD banner. */
   readonly currentPiSnippet = computed(() => {
     const count = this.digitCount();
     if (count === 0) return '3,14';
     const recent = PI_DECIMAL_DIGITS_AFTER_14.slice(0, Math.min(count, 18));
     return `3,14${recent.slice(0, 15)}${count > 15 ? '...' : ''}`;
+  });
+
+  /** All decimal digits generated after "3.14" up to the current count. */
+  readonly generatedPiDecimalsAfter14 = computed(() => {
+    const count = this.digitCount();
+    if (count <= 0) return '';
+    if (count <= PI_DECIMAL_DIGITS_AFTER_14.length) {
+      return PI_DECIMAL_DIGITS_AFTER_14.slice(0, count);
+    }
+    let res = PI_DECIMAL_DIGITS_AFTER_14;
+    for (let i = PI_DECIMAL_DIGITS_AFTER_14.length; i < count; i++) {
+      res += getPiDigitAfter14(i);
+    }
+    return res;
   });
 
   /** Total number of decimals currently placed. */
@@ -222,7 +248,15 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent): void {
     if (event.key === 'Escape') {
+      if (this.showPiBubble()) {
+        this.closePiBubble();
+        return;
+      }
       this.router.navigate(['/'], { fragment: 'bubble-hub' });
+      return;
+    }
+
+    if (this.showPiBubble() && (event.target as HTMLElement)?.closest('.speech-bubble')) {
       return;
     }
 
@@ -240,6 +274,14 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
     } else if (key === 'r') {
       this.resetSpiral();
     }
+  }
+
+  @HostListener('document:pointerdown', ['$event'])
+  onDocumentPointerDown(event: PointerEvent): void {
+    if (!this.showPiBubble()) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('.stat-pill-wrapper')) return;
+    this.closePiBubble();
   }
 
   @HostListener('window:resize')
@@ -277,6 +319,14 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.closingPiBubbleTimeout) {
+      clearTimeout(this.closingPiBubbleTimeout);
+      this.closingPiBubbleTimeout = null;
+    }
+    if (this.copyPiTimeout) {
+      clearTimeout(this.copyPiTimeout);
+      this.copyPiTimeout = null;
+    }
     this.stopAutoFlow();
     this.clearPendingSpawnTimeouts();
 
@@ -1852,6 +1902,86 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
     this.targetCameraZ = this.baseCameraZ;
     this.targetTiltX = this.defaultTiltX;
     this.targetTiltY = 0;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Pi Speech Bubble Interaction
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Toggles the visibility of the Pi speech bubble.
+   */
+  togglePiBubble(event?: Event): void {
+    event?.stopPropagation();
+    if (this.showPiBubble()) {
+      this.closePiBubble();
+    } else {
+      this.openPiBubble();
+    }
+  }
+
+  /**
+   * Opens the Pi speech bubble with balloon inflate animation.
+   */
+  openPiBubble(): void {
+    if (this.closingPiBubbleTimeout) {
+      clearTimeout(this.closingPiBubbleTimeout);
+      this.closingPiBubbleTimeout = null;
+    }
+    this.closingPiBubble.set(false);
+    this.showPiBubble.set(true);
+    if (this.isSoundEnabled()) {
+      this.audioService.playWaterdropToneOn(0.4);
+    }
+  }
+
+  /**
+   * Closes the Pi speech bubble with balloon deflate animation.
+   */
+  closePiBubble(): void {
+    if (!this.showPiBubble() || this.closingPiBubble()) return;
+    this.closingPiBubble.set(true);
+    if (this.closingPiBubbleTimeout) {
+      clearTimeout(this.closingPiBubbleTimeout);
+    }
+    this.closingPiBubbleTimeout = setTimeout(() => {
+      this.showPiBubble.set(false);
+      this.closingPiBubble.set(false);
+      this.closingPiBubbleTimeout = null;
+    }, 350);
+  }
+
+  /**
+   * Handles mouse wheel scrolling specifically for the speech bubble content
+   * and prevents bubbling to parent canvas zoom.
+   */
+  onPiBubbleWheel(event: WheelEvent): void {
+    event.stopPropagation();
+    const target = event.target as HTMLElement | null;
+    const bubble = event.currentTarget as HTMLElement | null;
+    const body = bubble?.querySelector('.bubble-body') as HTMLElement | null;
+    if (body && target && !body.contains(target)) {
+      body.scrollTop += event.deltaY;
+      event.preventDefault();
+    }
+  }
+
+  /**
+   * Copies the full Pi number generated so far to the clipboard.
+   */
+  copyPiNumber(event?: Event): void {
+    event?.stopPropagation();
+    const text = '3,14' + this.generatedPiDecimalsAfter14();
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        this.isPiCopied.set(true);
+        if (this.copyPiTimeout) clearTimeout(this.copyPiTimeout);
+        this.copyPiTimeout = setTimeout(() => {
+          this.isPiCopied.set(false);
+          this.copyPiTimeout = null;
+        }, 1800);
+      });
+    }
   }
 
   // ---------------------------------------------------------------------------

@@ -26,9 +26,81 @@
 
     <!-- Pi Live Snippet & Stats -->
     <div class="hud-stats" aria-live="polite">
-      <div class="stat-pill pi-snippet-pill" title="Aktueller Ziffernverlauf">
-        <span class="pi-symbol" aria-hidden="true">π</span>
-        <span class="pi-text">≈ {{ currentPiSnippet() }}</span>
+      <div class="stat-pill-wrapper">
+        <button
+          type="button"
+          class="stat-pill pi-snippet-pill"
+          [class.is-active]="showPiBubble()"
+          (click)="togglePiBubble($event)"
+          title="Aktueller Ziffernverlauf – Details anzeigen"
+          aria-haspopup="dialog"
+          [attr.aria-expanded]="showPiBubble()"
+        >
+          <span class="pi-symbol" aria-hidden="true">π</span>
+          <span class="pi-text">≈ {{ currentPiSnippet() }}</span>
+        </button>
+
+        @if (showPiBubble()) {
+          <div 
+            class="speech-bubble pi-speech-bubble" 
+            [class.is-closing]="closingPiBubble()" 
+            (click)="$event.stopPropagation()"
+            (pointerdown)="$event.stopPropagation()"
+            (pointerup)="$event.stopPropagation()"
+            (wheel)="onPiBubbleWheel($event)"
+            role="dialog"
+            aria-label="Aktueller Ziffernverlauf der Kreiszahl Pi"
+          >
+            <div class="bubble-header">
+              <div class="bubble-title-group">
+                <span class="bubble-pi-icon" aria-hidden="true">π</span>
+                <h4>Kreiszahl Pi</h4>
+              </div>
+              <div class="bubble-header-actions">
+                <button 
+                  type="button" 
+                  class="bubble-action-btn" 
+                  (click)="copyPiNumber($event)" 
+                  [title]="isPiCopied() ? 'Kopiert!' : 'Zahl kopieren'"
+                  [attr.aria-label]="isPiCopied() ? 'In Zwischenablage kopiert' : 'Zahl kopieren'"
+                >
+                  @if (isPiCopied()) {
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Kopiert!</span>
+                  } @else {
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    <span>Kopieren</span>
+                  }
+                </button>
+                <button 
+                  type="button" 
+                  class="bubble-close-btn" 
+                  (click)="closePiBubble()" 
+                  aria-label="Schließen"
+                  title="Schließen"
+                >×</button>
+              </div>
+            </div>
+
+            <div class="bubble-meta">
+              <span class="meta-badge">
+                <span class="meta-dot" aria-hidden="true"></span>
+                {{ totalDecimalsFormatted() }} Ziffern aktiv
+              </span>
+            </div>
+
+            <div class="bubble-body" tabindex="0" role="region" aria-label="Generierte Nachkommastellen von Pi">
+              <div class="pi-digits-container">
+                <span class="pi-lead">3,14</span><span class="pi-stream">{{ generatedPiDecimalsAfter14() }}</span><span class="pi-ellipsis" aria-label="und so weiter">...</span>
+              </div>
+            </div>
+          </div>
+        }
       </div>
 
       <div class="stat-bubble" title="Gesamtzahl der Nachkommastellen">
