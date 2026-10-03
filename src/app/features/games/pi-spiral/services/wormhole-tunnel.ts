@@ -192,10 +192,11 @@ export class WormholeTunnel {
           float ringWave = sin(zFlow * 0.125);
           float ringPulse = smoothstep(0.65, 0.98, ringWave);
 
-          vec3 colorCyan = vec3(0.22, 0.74, 0.98);   // #38bdf8
-          vec3 colorViolet = vec3(0.58, 0.40, 0.96); // #a855f7
-          vec3 colorDeep = vec3(0.12, 0.35, 0.88);   // rich electric blue
-          vec3 colorCore = vec3(0.85, 0.94, 1.00);   // crystalline ice highlight
+          // Ausbalancierter Mittelwert: satter, lebendiger Farbton, weniger transparent, aber ohne grelles Überstrahlen
+          vec3 colorCyan = vec3(0.15, 0.52, 0.82);   // sattes, leuchtendes Azur-Blau (tick heller als zuvor, aber beruhigend)
+          vec3 colorViolet = vec3(0.44, 0.28, 0.74); // harmonisches Kosmos-Violett
+          vec3 colorDeep = vec3(0.08, 0.24, 0.58);   // sattes Tiefsee-Blau
+          vec3 colorCore = vec3(0.66, 0.82, 0.96);   // klarer, frischer Schimmer für Streifen & Ringe
 
           float depthMix = smoothstep(uZMin * 0.85, -15.0, vZ);
           vec3 wallBaseColor = mix(colorViolet, colorCyan, depthMix);
@@ -203,9 +204,9 @@ export class WormholeTunnel {
 
           vec3 finalColor = mix(wallBaseColor, colorCore, ringPulse * 0.28 + streamer * 0.38);
 
-          float centerAlpha = 0.025;
-          float rimAlpha = 0.40;
-          float pulseAlpha = ringPulse * 0.06 + streamer * 0.07;
+          float centerAlpha = 0.022;
+          float rimAlpha = 0.32;
+          float pulseAlpha = ringPulse * 0.055 + streamer * 0.060;
           float rawAlpha = centerAlpha + rimAlpha * edgeGlow + pulseAlpha;
 
           // Gentle depth fade into cosmic infinity matching original soft background appearance
