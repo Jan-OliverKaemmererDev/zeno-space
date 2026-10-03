@@ -3,16 +3,21 @@ import * as THREE from 'three';
 /**
  * Encapsulates the 3D pixel wormhole tunnel and holographic wall membrane.
  * Handles GPU shader materials, buffer geometries, vertex animation, and resource disposal.
+ * Dynamically extends deep into space as the decimal digit chain expands, ensuring
+ * the wormhole is always significantly longer than the digits and the end remains invisible.
  */
 export class WormholeTunnel {
   private wormholePointsMesh: THREE.Points | null = null;
   private wormholeGeometry: THREE.BufferGeometry | null = null;
   private wormholeMaterial: THREE.ShaderMaterial | null = null;
-  private readonly wormholeParticleCount = 16000;
+  private readonly wormholeParticleCount = 24000;
 
   private wormholeMembraneMesh: THREE.Mesh | null = null;
   private wormholeMembraneGeometry: THREE.BufferGeometry | null = null;
   private wormholeMembraneMaterial: THREE.ShaderMaterial | null = null;
+
+  /** Current dynamic depth of the wormhole (uZMin), smoothly adapting to chain length. */
+  private currentZMin = -650.0;
 
   /**
    * Initializes both the holographic membrane and the particle pixel wormhole tunnel,
@@ -24,14 +29,22 @@ export class WormholeTunnel {
   }
 
   /**
-   * Advances time uniforms for both GPU shaders.
+   * Advances time and dynamic depth uniforms for both GPU shaders.
+   *
+   * @param time - Current animation timestamp in seconds.
+   * @param targetZMin - Target depth limit for the wormhole (e.g. -650.0 to -3000.0).
    */
-  update(time: number): void {
+  update(time: number, targetZMin = -650.0): void {
+    // Smoothly expand towards deeper target without jarring pops
+    this.currentZMin += (targetZMin - this.currentZMin) * 0.12;
+
     if (this.wormholeMaterial) {
       this.wormholeMaterial.uniforms['uTime'].value = time;
+      this.wormholeMaterial.uniforms['uZMin'].value = this.currentZMin;
     }
     if (this.wormholeMembraneMaterial) {
       this.wormholeMembraneMaterial.uniforms['uTime'].value = time;
+      this.wormholeMembraneMaterial.uniforms['uZMin'].value = this.currentZMin;
     }
   }
 
@@ -42,34 +55,30 @@ export class WormholeTunnel {
    * while remaining crystal clear down the center so the decimal digits and particles shine through.
    */
   private createWormholeMembrane(parentGroup: THREE.Group): void {
-    const ringCount = 160; // Rings along depth Z
+    const ringCount = 360; // 360 rings along depth Z for ultra-smooth high-definition curves
     const segsPerRing = 60; // Circumference segments (cleanly divides by 10 energy ribs)
-    const zMin = -360.0;
-    const zMax = 80.0; // Extends well past camera to completely envelope viewport
-    const zSpan = zMax - zMin;
 
     const vertexCount = (ringCount + 1) * (segsPerRing + 1);
     const indexCount = ringCount * segsPerRing * 6;
 
     const positions = new Float32Array(vertexCount * 3);
-    const aZ = new Float32Array(vertexCount);
+    const aV = new Float32Array(vertexCount);
     const aTheta = new Float32Array(vertexCount);
     const indices = new Uint32Array(indexCount);
 
     let vIdx = 0;
     for (let r = 0; r <= ringCount; r++) {
-      const v = r / ringCount;
-      const z = zMin + v * zSpan;
+      const v = r / ringCount; // 0.0 at front (+80.0) to 1.0 at deepest end (uZMin)
       for (let s = 0; s <= segsPerRing; s++) {
         const u = s / segsPerRing;
         const th = u * Math.PI * 2;
 
         const i = vIdx++;
-        aZ[i] = z;
+        aV[i] = v;
         aTheta[i] = th;
         positions[i * 3] = 0;
         positions[i * 3 + 1] = 0;
-        positions[i * 3 + 2] = z;
+        positions[i * 3 + 2] = 0;
       }
     }
 
@@ -94,18 +103,20 @@ export class WormholeTunnel {
 
     this.wormholeMembraneGeometry = new THREE.BufferGeometry();
     this.wormholeMembraneGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    this.wormholeMembraneGeometry.setAttribute('aZ', new THREE.BufferAttribute(aZ, 1));
+    this.wormholeMembraneGeometry.setAttribute('aV', new THREE.BufferAttribute(aV, 1));
     this.wormholeMembraneGeometry.setAttribute('aTheta', new THREE.BufferAttribute(aTheta, 1));
     this.wormholeMembraneGeometry.setIndex(new THREE.BufferAttribute(indices, 1));
-    this.wormholeMembraneGeometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, -140), 350);
+    this.wormholeMembraneGeometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, -1000), 5000);
 
     this.wormholeMembraneMaterial = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
+        uZMin: { value: -650.0 },
       },
       vertexShader: `
         uniform float uTime;
-        attribute float aZ;
+        uniform float uZMin;
+        attribute float aV;
         attribute float aTheta;
 
         varying vec3 vNormal;
@@ -134,35 +145,35 @@ export class WormholeTunnel {
         }
 
         void main() {
-          vec2 spine = getWormholeSpine(aZ, uTime);
+          float z = mix(80.0, uZMin, aV);
+          vec2 spine = getWormholeSpine(z, uTime);
 
-          float d = max(0.0, -2.60 - aZ);
+          float d = max(0.0, -2.60 - z);
           float tunnelR = 8.0 + 24.0 * exp(-0.016 * d);
-          if (aZ > -2.60) {
-            // Expand gently outward behind camera so tube completely encloses viewer
-            tunnelR += (aZ - (-2.60)) * 0.35;
+          if (z > -2.60) {
+            tunnelR += (z - (-2.60)) * 0.35;
           }
 
           vec3 worldPos = vec3(
             spine.x + tunnelR * cos(aTheta),
             spine.y + tunnelR * sin(aTheta),
-            aZ
+            z
           );
 
           vec4 mvPosition = modelViewMatrix * vec4(worldPos, 1.0);
           gl_Position = projectionMatrix * mvPosition;
 
-          // Inward-pointing normal for looking at inner tube wall
           vec3 normalInward = vec3(-cos(aTheta), -sin(aTheta), 0.0);
           vNormal = normalize(normalMatrix * normalInward);
           vViewDir = normalize(-mvPosition.xyz);
-          vZ = aZ;
+          vZ = z;
           vTheta = aTheta;
           vDistToCam = -mvPosition.z;
         }
       `,
       fragmentShader: `
         uniform float uTime;
+        uniform float uZMin;
         varying vec3 vNormal;
         varying vec3 vViewDir;
         varying float vZ;
@@ -170,42 +181,35 @@ export class WormholeTunnel {
         varying float vDistToCam;
 
         void main() {
-          // Fresnel factor: maximum glow at grazing angles along the tube wall boundary
           float fresnel = 1.0 - abs(dot(vNormal, vViewDir));
           fresnel = clamp(fresnel, 0.0, 1.0);
           float edgeGlow = pow(fresnel, 2.0);
 
-          // 10 Longitudinal holographic energy ribs along theta
           float streamWave = sin(vTheta * 10.0 + uTime * 0.45 + vZ * 0.025);
           float streamer = smoothstep(0.62, 0.98, streamWave);
 
-          // Balanced middle-ground animated rings traveling along the wall
           float zFlow = vZ + uTime * 6.0;
-          float ringWave = sin(zFlow * 0.125); // Middle ground: wavelength ~50 units
-          float ringPulse = smoothstep(0.65, 0.98, ringWave); // Balanced & visible
+          float ringWave = sin(zFlow * 0.125);
+          float ringPulse = smoothstep(0.65, 0.98, ringWave);
 
-          // Radiant celestial color palette (Cyan & Violet)
           vec3 colorCyan = vec3(0.22, 0.74, 0.98);   // #38bdf8
           vec3 colorViolet = vec3(0.58, 0.40, 0.96); // #a855f7
           vec3 colorDeep = vec3(0.12, 0.35, 0.88);   // rich electric blue
           vec3 colorCore = vec3(0.85, 0.94, 1.00);   // crystalline ice highlight
 
-          // Color gradient: mystic violet in deep wormhole, celestial cyan near foreground
-          float depthMix = smoothstep(-280.0, -15.0, vZ);
+          float depthMix = smoothstep(uZMin * 0.85, -15.0, vZ);
           vec3 wallBaseColor = mix(colorViolet, colorCyan, depthMix);
           wallBaseColor = mix(wallBaseColor, colorDeep, (1.0 - edgeGlow) * 0.4);
 
           vec3 finalColor = mix(wallBaseColor, colorCore, ringPulse * 0.28 + streamer * 0.38);
 
-          // Alpha: crystal clear down the center (0.025), glowing visibly along the cylindrical rim (0.40)
           float centerAlpha = 0.025;
           float rimAlpha = 0.40;
           float pulseAlpha = ringPulse * 0.06 + streamer * 0.07;
           float rawAlpha = centerAlpha + rimAlpha * edgeGlow + pulseAlpha;
 
-          // Depth fade into cosmic infinity and near camera fade
-          float depthFade = smoothstep(-360.0, -35.0, vZ);
-          // Soft fade at front edge so opening is never cut off
+          // Gentle depth fade into cosmic infinity matching original soft background appearance
+          float depthFade = smoothstep(uZMin, -35.0, vZ);
           float frontFade = smoothstep(80.0, 48.0, vZ);
           float nearCamFade = smoothstep(1.5, 6.0, vDistToCam);
 
@@ -228,18 +232,18 @@ export class WormholeTunnel {
 
   /**
    * Constructs the 3D particle pixel wormhole tunnel spanning the entire background.
-   * Uses square pixel shader points (matching orb-nav aesthetics) that form:
+   * Uses square pixel shader points that form:
    * 1. Concentric illuminated rings / ribs that delineate the cylindrical tube
    * 2. Flowing streamlines / filaments drifting forward along the tube walls
-   * 3. Ambient cosmic micro-dust covering the entire background viewport
-   * All positions and undulations are computed on the GPU for maximum 120+ FPS smoothness.
+   * 3. Ambient cosmic micro-dust covering the background viewport
+   * All positions and undulations are computed on the GPU for maximum smoothness.
    */
   private createWormholeParticleTunnel(parentGroup: THREE.Group): void {
     const count = this.wormholeParticleCount;
     this.wormholeGeometry = new THREE.BufferGeometry();
 
     const dummyPositions = new Float32Array(count * 3);
-    const baseZ = new Float32Array(count);
+    const aNormZ = new Float32Array(count);
     const basePos = new Float32Array(count * 3);
     const theta = new Float32Array(count);
     const radiusRatio = new Float32Array(count);
@@ -251,7 +255,7 @@ export class WormholeTunnel {
     const twinkleSpeeds = new Float32Array(count);
     const colors = new Float32Array(count * 3);
 
-    // Warm pastel & cosmic wormhole palette (harmonious with pastel tiles & orb-nav)
+    // Warm pastel & cosmic wormhole palette
     const colorPalette = [
       { r: 1.00, g: 1.00, b: 1.00 }, // Pure sparkling white stars
       { r: 1.00, g: 1.00, b: 1.00 },
@@ -263,24 +267,21 @@ export class WormholeTunnel {
     ];
 
     let pIdx = 0;
-    const zMin = -360.0;
-    const zSpan = 440.0; // from -360.0 to +80.0
 
-    // Layer 1: Concentric Rings & Ribs (balanced middle ground: 36 rings, 100 particles each)
-    const ringCount = 36;
+    // Layer 1: Concentric Rings & Ribs (72 rings, 100 particles each)
+    const ringCount = 72;
     const particlesPerRing = 100;
-    const ringSpacing = zSpan / ringCount;
 
     for (let r = 0; r < ringCount; r++) {
-      const ringZ = zMin + r * ringSpacing;
+      const ringNorm = r / ringCount;
       for (let p = 0; p < particlesPerRing; p++) {
         if (pIdx >= count) break;
         const i = pIdx++;
 
-        baseZ[i] = ringZ + (Math.random() - 0.5) * 0.40;
+        aNormZ[i] = ringNorm + (Math.random() - 0.5) * (0.35 / ringCount);
         theta[i] = (p / particlesPerRing) * Math.PI * 2 + (Math.random() - 0.5) * 0.035;
         radiusRatio[i] = 0.97 + (Math.random() - 0.5) * 0.07;
-        speed[i] = 7.5; // Constant uniform forward speed for coherent rings
+        speed[i] = 7.5;
         rotSpeed[i] = 0.038;
         type[i] = 0.0; // Tunnel ring rib
 
@@ -295,20 +296,20 @@ export class WormholeTunnel {
 
         dummyPositions[i * 3] = 0;
         dummyPositions[i * 3 + 1] = 0;
-        dummyPositions[i * 3 + 2] = ringZ;
+        dummyPositions[i * 3 + 2] = 0;
       }
     }
 
-    // Layer 2: Longitudinal Filaments & Streamlines (6500 particles for clean, sleek tube flow)
-    const filamentCount = 6500;
+    // Layer 2: Longitudinal Filaments & Streamlines (10000 particles)
+    const filamentCount = 10000;
     for (let f = 0; f < filamentCount; f++) {
       if (pIdx >= count) break;
       const i = pIdx++;
 
-      baseZ[i] = zMin + Math.random() * zSpan;
+      aNormZ[i] = Math.random();
       theta[i] = Math.random() * Math.PI * 2;
       radiusRatio[i] = 0.88 + Math.random() * 0.26;
-      speed[i] = 9.5 + Math.random() * 8.0; // Rapid flowing streamers
+      speed[i] = 9.5 + Math.random() * 8.0;
       rotSpeed[i] = (Math.random() - 0.5) * 0.15;
       type[i] = 1.0; // Streamline filament
 
@@ -323,23 +324,23 @@ export class WormholeTunnel {
 
       dummyPositions[i * 3] = 0;
       dummyPositions[i * 3 + 1] = 0;
-      dummyPositions[i * 3 + 2] = baseZ[i];
+      dummyPositions[i * 3 + 2] = 0;
     }
 
-    // Layer 3: Full-Field Ambient Cosmic Dust across entire background (remaining ~5900 particles)
+    // Layer 3: Full-Field Ambient Cosmic Dust across entire background
     while (pIdx < count) {
       const i = pIdx++;
 
-      baseZ[i] = zMin + Math.random() * zSpan;
-      const ax = (Math.random() - 0.5) * 120.0; // -60 to +60
-      const ay = (Math.random() - 0.5) * 84.0;  // -42 to +42
+      aNormZ[i] = Math.random();
+      const ax = (Math.random() - 0.5) * 120.0;
+      const ay = (Math.random() - 0.5) * 84.0;
       basePos[i * 3] = ax;
       basePos[i * 3 + 1] = ay;
-      basePos[i * 3 + 2] = baseZ[i];
+      basePos[i * 3 + 2] = 0;
 
       theta[i] = 0;
       radiusRatio[i] = 1.0;
-      speed[i] = 3.8 + Math.random() * 4.2; // Brisk ambient drift
+      speed[i] = 3.8 + Math.random() * 4.2;
       rotSpeed[i] = 0;
       type[i] = 2.0; // Ambient space dust
 
@@ -354,11 +355,11 @@ export class WormholeTunnel {
 
       dummyPositions[i * 3] = ax;
       dummyPositions[i * 3 + 1] = ay;
-      dummyPositions[i * 3 + 2] = baseZ[i];
+      dummyPositions[i * 3 + 2] = 0;
     }
 
     this.wormholeGeometry.setAttribute('position', new THREE.BufferAttribute(dummyPositions, 3));
-    this.wormholeGeometry.setAttribute('aBaseZ', new THREE.BufferAttribute(baseZ, 1));
+    this.wormholeGeometry.setAttribute('aNormZ', new THREE.BufferAttribute(aNormZ, 1));
     this.wormholeGeometry.setAttribute('aBasePos', new THREE.BufferAttribute(basePos, 3));
     this.wormholeGeometry.setAttribute('aTheta', new THREE.BufferAttribute(theta, 1));
     this.wormholeGeometry.setAttribute('aRadiusRatio', new THREE.BufferAttribute(radiusRatio, 1));
@@ -370,17 +371,18 @@ export class WormholeTunnel {
     this.wormholeGeometry.setAttribute('aTwinkleSpeed', new THREE.BufferAttribute(twinkleSpeeds, 1));
     this.wormholeGeometry.setAttribute('aBaseColor', new THREE.BufferAttribute(colors, 3));
 
-    this.wormholeGeometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, -140), 350);
+    this.wormholeGeometry.boundingSphere = new THREE.Sphere(new THREE.Vector3(0, 0, -1000), 5000);
 
-    // Custom ShaderMaterial featuring fine square pixel points of orb-nav & GPU tunnel dynamics
     this.wormholeMaterial = new THREE.ShaderMaterial({
       uniforms: {
         uTime: { value: 0 },
+        uZMin: { value: -650.0 },
       },
       vertexShader: `
         uniform float uTime;
+        uniform float uZMin;
 
-        attribute float aBaseZ;
+        attribute float aNormZ;
         attribute vec3 aBasePos;
         attribute float aTheta;
         attribute float aRadiusRatio;
@@ -398,7 +400,6 @@ export class WormholeTunnel {
         varying float vDistToCam;
         varying float vType;
 
-        // Dynamic 3D wormhole spine with pronounced curves and faster motion
         vec2 getWormholeSpine(float z, float time) {
           if (z >= 0.0) {
             return vec2(0.0, 0.0);
@@ -421,14 +422,12 @@ export class WormholeTunnel {
         void main() {
           vType = aType;
 
-          // Seamless loop through space spanning from -360.0 to +80.0
-          float zSpan = 440.0;
-          float zOffset = aBaseZ + uTime * aSpeed;
-          float z = -360.0 + mod(zOffset - (-360.0), zSpan);
+          float zSpan = 80.0 - uZMin;
+          float zOffset = aNormZ * zSpan + uTime * aSpeed;
+          float z = uZMin + mod(zOffset, zSpan);
 
           vec2 spine = getWormholeSpine(z, uTime);
 
-          // Tunnel radius: flares out gently towards entrance, tapers to 8.0 in deep cosmic depth
           float d = max(0.0, -2.60 - z);
           float tunnelR = 8.0 + 24.0 * exp(-0.016 * d);
           if (z > -2.60) {
@@ -437,12 +436,10 @@ export class WormholeTunnel {
 
           vec3 worldPos;
           if (aType > 1.5) {
-            // Ambient cosmic starfield across full viewport background
-            float ambSwayX = sin(uTime * 0.25 + aBasePos.z * 0.02) * 2.2;
-            float ambSwayY = cos(uTime * 0.20 + aBasePos.z * 0.02) * 1.8;
+            float ambSwayX = sin(uTime * 0.25 + z * 0.02) * 2.2;
+            float ambSwayY = cos(uTime * 0.20 + z * 0.02) * 1.8;
             worldPos = vec3(aBasePos.x + ambSwayX, aBasePos.y + ambSwayY, z);
           } else {
-            // Wormhole tunnel tube (rings and streamlines)
             float th = aTheta + uTime * aRotSpeed + z * 0.007;
             float r = tunnelR * aRadiusRatio;
             worldPos = vec3(spine.x + r * cos(th), spine.y + r * sin(th), z);
@@ -453,13 +450,11 @@ export class WormholeTunnel {
           vDistToCam = distToCam;
           vDepth = -z;
 
-          // Twinkle & Sparkle (orb-nav signature)
           float twWave = sin(uTime * aTwinkleSpeed + aTwinklePhase);
           float sparkle = smoothstep(0.86, 0.995, twWave);
           vSparkle = sparkle;
           vColor = mix(aBaseColor, vec3(1.0), sparkle * 0.70);
 
-          // Fine micro-pixel point size (crisp, delicate pixel dots matching orb-nav)
           float pointPx = (aSize * 42.0) / max(1.0, distToCam);
           if (aType < 0.5) {
             pointPx *= 0.95;
@@ -471,7 +466,7 @@ export class WormholeTunnel {
         }
       `,
       fragmentShader: `
-        uniform float uTime;
+        uniform float uZMin;
         varying vec3 vColor;
         varying float vSparkle;
         varying float vDepth;
@@ -479,17 +474,13 @@ export class WormholeTunnel {
         varying float vType;
 
         void main() {
-          // Square pixel particle shape (exact signature of orb-nav)
           vec2 coord = abs(gl_PointCoord - 0.5) * 2.0;
           float maxCoord = max(coord.x, coord.y);
           if (maxCoord > 0.90) discard;
 
-          // Soft depth fade into the cosmic background
-          float depthFade = smoothstep(380.0, 30.0, vDepth);
-          // Soft fade near camera to prevent abrupt popping
+          float depthFade = smoothstep(-uZMin, 30.0, vDepth);
           float nearCamFade = smoothstep(1.5, 6.0, vDistToCam);
 
-          // Ring particles have balanced visibility (0.62), filaments and starfield remain crisp (0.78)
           float baseAlpha = (vType < 0.5) ? 0.62 : 0.78;
           float alpha = (baseAlpha + vSparkle * 0.22) * depthFade * nearCamFade;
 

@@ -132,3 +132,71 @@ export function easeOutBack(x: number): number {
   const c3 = c1 + 1;
   return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
 }
+
+/**
+ * Calculates the distance-based opacity for a decimal digit tile.
+ * Tiles deeper in the wormhole fade out smoothly into the cosmic dark,
+ * only becoming visible when the user scrolls towards them along the tunnel.
+ *
+ * @param tileZ - The z-coordinate of the tile in world space.
+ * @param cameraZ - The current z-coordinate of the camera.
+ * @returns An opacity multiplier between 0.0 (fully faded out) and 1.0 (fully visible).
+ */
+export function calculateTileOpacity(tileZ: number, cameraZ: number): number {
+  // Situation 1: Foreground funnel tiles (tileZ >= -2.60)
+  if (tileZ >= -2.60) {
+    if (cameraZ >= -2.60) {
+      // Camera is in overview or funnel entrance: all funnel tiles are 100% visible
+      return 1.0;
+    }
+    // Camera is deep inside the wormhole hose: funnel entrance gently fades out behind camera
+    const distBehind = -2.60 - cameraZ;
+    if (distBehind <= 8.0) return 1.0;
+    if (distBehind >= 28.0) return 0.0;
+    const t = (distBehind - 8.0) / 20.0;
+    return 1.0 - t * t * (3.0 - 2.0 * t);
+  }
+
+  // Situation 2: Wormhole hose tiles (tileZ < -2.60)
+  if (cameraZ < -2.60) {
+    // Both camera and tile are inside the snaking wormhole hose
+    const deltaZ = cameraZ - tileZ; // positive = tile is ahead down the wormhole
+
+    // Behind camera: fade out smoothly so tiles don't clip the lens or clutter rear view
+    if (deltaZ < 0) {
+      if (deltaZ >= -8.0) return 1.0;
+      if (deltaZ <= -24.0) return 0.0;
+      const t = (-deltaZ - 8.0) / 16.0;
+      return 1.0 - t * t * (3.0 - 2.0 * t);
+    }
+
+    // Ahead of camera: active zone is 100% visible, then fades out smoothly into cosmic dark
+    if (deltaZ <= 60.0) {
+      return 1.0;
+    }
+    if (deltaZ >= 150.0) {
+      return 0.0;
+    }
+    const t = (deltaZ - 60.0) / 90.0; // 0 to 1
+    return 1.0 - t * t * (3.0 - 2.0 * t);
+  }
+
+  // Camera is outside the wormhole hose (cameraZ >= -2.60, overview / approach)
+  // Distance of tile down into the throat
+  const depthInHose = -2.60 - tileZ; // positive value
+
+  // Interpolate visible throat depth smoothly between overview (cameraZ >= 18.0) and throat entry (cameraZ = -2.60)
+  const clampedCamZ = Math.min(18.0, cameraZ);
+  const progress = (18.0 - clampedCamZ) / (18.0 - (-2.60)); // 0.0 at overview, 1.0 at throat
+  const fullVisDepth = 24.0 + (60.0 - 24.0) * progress;
+  const fadeEndDepth = 75.0 + (150.0 - 75.0) * progress;
+
+  if (depthInHose <= fullVisDepth) {
+    return 1.0;
+  }
+  if (depthInHose >= fadeEndDepth) {
+    return 0.0;
+  }
+  const t = (depthInHose - fullVisDepth) / (fadeEndDepth - fullVisDepth);
+  return 1.0 - t * t * (3.0 - 2.0 * t);
+}

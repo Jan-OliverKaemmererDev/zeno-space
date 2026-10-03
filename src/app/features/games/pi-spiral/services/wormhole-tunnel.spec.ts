@@ -20,9 +20,9 @@ describe('WormholeTunnel', () => {
     expect(group.children.length).toBe(2);
   });
 
-  it('should update uniforms on time advance', () => {
+  it('should update uniforms on time advance and dynamic targetZMin', () => {
     tunnel.init(group);
-    expect(() => tunnel.update(1.234)).not.toThrow();
+    expect(() => tunnel.update(1.234, -1500.0)).not.toThrow();
   });
 
   it('should cleanly dispose resources and remove meshes from parent group', () => {

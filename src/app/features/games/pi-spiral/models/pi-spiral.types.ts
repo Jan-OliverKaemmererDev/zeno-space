@@ -6,6 +6,8 @@ import * as THREE from 'three';
 export interface MosaicTile {
   /** The Three.js mesh representing the physical mosaic stone. */
   mesh: THREE.Mesh;
+  /** The cloned MeshBasicMaterial managing opacity for this specific tile. */
+  material: THREE.MeshBasicMaterial;
   /** Index in the decimal sequence after 14 (0 = first digit after 14, which is 1). */
   index: number;
   /** Decimal digit value (0-9). */

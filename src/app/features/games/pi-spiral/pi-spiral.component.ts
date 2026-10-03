@@ -18,6 +18,7 @@ import {
   getWormholeSpine,
   precomputeFunnelPoints,
   calculateTileTarget,
+  calculateTileOpacity,
   easeOutBack,
 } from './utils/spiral-geometry';
 import { WormholeTunnel } from './services/wormhole-tunnel';
@@ -151,7 +152,6 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
   // Camera & Zoom Parameters (Supports overview and full wormhole flight)
   // ---------------------------------------------------------------------------
 
-  private readonly minCameraZ = -280.0;
   private readonly maxCameraZ = 34.0;
   private readonly baseCameraZ = 29.0;
   private targetCameraZ = 29.0;
@@ -265,6 +265,10 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
           this.digitMaterials,
           this.renderer
         );
+        for (const tile of this.tiles) {
+          tile.material.map = this.digitMaterials[tile.digit]?.map || null;
+          tile.material.needsUpdate = true;
+        }
       });
     }
 
@@ -311,7 +315,7 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
     this.scene.fog = new THREE.FogExp2(0x0c0b16, 0.0035);
 
     // 2. Camera
-    this.camera = new THREE.PerspectiveCamera(48, width / height, 0.1, 2000);
+    this.camera = new THREE.PerspectiveCamera(48, width / height, 0.1, 5000);
     this.camera.position.set(0, 0, this.currentCameraZ);
     this.camera.lookAt(0, -0.25, 0);
 
@@ -390,7 +394,8 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
 
     const basePosition = new THREE.Vector3(target.x, target.y, target.z);
     const targetPosition = new THREE.Vector3(target.x, target.y, target.z);
-    const material = this.digitMaterials[digit] || this.digitMaterials[0];
+    const baseMaterial = this.digitMaterials[digit] || this.digitMaterials[0];
+    const material = baseMaterial.clone();
 
     const mesh = new THREE.Mesh(this.tileGeometry, material);
     mesh.position.copy(basePosition);
@@ -401,6 +406,7 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
 
     const tile: MosaicTile = {
       mesh,
+      material,
       index,
       digit,
       theta: target.th,
@@ -437,7 +443,10 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
     const dt = this.lastFrameTime > 0 ? Math.min(0.05, time - this.lastFrameTime) : 0.016;
     this.lastFrameTime = time;
 
-    this.wormholeTunnel.update(time);
+    const deepestZ = this.getDeepestDigitZ();
+    // Wormhole is always at least -650.0 and at least 450 units deeper than the entire digit chain
+    const targetWormholeZMin = Math.min(-650.0, deepestZ - 450.0);
+    this.wormholeTunnel.update(time, targetWormholeZMin);
 
     if (this.isAutoFlowActive()) {
       this.autoFlowTimer += dt;
@@ -613,6 +622,16 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
         tile.basePosition.y + tile.evadeOffset.y,
         tile.basePosition.z + tile.elevation
       );
+
+      // Distance-based fading along the wormhole: numbers further back fade out,
+      // and only become visible when scrolling towards them
+      const opacity = calculateTileOpacity(tile.mesh.position.z, this.currentCameraZ);
+      if (opacity <= 0.001) {
+        tile.mesh.visible = false;
+      } else {
+        tile.mesh.visible = true;
+        tile.material.opacity = opacity;
+      }
     }
 
     // Camera Flight Navigation
@@ -773,11 +792,32 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  /** Returns the z-coordinate of the deepest (oldest) decimal digit tile in the scene. */
+  private getDeepestDigitZ(): number {
+    if (this.tiles.length === 0) return -2.60;
+    const oldestTile = this.tiles[0];
+    return oldestTile ? oldestTile.basePosition.z : -2.60;
+  }
+
+  /** Dynamic minimum camera Z allowing scrolling comfortably past the entire digit chain. */
+  private getMinCameraZ(): number {
+    const deepestZ = this.getDeepestDigitZ();
+    return Math.min(-450.0, deepestZ - 35.0);
+  }
+
+  /** Responsive wheel speed adapting to depth for smooth travel through long wormhole tunnels. */
+  private getWheelSpeed(): number {
+    if (this.targetCameraZ >= 5.0) return 0.018;
+    if (this.targetCameraZ > -80.0) return 0.055;
+    return 0.110;
+  }
+
   onWheel(event: WheelEvent): void {
     event.preventDefault();
-    const speed = this.targetCameraZ < 5.0 ? 0.050 : 0.018;
+    const speed = this.getWheelSpeed();
     const zoomDelta = event.deltaY * speed;
-    this.targetCameraZ = Math.max(this.minCameraZ, Math.min(this.maxCameraZ, this.targetCameraZ + zoomDelta));
+    const minZ = this.getMinCameraZ();
+    this.targetCameraZ = Math.max(minZ, Math.min(this.maxCameraZ, this.targetCameraZ + zoomDelta));
   }
 
   onDoubleClick(): void {
@@ -886,6 +926,7 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
 
     for (const tile of this.tiles) {
       this.spiralGroup.remove(tile.mesh);
+      tile.material.dispose();
     }
     this.tiles = [];
     this.digitCount.set(0);
@@ -938,6 +979,9 @@ export class PiSpiralComponent implements AfterViewInit, OnDestroy {
     }
     if (this.tileGeometry) {
       this.tileGeometry.dispose();
+    }
+    for (const tile of this.tiles) {
+      tile.material.dispose();
     }
     for (const mat of this.digitMaterials) {
       mat.dispose();

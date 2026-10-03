@@ -2,6 +2,7 @@ import {
   getWormholeSpine,
   precomputeFunnelPoints,
   calculateTileTarget,
+  calculateTileOpacity,
   easeOutBack,
   THROAT_RADIUS,
   MOUTH_RADIUS,
@@ -87,6 +88,44 @@ describe('SpiralGeometry Utils', () => {
     it('should slightly overshoot 1 in between for bounce effect', () => {
       const val = easeOutBack(0.85);
       expect(val).toBeGreaterThan(0.85);
+    });
+  });
+
+  describe('calculateTileOpacity', () => {
+    it('should keep funnel tiles 100% visible in overview mode', () => {
+      expect(calculateTileOpacity(0, 29.0)).toBe(1.0);
+      expect(calculateTileOpacity(-2.60, 29.0)).toBe(1.0);
+    });
+
+    it('should fade out deep wormhole tiles in overview mode', () => {
+      expect(calculateTileOpacity(-100.0, 29.0)).toBe(0.0);
+      expect(calculateTileOpacity(-150.0, 29.0)).toBe(0.0);
+      // Soft transition in throat
+      const trans = calculateTileOpacity(-45.0, 29.0);
+      expect(trans).toBeGreaterThan(0.0);
+      expect(trans).toBeLessThan(1.0);
+    });
+
+    it('should keep tiles near the camera fully visible during wormhole flight', () => {
+      // Camera is flying at z = -100; tiles within 60 units ahead are 100% visible
+      expect(calculateTileOpacity(-100.0, -100.0)).toBe(1.0);
+      expect(calculateTileOpacity(-150.0, -100.0)).toBe(1.0);
+    });
+
+    it('should fade out tiles far ahead down the wormhole during flight', () => {
+      // 160 units ahead of camera (> 150): completely faded out
+      expect(calculateTileOpacity(-260.0, -100.0)).toBe(0.0);
+      // 90 units ahead: partially visible as camera approaches
+      const mid = calculateTileOpacity(-190.0, -100.0);
+      expect(mid).toBeGreaterThan(0.0);
+      expect(mid).toBeLessThan(1.0);
+    });
+
+    it('should fade out tiles behind the camera during flight', () => {
+      // 6 units behind: still visible
+      expect(calculateTileOpacity(-94.0, -100.0)).toBe(1.0);
+      // 30 units behind: faded out completely
+      expect(calculateTileOpacity(-70.0, -100.0)).toBe(0.0);
     });
   });
 });
