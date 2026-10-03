@@ -1,0 +1,358 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+// ---------------------------------------------------------------------------
+// Tool Speech Bubble (Opening from Bottom to Top matching Pi Speech Bubble)
+// ---------------------------------------------------------------------------
+
+:host {
+  display: block;
+  position: absolute;
+  bottom: calc(100% + 18px);
+  right: -12px;
+  z-index: 120;
+  pointer-events: auto;
+}
+
+.speech-bubble.tool-speech-bubble {
+  position: relative;
+  width: 350px;
+  max-width: min(360px, calc(100vw - 32px));
+  max-height: min(480px, 70vh);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 18px;
+  border-radius: 20px;
+  cursor: default;
+  z-index: 100;
+  pointer-events: auto;
+  overscroll-behavior: contain;
+
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(28px) saturate(1.45);
+  -webkit-backdrop-filter: blur(28px) saturate(1.45);
+  border: 1px solid rgba(147, 197, 253, 0.35);
+  box-shadow:
+    0 20px 48px rgba(0, 0, 0, 0.65),
+    0 0 28px rgba(56, 189, 248, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  color: #f1f5f9;
+
+  transform-origin: bottom right;
+  animation: balloon-inflate-bottom 450ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+
+  // Pointer triangle pointing DOWN towards the bottom dock button
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    right: 56px;
+    border-width: 10px 10px 0 10px;
+    border-style: solid;
+    border-color: rgba(15, 23, 42, 0.92) transparent transparent transparent;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -11px;
+    right: 55px;
+    border-width: 11px 11px 0 11px;
+    border-style: solid;
+    border-color: rgba(147, 197, 253, 0.35) transparent transparent transparent;
+    z-index: -1;
+  }
+
+  &.is-closing {
+    animation: balloon-deflate-bottom 320ms cubic-bezier(0.55, 0.085, 0.68, 0.53) both;
+    pointer-events: none;
+  }
+
+  .bubble-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(147, 197, 253, 0.16);
+    padding-bottom: 8px;
+    flex-shrink: 0;
+
+    .bubble-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .bubble-tool-icon {
+        display: inline-flex;
+        align-items: center;
+        color: #38bdf8;
+        filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.6));
+      }
+
+      h4 {
+        margin: 0;
+        color: #f0f9ff;
+        font-size: 1.12rem;
+        font-family: $font-sniglet;
+        letter-spacing: 0.02em;
+        text-shadow: 0 1px 6px rgba(56, 189, 248, 0.35);
+      }
+    }
+
+    .bubble-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bubble-close-btn {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      line-height: 1;
+      color: rgba(255, 255, 255, 0.55);
+      cursor: pointer;
+      padding: 0 4px;
+      border-radius: 6px;
+      transition: color 0.15s, transform 0.15s;
+
+      &:hover {
+        color: #38bdf8;
+        transform: scale(1.15);
+      }
+    }
+  }
+
+
+  .bubble-body {
+    max-height: min(320px, 50vh);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 8px 6px 8px 4px;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    outline: none;
+
+    scrollbar-width: thin;
+    scrollbar-color: rgba(56, 189, 248, 0.5) rgba(15, 23, 42, 0.35);
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.35);
+      border-radius: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(56, 189, 248, 0.45);
+      border-radius: 4px;
+      transition: background 0.2s;
+
+      &:hover {
+        background: rgba(56, 189, 248, 0.8);
+      }
+    }
+  }
+
+  .tools-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .tool-card {
+    appearance: none;
+    font-family: $font-sniglet;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.05) 0%,
+      rgba(56, 189, 248, 0.06) 100%
+    );
+    border: 1px solid rgba(147, 197, 253, 0.22);
+    box-shadow: 
+      0 2px 8px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: #f1f5f9;
+    text-align: left;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    &:hover {
+      background: linear-gradient(
+        135deg,
+        rgba(224, 242, 254, 0.18) 0%,
+        rgba(56, 189, 248, 0.24) 100%
+      );
+      border-color: rgba(147, 197, 253, 0.55);
+      box-shadow: 
+        0 4px 14px rgba(0, 0, 0, 0.3),
+        0 0 16px rgba(56, 189, 248, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+
+    &:focus-visible {
+      outline: 2px solid #38bdf8;
+      outline-offset: 2px;
+    }
+
+    &.is-active {
+      background: linear-gradient(
+        135deg,
+        rgba(56, 189, 248, 0.28) 0%,
+        rgba(96, 165, 250, 0.36) 100%
+      );
+      border-color: rgba(224, 242, 254, 0.8);
+      box-shadow: 
+        0 4px 16px rgba(14, 116, 144, 0.35),
+        0 0 20px rgba(56, 189, 248, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.45);
+
+      .tool-card-icon {
+        color: #ffffff;
+        background: linear-gradient(135deg, #38bdf8, #60a5fa);
+        box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
+      }
+
+      .tool-card-title {
+        color: #ffffff;
+        text-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+      }
+    }
+
+    .tool-card-icon {
+      flex-shrink: 0;
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(14, 26, 48, 0.6);
+      border: 1px solid rgba(147, 197, 253, 0.25);
+      color: #7dd3fc;
+      transition: all 0.2s ease;
+
+      svg {
+        filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6));
+      }
+    }
+
+    .tool-card-content {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .tool-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .tool-card-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #f8fafc;
+      letter-spacing: 0.01em;
+    }
+
+    .active-badge {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.35);
+      border: 1px solid rgba(224, 242, 254, 0.7);
+      color: #ffffff;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    }
+
+    .tool-card-tagline {
+      font-size: 0.72rem;
+      color: #38bdf8;
+      letter-spacing: 0.02em;
+    }
+
+    .tool-card-desc {
+      margin: 2px 0 0 0;
+      font-size: 0.74rem;
+      line-height: 1.35;
+      color: #cbd5e1;
+    }
+  }
+
+  @media (max-width: 520px) {
+    :host {
+      right: -24px;
+    }
+
+    .speech-bubble.tool-speech-bubble {
+      width: 320px;
+
+      &::before {
+        right: 76px;
+      }
+
+      &::after {
+        right: 75px;
+      }
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Keyframe Animations
+// ---------------------------------------------------------------------------
+
+@keyframes balloon-inflate-bottom {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes balloon-deflate-bottom {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .speech-bubble.tool-speech-bubble {
+    animation: none !important;
+
+    &.is-closing {
+      animation: none !important;
+    }
+  }
+}

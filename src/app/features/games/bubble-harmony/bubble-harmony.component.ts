@@ -6,10 +6,25 @@ import {
   OnDestroy,
   inject,
   signal,
+  computed,
   HostListener,
 } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AudioService } from '../../../core/services/audio.service';
+import { BubbleToolSpeechBubbleComponent } from './components/bubble-tool-speech-bubble/bubble-tool-speech-bubble.component';
+import { BubbleToolId, BUBBLE_TOOLS } from './models/bubble-tool.model';
+
+/** Rainbow palette for micro-sparks on bubble hover, covering all 7 spectrum colors plus luminous white. */
+const RAINBOW_SPARK_COLORS = [
+  '#ff4444', // Red
+  '#ff9436', // Orange
+  '#ffea3b', // Yellow
+  '#4ade80', // Green
+  '#38bdf8', // Cyan
+  '#6366f1', // Blue / Indigo
+  '#c084fc', // Violet / Purple
+  '#ffffff', // Luminous White Spark
+];
 
 /**
  * Represents a floating soap bubble on the 2D harmony canvas.
@@ -38,7 +53,7 @@ interface Bubble {
 }
 
 /**
- * Visual particle ejected when a bubble pops.
+ * Visual particle ejected when a bubble pops or emits rainbow sparks.
  */
 interface Particle {
   /** Current X coordinate on the canvas. */
@@ -55,6 +70,12 @@ interface Particle {
   alpha: number;
   /** CSS color string for rendering. */
   color: string;
+  /** Whether this particle is a shining micro-spark from the prism tool. */
+  isRainbowSpark?: boolean;
+  /** Remaining frames of lifetime. */
+  life?: number;
+  /** Maximum frames of lifetime for progress calculation. */
+  maxLife?: number;
 }
 
 /**
@@ -62,7 +83,7 @@ interface Particle {
  */
 @Component({
   selector: 'app-bubble-harmony',
-  imports: [RouterLink],
+  imports: [RouterLink, BubbleToolSpeechBubbleComponent],
   templateUrl: './bubble-harmony.component.html',
   styleUrl: './bubble-harmony.component.scss',
 })
@@ -73,14 +94,61 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
   readonly audioService = inject(AudioService);
   private readonly router = inject(Router);
 
+  /** Currently selected interactive tool (null by default). */
+  readonly activeTool = signal<BubbleToolId | null>(null);
+
+  /** Whether the tool selection speech bubble is open. */
+  readonly showToolBubble = signal<boolean>(false);
+
+  /** Whether the balloon deflate closing animation is active. */
+  readonly closingToolBubble = signal<boolean>(false);
+  private toolBubbleTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  /** Display label of the currently active tool. */
+  readonly activeToolLabel = computed(() => {
+    const tool = BUBBLE_TOOLS.find((t) => t.id === this.activeTool());
+    return tool ? tool.label : '';
+  });
+
+  /** Dynamic interaction hint displayed in the bottom capsule. */
+  readonly activeToolHint = computed(() => {
+    switch (this.activeTool()) {
+      case 'fan':
+        return 'Maus in Nähe führen zum Wegpusten (Ventilator)';
+      case 'magnet':
+        return 'Maus bewegen zum Anziehen & Kreisen (Magnet)';
+      case 'prism':
+        return 'Über Blasen fahren für bunte Regenbogen-Funken';
+      case 'chime':
+        return 'Blasen berühren für Theremin-Klang & Schwingung';
+      default:
+        return 'Klicke eine Blase zum Platzen & Hören';
+    }
+  });
+
   /**
-   * Closes the minigame and returns to the home page on Escape key press.
+   * Closes the minigame or open tool bubble on Escape key press.
    *
    * @returns {void}
    */
   @HostListener('document:keydown.escape')
   onEscape(): void {
+    if (this.showToolBubble()) {
+      this.closeToolBubble();
+      return;
+    }
     this.router.navigate(['/'], { fragment: 'bubble-hub' });
+  }
+
+  /**
+   * Closes the tool speech bubble when clicking outside the tool pill wrapper.
+   */
+  @HostListener('document:pointerdown', ['$event'])
+  onDocumentPointerDown(event: PointerEvent): void {
+    if (!this.showToolBubble() || this.closingToolBubble()) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('.tool-pill-wrapper')) return;
+    this.closeToolBubble();
   }
 
   /**
@@ -91,7 +159,6 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     event.preventDefault();
     this.spawnBubbleCluster();
   }
-
 
   /** Count of currently floating bubbles on the canvas. */
   readonly bubbleCount = signal<number>(0);
@@ -106,6 +173,11 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
   private animationId: number | null = null;
   private isMouseDown = false;
   private growCurrentBubble: Bubble | null = null;
+  private mousePos: { x: number; y: number } | null = null;
+  private breezePhase = 0;
+  private lastWindSoundTime = 0;
+  private lastPrismSoundTime = 0;
+  private lastResonanceMap = new Map<Bubble, number>();
 
   /**
    * Lifecycle hook invoked after view initialization to start canvas setup and animations.
@@ -127,7 +199,64 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     if (this.animationId !== null) {
       cancelAnimationFrame(this.animationId);
     }
+    if (this.toolBubbleTimeout) {
+      clearTimeout(this.toolBubbleTimeout);
+    }
     window.removeEventListener('resize', this.onResize);
+  }
+
+  /**
+   * Toggles the tool selection speech bubble.
+   *
+   * @param {Event} [event] - The trigger event.
+   */
+  toggleToolBubble(event?: Event): void {
+    event?.stopPropagation();
+    if (this.showToolBubble()) {
+      this.closeToolBubble();
+    } else {
+      this.openToolBubble();
+    }
+  }
+
+  /**
+   * Opens the tool selection speech bubble with audio feedback.
+   */
+  openToolBubble(): void {
+    if (this.toolBubbleTimeout) {
+      clearTimeout(this.toolBubbleTimeout);
+      this.toolBubbleTimeout = null;
+    }
+    this.closingToolBubble.set(false);
+    this.showToolBubble.set(true);
+    this.audioService.playWaterdropToneOn(0.4);
+  }
+
+  /**
+   * Closes the tool speech bubble with a smooth deflate animation.
+   */
+  closeToolBubble(): void {
+    if (!this.showToolBubble() || this.closingToolBubble()) return;
+    this.closingToolBubble.set(true);
+    if (this.toolBubbleTimeout) {
+      clearTimeout(this.toolBubbleTimeout);
+    }
+    this.toolBubbleTimeout = setTimeout(() => {
+      this.showToolBubble.set(false);
+      this.closingToolBubble.set(false);
+      this.toolBubbleTimeout = null;
+    }, 320);
+  }
+
+  /**
+   * Handles user selection of a tool from the speech bubble.
+   *
+   * @param {BubbleToolId} toolId - Selected tool identifier.
+   */
+  onSelectTool(toolId: BubbleToolId | null): void {
+    this.activeTool.set(toolId);
+    this.audioService.playWaterdropToneOn(0.5);
+    this.closeToolBubble();
   }
 
   /**
@@ -139,11 +268,11 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     const canvas = this.canvasRef.nativeElement;
     this.ctx = canvas.getContext('2d')!;
     this.onResize();
-    window.addEventListener('resize', this.onResize);
+    window.addEventListener('resize', this.onResize, { passive: true });
   }
 
   /**
-   * Resizes canvas buffer dimensions to match the browser window viewport.
+   * Window resize handler updating canvas dimensions to match viewport.
    *
    * @returns {void}
    */
@@ -250,26 +379,68 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
     const count = Math.floor(radius / 2.5);
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = 1.5 + Math.random() * 3.5;
+      const speed = 1.2 + Math.random() * 3.5;
       this.particles.push({
         x,
         y,
         vx: Math.cos(angle) * speed,
         vy: Math.sin(angle) * speed,
-        radius: 2 + Math.random() * 3,
-        alpha: 1,
-        color: `hsla(${hue}, 80%, 75%, 0.9)`,
+        radius: 1.5 + Math.random() * 2.5,
+        alpha: 0.9,
+        color: `hsla(${hue + (Math.random() * 30 - 15)}, 90%, 75%, 0.8)`,
       });
     }
   }
 
   /**
-   * Spawns an animated cluster of bubbles rising from below the viewport.
+   * Spawns radiant micro-pixel sparks shooting outward from the bubble's perimeter on hover,
+   * modeled directly after the orb-cursor hold sparks, featuring all spectrum colors of the rainbow.
+   *
+   * @param {Bubble} b - The hovered soap bubble.
+   */
+  private spawnBubbleRainbowSparks(b: Bubble): void {
+    const count = 4 + Math.floor(Math.random() * 4);
+    for (let k = 0; k < count; k++) {
+      const color = RAINBOW_SPARK_COLORS[Math.floor(Math.random() * RAINBOW_SPARK_COLORS.length)];
+      const angle = Math.random() * Math.PI * 2;
+      const startDist = b.radius + (Math.random() - 0.5) * 3;
+      const speed = 2.0 + Math.random() * 3.6;
+      const maxLife = 24 + Math.floor(Math.random() * 16);
+
+      this.particles.push({
+        x: b.x + Math.cos(angle) * startDist,
+        y: b.y + Math.sin(angle) * startDist,
+        vx: Math.cos(angle) * speed + b.vx * 0.3,
+        vy: Math.sin(angle) * speed + b.vy * 0.3,
+        radius: Math.random() < 0.5 ? 2.0 : 1.5,
+        alpha: 1,
+        color,
+        isRainbowSpark: true,
+        life: maxLife,
+        maxLife,
+      });
+    }
+  }
+
+  /**
+   * Throttled audio player for magical rainbow chime sparkles.
+   */
+  private triggerPrismAudio(): void {
+    const now = Date.now();
+    if (now - this.lastPrismSoundTime > 240) {
+      this.lastPrismSoundTime = now;
+      this.audioService.playChime(6 + Math.floor(Math.random() * 4), 0.16);
+    }
+  }
+
+  /**
+   * Spawns an ascending cluster of multiple bubbles from the bottom of the screen.
    *
    * @returns {void}
    */
   spawnBubbleCluster(): void {
-    for (let i = 0; i < 8; i++) {
+    const count = 5 + Math.floor(Math.random() * 4);
+    for (let i = 0; i < count; i++) {
       setTimeout(() => {
         this.createBubble(
           window.innerWidth * 0.2 + Math.random() * window.innerWidth * 0.6,
@@ -315,6 +486,8 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
    */
   onPointerDown(e: MouseEvent | TouchEvent): void {
     const pos = this.getEventPos(e);
+    this.mousePos = pos;
+
     // Check if clicked an existing bubble
     for (let i = this.bubbles.length - 1; i >= 0; i--) {
       const b = this.bubbles[i];
@@ -331,14 +504,16 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Handles pointer motion to grow an actively inflated bubble while holding down.
+   * Handles pointer motion to grow an actively inflated bubble while holding down, and updates pointer coordinates.
    *
    * @param {MouseEvent | TouchEvent} e - Mouse move or touch move event.
    * @returns {void}
    */
   onPointerMove(e: MouseEvent | TouchEvent): void {
-    if (!this.isMouseDown || !this.growCurrentBubble) return;
     const pos = this.getEventPos(e);
+    this.mousePos = pos;
+
+    if (!this.isMouseDown || !this.growCurrentBubble) return;
     this.growCurrentBubble.x = pos.x;
     this.growCurrentBubble.y = pos.y;
     if (this.growCurrentBubble.radius < 65) {
@@ -357,6 +532,14 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
+   * Clears mouse position when cursor leaves canvas.
+   */
+  onPointerLeave(): void {
+    this.mousePos = null;
+    this.onPointerUp();
+  }
+
+  /**
    * Extracts client coordinates from either a mouse or touch interaction event.
    *
    * @param {MouseEvent | TouchEvent} e - The interaction event.
@@ -371,7 +554,35 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Main animation loop updating physics and rendering bubbles and particles.
+   * Throttled audio player for wind gust repulsion chimes.
+   */
+  private triggerWindAudio(): void {
+    const now = Date.now();
+    if (now - this.lastWindSoundTime > 350) {
+      this.lastWindSoundTime = now;
+      this.audioService.playBubbleHover();
+    }
+  }
+
+  /**
+   * Triggers a resonant harmonic bell when interacting with the chime resonator tool.
+   *
+   * @param {Bubble} b - The vibrating bubble.
+   * @param {number} index - Index of the bubble.
+   */
+  private triggerResonance(b: Bubble, index: number): void {
+    const now = Date.now();
+    const last = this.lastResonanceMap.get(b) || 0;
+    if (now - last > 500) {
+      this.lastResonanceMap.set(b, now);
+      this.audioService.playChime(index % 10, 0.22);
+      b.wobblePhase += 0.4;
+      b.radius = Math.min(b.radius + 1.2, 70);
+    }
+  }
+
+  /**
+   * Main animation loop updating physics and rendering bubbles, particles, and active tool effects.
    *
    * @returns {void}
    */
@@ -381,9 +592,59 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
 
     this.ctx.clearRect(0, 0, width, height);
 
+    const tool = this.activeTool();
+    const mouse = this.mousePos;
+
     // Update & draw bubbles
     for (let i = 0; i < this.bubbles.length; i++) {
       const b = this.bubbles[i];
+
+      // Interactive tool effects
+      if (mouse) {
+        const dx = b.x - mouse.x;
+        const dy = b.y - mouse.y;
+        const dist = Math.hypot(dx, dy);
+
+        if (tool === 'fan') {
+          // Ventilator tool: Repels bubbles like an aerodynamic air stream
+          const fanRadius = 145;
+          if (dist < fanRadius && dist > 1) {
+            const intensity = 1 - dist / fanRadius;
+            const force = intensity * 3.4;
+            b.vx += (dx / dist) * force;
+            b.vy += (dy / dist) * force;
+            b.wobblePhase += intensity * 0.2;
+            this.triggerWindAudio();
+          }
+        } else if (tool === 'magnet') {
+          // Magnet tool: Pulls bubbles inward into a swirling orbit
+          const magnetRadius = 240;
+          if (dist < magnetRadius && dist > 20) {
+            const intensity = 1 - dist / magnetRadius;
+            const pull = intensity * 1.3;
+            const orbit = intensity * 0.8;
+            b.vx -= (dx / dist) * pull - (dy / dist) * orbit;
+            b.vy -= (dy / dist) * pull + (dx / dist) * orbit;
+          }
+        } else if (tool === 'prism') {
+          // Rainbow Prism: Bubble sprays vibrant rainbow micro-sparks on hover like orb-cursor hold
+          if (dist < b.radius + 15) {
+            b.hue = (b.hue + 2.5) % 360;
+            b.wobbleSpeed = 0.045;
+            this.spawnBubbleRainbowSparks(b);
+            this.triggerPrismAudio();
+          }
+        } else if (tool === 'chime') {
+          // Soundwave Chime: Induces gentle resonance chime & pulse
+          if (dist < b.radius + 25) {
+            this.triggerResonance(b, i);
+          }
+        }
+      }
+
+      // Air resistance and subtle upward buoyancy
+      b.vx *= 0.985;
+      b.vy = b.vy * 0.985 - 0.01;
 
       b.wobblePhase += b.wobbleSpeed;
       b.x += b.vx + Math.sin(b.wobblePhase) * 0.4;
@@ -406,21 +667,70 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
       this.drawSoapBubble(b);
     }
 
-    // Update & draw burst particles
+    // Draw tool visual effects on canvas around the mouse
+    if (mouse) {
+      if (tool === 'fan') {
+        this.drawBreezeRipples(mouse.x, mouse.y);
+      } else if (tool === 'magnet') {
+        this.drawMagnetAura(mouse.x, mouse.y);
+      }
+    }
+
+    // Update & draw burst & micro-spark particles
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
+
+      if (p.isRainbowSpark && p.life !== undefined && p.maxLife !== undefined) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.93;
+        p.vy *= 0.93;
+        p.life--;
+
+        const progress = 1 - p.life / p.maxLife;
+
+        let alpha = 1.0;
+        if (progress < 0.35) {
+          alpha = 1.0 - (progress / 0.35) * 0.08;
+        } else if (progress < 0.75) {
+          alpha = 0.92 - ((progress - 0.35) / 0.4) * 0.42;
+        } else {
+          alpha = 0.5 * (1 - (progress - 0.75) / 0.25);
+        }
+
+        const scale = 1.1 - progress * 0.7;
+        const currentRadius = p.radius * scale;
+
+        if (p.life <= 0 || alpha <= 0.02) {
+          this.particles.splice(i, 1);
+          continue;
+        }
+
+        this.ctx.save();
+        this.ctx.globalAlpha = Math.max(0, Math.min(1, alpha));
+        this.ctx.fillStyle = p.color;
+        this.ctx.shadowColor = p.color;
+        this.ctx.shadowBlur = 3.5;
+        this.ctx.beginPath();
+        this.ctx.arc(p.x, p.y, Math.max(0.6, currentRadius), 0, Math.PI * 2);
+        this.ctx.fill();
+        this.ctx.restore();
+        continue;
+      }
+
+      // Regular burst particle from popping
       p.x += p.vx;
       p.y += p.vy;
       p.alpha -= 0.025;
       p.radius *= 0.96;
 
-      if (p.alpha <= 0 || p.radius <= 0.5) {
+      if (p.alpha <= 0 || p.radius <= 0.4) {
         this.particles.splice(i, 1);
         continue;
       }
 
       this.ctx.save();
-      this.ctx.globalAlpha = p.alpha;
+      this.ctx.globalAlpha = Math.max(0, p.alpha);
       this.ctx.beginPath();
       this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
       this.ctx.fillStyle = p.color;
@@ -430,11 +740,58 @@ export class BubbleHarmonyComponent implements AfterViewInit, OnDestroy {
   };
 
   /**
-   * Renders an iridescent soap bubble with multi-stop radial gradient and specular highlights.
+   * Renders swirling air stream breeze ripples around the mouse cursor in Ventilator mode.
    *
-   * @param {Bubble} b - The bubble model to render.
-   * @returns {void}
+   * @param {number} cx - Cursor X coordinate.
+   * @param {number} cy - Cursor Y coordinate.
    */
+  private drawBreezeRipples(cx: number, cy: number): void {
+    const ctx = this.ctx;
+    this.breezePhase += 0.06;
+    ctx.save();
+    ctx.lineWidth = 1.6;
+    for (let r = 0; r < 3; r++) {
+      const radius = ((this.breezePhase * 30 + r * 40) % 120) + 15;
+      const alpha = Math.max(0, 1 - radius / 135) * 0.4;
+      ctx.strokeStyle = `rgba(186, 230, 253, ${alpha})`;
+      ctx.beginPath();
+      ctx.arc(
+        cx,
+        cy,
+        radius,
+        this.breezePhase + r * 2.1,
+        this.breezePhase + r * 2.1 + Math.PI * 0.75
+      );
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  /**
+   * Renders magnetic attraction pulses around the mouse cursor in Magnet mode.
+   *
+   * @param {number} cx - Cursor X coordinate.
+   * @param {number} cy - Cursor Y coordinate.
+   */
+  private drawMagnetAura(cx: number, cy: number): void {
+    const ctx = this.ctx;
+    this.breezePhase += 0.04;
+    ctx.save();
+    const pulse = Math.sin(this.breezePhase * 3) * 5;
+
+    ctx.strokeStyle = 'rgba(192, 132, 252, 0.45)';
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 38 + pulse, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = 'rgba(192, 132, 252, 0.22)';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 70 + pulse * 1.5, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   private drawSoapBubble(b: Bubble): void {
     const ctx = this.ctx;
     ctx.save();
