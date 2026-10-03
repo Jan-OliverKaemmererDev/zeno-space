@@ -1,0 +1,38 @@
+<header class="game-hud-header">
+  <a routerLink="/" fragment="bubble-hub" class="back-link" aria-label="Zurückkehren">
+    <span class="back-icon" aria-hidden="true">←</span>
+    <span>Zurückkehren</span>
+  </a>
+
+  <!-- Pi Live Snippet & Stats -->
+  <div class="hud-stats" aria-live="polite">
+    <div class="stat-pill-wrapper">
+      <button
+        type="button"
+        class="stat-pill pi-snippet-pill"
+        [class.is-active]="showBubble"
+        (click)="onStatPillClick($event)"
+        title="Aktueller Ziffernverlauf – Details anzeigen"
+        aria-haspopup="dialog"
+        [attr.aria-expanded]="showBubble"
+      >
+        <span class="pi-symbol" aria-hidden="true">π</span>
+        <span class="pi-text">≈ {{ currentPiSnippet }}</span>
+      </button>
+
+      @if (showBubble) {
+        <app-pi-speech-bubble
+          [generatedPiDecimals]="generatedPiDecimals"
+          [totalDecimalsFormatted]="totalDecimalsFormatted"
+          [isClosing]="closingBubble"
+          (close)="onBubbleClose()"
+        ></app-pi-speech-bubble>
+      }
+    </div>
+
+    <div class="stat-bubble" title="Gesamtzahl der Nachkommastellen">
+      <span class="stat-num">{{ totalDecimalsFormatted }}</span>
+      <span class="stat-text">Ziffern</span>
+    </div>
+  </div>
+</header>
