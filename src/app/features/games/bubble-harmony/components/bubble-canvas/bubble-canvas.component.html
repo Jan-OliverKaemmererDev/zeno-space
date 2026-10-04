@@ -1,0 +1,14 @@
+<canvas 
+  #canvasRef
+  class="bubble-canvas"
+  role="img"
+  aria-label="Interaktive Seifenblasen-Simulation"
+  (mousedown)="onPointerDown($event)"
+  (mousemove)="onPointerMove($event)"
+  (mouseup)="onPointerUp()"
+  (mouseleave)="onPointerLeave()"
+  (touchstart)="onPointerDown($event)"
+  (touchmove)="onPointerMove($event)"
+  (touchend)="onPointerUp()"
+  (touchcancel)="onPointerUp()"
+></canvas>

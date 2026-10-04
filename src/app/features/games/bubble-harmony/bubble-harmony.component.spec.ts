@@ -72,11 +72,12 @@ describe('BubbleHarmonyComponent', () => {
     expect(component.chainReaction()).toBe(!initial);
   });
 
-  it('should spawn bubble cluster and increase bubbleCount', () => {
+  it('should spawn bubble cluster stream and increase bubbleCount with audio feedback', () => {
     vi.useFakeTimers();
     const initialCount = component.bubbleCount();
     component.spawnBubbleCluster();
-    vi.advanceTimersByTime(1000);
+    expect(mockAudioService['playBubbleHover']).toHaveBeenCalled();
+    vi.advanceTimersByTime(1200);
     expect(component.bubbleCount()).toBeGreaterThan(initialCount);
     vi.useRealTimers();
   });

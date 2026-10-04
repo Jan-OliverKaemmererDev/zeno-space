@@ -1,0 +1,62 @@
+<div class="tool-pill-wrapper">
+  <button
+    type="button"
+    class="dock-btn dock-btn--tool"
+    [class.active]="showToolBubble"
+    (click)="onToggleToolBubble($event)"
+    aria-label="Werkzeug auswählen"
+    title="Werkzeug-Auswahl öffnen (z. B. Ventilator, Magnet, Prisma)"
+    aria-haspopup="dialog"
+    [attr.aria-expanded]="showToolBubble"
+  >
+    @switch (activeTool) {
+      @case ('fan') {
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 12c-2-2.5-5-2-6.5-.5S4 16 6.5 16s4-2 5.5-4z"/>
+          <path d="M12 12c2.5-2 2-5 .5-6.5S8 4 8 6.5s2 4 4 5.5z"/>
+          <path d="M12 12c2 2.5 5 2 6.5.5S20 8 17.5 8s-4 2-5.5 4z"/>
+          <path d="M12 12c-2.5 2-2 5-.5 6.5S16 20 16 17.5s-2-4-4-5.5z"/>
+          <circle cx="12" cy="12" r="2"/>
+        </svg>
+        <span>Werkzeug: Ventilator</span>
+      }
+      @case ('magnet') {
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m6 15-3-3 6.7-6.7a5.5 5.5 0 0 1 7.8 7.8L12 18"/>
+          <path d="m9 18 3 3 4.5-4.5"/>
+          <path d="m4.5 10.5 3 3"/>
+          <path d="m15 4.5 3 3"/>
+        </svg>
+        <span>Werkzeug: Magnet</span>
+      }
+      @case ('prism') {
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>
+        </svg>
+        <span>Werkzeug: Prisma</span>
+      }
+      @case ('chime') {
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+          <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+        </svg>
+        <span>Werkzeug: Klang</span>
+      }
+      @default {
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+        </svg>
+        <span>Werkzeug</span>
+      }
+    }
+  </button>
+
+  @if (showToolBubble) {
+    <app-bubble-tool-speech-bubble
+      [activeToolId]="activeTool"
+      [isClosing]="closingToolBubble"
+      (selectTool)="onSelectTool($event)"
+      (close)="onCloseToolBubble()"
+    ></app-bubble-tool-speech-bubble>
+  }
+</div>

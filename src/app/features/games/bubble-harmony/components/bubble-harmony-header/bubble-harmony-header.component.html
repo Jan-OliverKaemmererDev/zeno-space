@@ -1,0 +1,17 @@
+<header class="game-hud-header">
+  <a routerLink="/" fragment="bubble-hub" class="back-link" aria-label="Zurück">
+    <span class="back-icon" aria-hidden="true">←</span>
+    <span>Zurück</span>
+  </a>
+
+  <div class="hud-stats" aria-live="polite">
+    <div class="stat-bubble">
+      <span class="stat-num">{{ bubbleCount }}</span>
+      <span class="stat-text">Schwebend</span>
+    </div>
+    <div class="stat-bubble">
+      <span class="stat-num">{{ poppedTotal }}</span>
+      <span class="stat-text">Geplatzt</span>
+    </div>
+  </div>
+</header>

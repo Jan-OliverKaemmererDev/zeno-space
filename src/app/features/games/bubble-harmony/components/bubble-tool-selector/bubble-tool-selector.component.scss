@@ -1,0 +1,110 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+:host {
+  display: inline-flex;
+  align-items: center;
+}
+
+.tool-pill-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.dock-btn {
+  font-family: $font-sniglet;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border: none;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  @include m.mobile-landscape-short {
+    padding: 4px 10px;
+    font-size: 0.76rem;
+    gap: 4px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+    gap: 4px;
+  }
+
+  svg {
+    flex-shrink: 0;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+  }
+
+  &:focus-visible {
+    outline: 2px solid #38bdf8;
+    outline-offset: 3px;
+  }
+
+  &--tool {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.08) 0%,
+      rgba(56, 189, 248, 0.14) 100%
+    );
+    border: 1px solid rgba(147, 197, 253, 0.32);
+    color: #e0f2fe;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    box-shadow: 
+      0 2px 8px rgba(0, 0, 0, 0.20),
+      inset 0 1px 0 rgba(255, 255, 255, 0.20);
+
+    &:hover {
+      background: linear-gradient(
+        135deg,
+        rgba(186, 230, 253, 0.24) 0%,
+        rgba(56, 189, 248, 0.36) 100%
+      );
+      border-color: rgba(147, 197, 253, 0.65);
+      color: #ffffff;
+      box-shadow: 
+        0 4px 14px rgba(0, 0, 0, 0.3),
+        0 0 16px rgba(56, 189, 248, 0.30),
+        inset 0 1px 0 rgba(255, 255, 255, 0.35);
+      transform: translateY(-2px);
+    }
+
+    &.active {
+      background: linear-gradient(
+        135deg,
+        rgba(56, 189, 248, 0.38) 0%,
+        rgba(96, 165, 250, 0.48) 100%
+      );
+      border-color: rgba(224, 242, 254, 0.85);
+      color: #ffffff;
+      text-shadow: 
+        0 1px 4px rgba(7, 20, 50, 0.95),
+        0 2px 8px rgba(0, 0, 0, 0.7);
+      box-shadow: 
+        0 4px 16px rgba(14, 116, 144, 0.35),
+        0 0 20px rgba(56, 189, 248, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.45);
+      transform: scale(0.98);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+}

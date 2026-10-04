@@ -1,0 +1,43 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+:host {
+  display: contents;
+}
+
+.interaction-hint {
+  font-family: $font-sniglet;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.10) 0%,
+    rgba(14, 26, 48, 0.38) 100%
+  );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 0.80rem;
+  color: #cbd5e1;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.20);
+
+  @include m.mobile-landscape-short {
+    display: none;
+  }
+
+  @media (max-width: 600px) {
+    display: none;
+  }
+
+  .hint-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+}
