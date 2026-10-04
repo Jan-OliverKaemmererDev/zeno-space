@@ -187,6 +187,47 @@ export class GameRegistryService {
       },
     },
     {
+      id: 'mandelbrot-fraktal',
+      title: 'Mandelbrot Fraktal',
+      subtitle: '3D Tiefen-Meditation',
+      description: 'Reise in die unendliche Tiefe der Mandelbrot-Menge mit flüssigen 3D-Zooms in warme, bernsteingoldene Spiralen und beruhigenden Sphärenklängen.',
+      badge: '3D WebGL',
+      category: 'mathematik',
+      route: '/game/mandelbrot-fraktal',
+      icon: 'mandelbrot',
+      primaryColor: '#f59e0b',
+      glowColor: 'rgba(245, 158, 11, 0.28)',
+      tags: ['Mathematik'],
+      floatDelay: '1.6s',
+      floatDuration: '9.6s',
+      sizeClass: 'bubble--md',
+      controls: {
+        keyboard: [
+          {
+            type: 'wasd',
+            keys: ['W', 'A', 'S', 'D'],
+            label: 'Starr nach oben, unten, links und rechts bewegen',
+          },
+          {
+            type: 'arrows',
+            keys: ['↑', '↓'],
+            label: 'Hinein- und herauszoomen',
+          },
+          {
+            type: 'inline',
+            keys: ['ESC'],
+            label: 'Zurück zur Übersicht',
+          },
+        ],
+        mouse: {
+          leftClick: true,
+          wheel: true,
+          label: 'Mausrad zum Zoomen dorthin wo die Maus zeigt',
+        },
+        objective: 'Tauche ein in unendliche fraktale Verästelungen und entdecke legendäre Orte wie das Seepferdchen- und Scepter-Tal.',
+      },
+    },
+    {
       id: 'soundscape-mixer',
       title: 'Cozy Soundscape',
       subtitle: 'Binauraler Ambient-Raum',

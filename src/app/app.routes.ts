@@ -44,6 +44,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'game/mandelbrot-fraktal',
+    loadComponent: () =>
+      import('./features/games/mandelbrot-fraktal/mandelbrot-fraktal.component').then(
+        (m) => m.MandelbrotFraktalComponent
+      ),
+  },
+  {
     path: '**',
     redirectTo: '',
   },

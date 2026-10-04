@@ -1,0 +1,47 @@
+<div class="mandelbrot-wrapper" role="application" aria-label="Mandelbrot Fraktal – Mathematische Tiefen-Meditation">
+  <!-- Interactive 2D WebGL Canvas Container -->
+  <div 
+    #canvasContainer
+    class="canvas-container"
+    role="img"
+    aria-label="Flache Ansicht der Mandelbrot-Menge mit goldenen Lichtstrukturen"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)"
+    (wheel)="onWheel($event)"
+    (dblclick)="onDoubleClick($event)"
+  ></div>
+
+  <!-- Dedicated Corner Pollen Particles Canvas Overlay -->
+  <canvas 
+    #particleCanvas
+    class="corner-particles-overlay"
+    aria-hidden="true"
+  ></canvas>
+
+  <!-- Top Glass HUD Header with Speech Bubble -->
+  <app-mandelbrot-header
+    [zoomFormatted]="zoomFormatted()"
+    [iterations]="iterations()"
+    [currentWaypointName]="currentWaypointName()"
+    [coordSnippet]="coordSnippet()"
+    [currentCenterX]="currentCenterX()"
+    [currentCenterY]="currentCenterY()"
+    [currentZoomRaw]="totalZoom()"
+    [generationLevel]="generationLevel()"
+    [showBubble]="showBubble()"
+    [closingBubble]="closingBubble()"
+    (toggleBubble)="toggleBubble($event)"
+    (closeBubble)="closeBubble()"
+  ></app-mandelbrot-header>
+
+  <!-- Bottom Floating Control Dock -->
+  <app-mandelbrot-controls
+    [isSoundEnabled]="isSoundEnabled()"
+    [currentWaypointId]="currentWaypointId()"
+    (zoomIn)="onZoomInStep()"
+    (toggleSound)="toggleSound()"
+    (resetView)="resetToOverview()"
+    (selectWaypoint)="onWaypointSelected($event)"
+  ></app-mandelbrot-controls>
+</div>

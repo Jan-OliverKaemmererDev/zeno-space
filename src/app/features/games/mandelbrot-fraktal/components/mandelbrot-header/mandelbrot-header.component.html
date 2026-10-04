@@ -1,0 +1,53 @@
+<header class="game-hud-header">
+  <a routerLink="/" fragment="bubble-hub" class="back-link" aria-label="Zurückkehren zur Übersicht">
+    <span class="back-icon" aria-hidden="true">←</span>
+    <span>Zurückkehren</span>
+  </a>
+
+  <!-- Mandelbrot Live Snippet & Stats -->
+  <div class="hud-stats" aria-live="polite">
+    <div class="stat-pill-wrapper">
+      <button
+        type="button"
+        class="stat-pill mandelbrot-snippet-pill"
+        [class.is-active]="showBubble"
+        (click)="onStatPillClick($event)"
+        title="Mandelbrot-Menge – Details & Koordinaten anzeigen"
+        aria-haspopup="dialog"
+        [attr.aria-expanded]="showBubble"
+      >
+        <span class="mandelbrot-symbol" aria-hidden="true">𝑀</span>
+        <span class="mandelbrot-text">zₙ₊₁ = zₙ² + c</span>
+      </button>
+
+      @if (showBubble) {
+        <app-mandelbrot-speech-bubble
+          [currentWaypointName]="currentWaypointName"
+          [coordSnippet]="coordSnippet"
+          [zoomFormatted]="zoomFormatted"
+          [iterations]="iterations"
+          [centerX]="currentCenterX"
+          [centerY]="currentCenterY"
+          [rawZoom]="currentZoomRaw"
+          [generationLevel]="generationLevel"
+          [isClosing]="closingBubble"
+          (close)="onBubbleClose()"
+        ></app-mandelbrot-speech-bubble>
+      }
+    </div>
+
+    <!-- Live Generation Depth Badge -->
+    @if (generationLevel > 0) {
+      <div class="stat-bubble level-bubble" title="Aktuelle unendliche Generierungs-Ebene">
+        <span class="stat-num">Ebene {{ generationLevel }}</span>
+        <span class="stat-text">Tiefe</span>
+      </div>
+    }
+
+    <!-- Live Zoom Display -->
+    <div class="stat-bubble" title="Aktueller Zoomfaktor">
+      <span class="stat-num">{{ zoomFormatted }}</span>
+      <span class="stat-text">Zoom</span>
+    </div>
+  </div>
+</header>

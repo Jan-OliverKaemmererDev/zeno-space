@@ -95,6 +95,14 @@
     }
   }
 
+  &.card--mandelbrot-fraktal {
+    border-radius: 56px 28px 62px 26px / 32px 58px 28px 60px;
+
+    &:hover {
+      border-radius: 44px 40px 48px 36px / 38px 46px 36px 48px;
+    }
+  }
+
   &.card--soundscape-mixer {
     border-radius: 30px 56px 28px 60px / 58px 30px 50px 24px;
 
