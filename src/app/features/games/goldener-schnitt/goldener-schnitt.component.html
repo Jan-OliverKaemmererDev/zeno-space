@@ -1,0 +1,42 @@
+<div class="goldener-schnitt-wrapper" role="application" aria-label="Goldener Schnitt – Phyllotaxis-Meditation">
+  <!-- Hidden Font Preload Probe ensuring Orbitron is resident in DOM FontFaceSet -->
+  <span class="orbitron-font-probe" aria-hidden="true">1,618 0123456789</span>
+
+  <!-- Interactive 3D WebGL Canvas Container -->
+  <div 
+    #canvasContainer
+    class="canvas-container"
+    role="img"
+    aria-label="3D-Ansicht des Goldenen Schnitts mit schwebenden goldenen Sonnenblumen-Samen"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerUp($event)"
+    (pointerleave)="onPointerLeave()"
+    (wheel)="onWheel($event)"
+    (dblclick)="onDoubleClick()"
+  ></div>
+
+  <!-- Top Glass HUD Header with Speech Bubble -->
+  <app-goldener-schnitt-header
+    [currentPhiSnippet]="currentPhiSnippet()"
+    [totalSeedsFormatted]="totalSeedsFormatted()"
+    [seedCount]="seedCount()"
+    [generatedPhiDecimals]="generatedPhiDecimalsAfter618()"
+    [showBubble]="showPhiBubble()"
+    [closingBubble]="closingPhiBubble()"
+    (toggleBubble)="togglePhiBubble($event)"
+    (closeBubble)="closePhiBubble()"
+  ></app-goldener-schnitt-header>
+
+  <!-- Bottom Floating Control Dock -->
+  <app-goldener-schnitt-controls
+    [isAutoFlowActive]="isAutoFlowActive()"
+    [isSoundEnabled]="isSoundEnabled()"
+    (addSeeds)="addFiveSeeds()"
+    (toggleAutoFlow)="toggleAutoFlow()"
+    (resetCamera)="resetCameraView()"
+    (toggleSound)="toggleSound()"
+    (resetBloom)="resetBloom()"
+  ></app-goldener-schnitt-controls>
+</div>

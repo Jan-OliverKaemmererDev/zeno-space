@@ -1,0 +1,39 @@
+<header class="game-hud-header">
+  <a routerLink="/" fragment="bubble-hub" class="back-link" aria-label="Zurückkehren">
+    <span class="back-icon" aria-hidden="true">←</span>
+    <span>Zurückkehren</span>
+  </a>
+
+  <!-- Phi Live Snippet & Stats -->
+  <div class="hud-stats" aria-live="polite">
+    <div class="stat-pill-wrapper">
+      <button
+        type="button"
+        class="stat-pill phi-snippet-pill"
+        [class.is-active]="showBubble"
+        (click)="onStatPillClick($event)"
+        title="Aktueller Ziffernverlauf – Details anzeigen"
+        aria-haspopup="dialog"
+        [attr.aria-expanded]="showBubble"
+      >
+        <span class="phi-symbol" aria-hidden="true">φ</span>
+        <span class="phi-text">≈ {{ currentPhiSnippet }}</span>
+      </button>
+
+      @if (showBubble) {
+        <app-phi-speech-bubble
+          [generatedPhiDecimals]="generatedPhiDecimals"
+          [totalSeedsFormatted]="totalSeedsFormatted"
+          [seedCount]="seedCount"
+          [isClosing]="closingBubble"
+          (close)="onBubbleClose()"
+        ></app-phi-speech-bubble>
+      }
+    </div>
+
+    <div class="stat-bubble" title="Gesamtzahl der platzierten Sonnenblumen-Samen">
+      <span class="stat-num">{{ totalSeedsFormatted }}</span>
+      <span class="stat-text">Samen</span>
+    </div>
+  </div>
+</header>

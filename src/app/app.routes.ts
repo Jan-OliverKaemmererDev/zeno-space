@@ -30,6 +30,13 @@ export const routes: Routes = [
       import('./features/games/pi-spiral/pi-spiral.component').then((m) => m.PiSpiralComponent),
   },
   {
+    path: 'game/goldener-schnitt',
+    loadComponent: () =>
+      import('./features/games/goldener-schnitt/goldener-schnitt.component').then(
+        (m) => m.GoldenerSchnittComponent
+      ),
+  },
+  {
     path: 'game/soundscape-mixer',
     loadComponent: () =>
       import('./features/games/soundscape-mixer/soundscape-mixer.component').then(

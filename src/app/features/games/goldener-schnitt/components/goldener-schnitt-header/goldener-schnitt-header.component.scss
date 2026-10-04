@@ -1,0 +1,279 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+// ---------------------------------------------------------------------------
+// Top Glass HUD Header
+// ---------------------------------------------------------------------------
+
+.game-hud-header {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 10;
+  gap: 16px;
+
+  @include m.mobile-landscape-short {
+    top: 10px;
+    left: 14px;
+    right: 14px;
+  }
+
+  @include m.mobile-se {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+  }
+}
+
+.back-link {
+  font-family: $font-sniglet;
+  pointer-events: auto;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    rgba(254, 240, 138, 0.24) 0%,
+    rgba(245, 158, 11, 0.30) 50%,
+    rgba(217, 119, 6, 0.36) 100%
+  );
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  color: var(--zeno-color-white);
+  font-size: 0.96rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-shadow: 
+    0 1px 4px rgba(24, 18, 10, 0.95),
+    0 2px 8px rgba(0, 0, 0, 0.7);
+  box-shadow: 
+    0 4px 14px rgba(0, 0, 0, 0.3),
+    0 0 16px rgba(245, 158, 11, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s ease;
+  cursor: pointer;
+  text-decoration: none;
+
+  @include m.mobile-landscape-short {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    gap: 6px;
+  }
+
+  @media (max-width: 500px) {
+    padding: 8px 12px;
+    font-size: 0.84rem;
+
+    span:not(.back-icon) {
+      display: none;
+    }
+  }
+
+  .back-icon {
+    font-size: 1.15rem;
+    transition: transform 0.25s ease;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+  }
+
+  &:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(254, 240, 138, 0.36) 0%,
+      rgba(245, 158, 11, 0.44) 50%,
+      rgba(217, 119, 6, 0.48) 100%
+    );
+    border-color: rgba(254, 240, 138, 0.72);
+    box-shadow: 
+      0 6px 22px rgba(0, 0, 0, 0.4),
+      0 0 22px rgba(245, 158, 11, 0.38),
+      inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    transform: translateY(-2px);
+
+    .back-icon {
+      transform: translateX(-4px);
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.hud-stats {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  @include m.mobile-landscape-short {
+    gap: 8px;
+  }
+}
+
+.stat-pill-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.stat-pill {
+  appearance: none;
+  font-family: $font-sniglet;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    rgba(254, 240, 138, 0.22) 0%,
+    rgba(245, 158, 11, 0.26) 50%,
+    rgba(217, 119, 6, 0.30) 100%
+  );
+  border: 1px solid rgba(251, 191, 36, 0.42);
+  box-shadow: 
+    0 4px 14px rgba(0, 0, 0, 0.35),
+    0 0 14px rgba(245, 158, 11, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-size: 0.90rem;
+  color: #ffffff;
+  text-shadow: 
+    0 1px 4px rgba(24, 18, 10, 0.95),
+    0 2px 8px rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+  pointer-events: auto;
+  user-select: none;
+  outline: none;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  @include m.mobile-landscape-short {
+    padding: 5px 12px;
+    font-size: 0.75rem;
+  }
+
+  @media (max-width: 720px) {
+    padding: 6px 12px;
+    font-size: 0.78rem;
+    gap: 6px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 5px 10px;
+
+    .phi-text {
+      max-width: 80px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  &:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(254, 240, 138, 0.32) 0%,
+      rgba(245, 158, 11, 0.38) 50%,
+      rgba(217, 119, 6, 0.42) 100%
+    );
+    border-color: rgba(254, 240, 138, 0.75);
+    box-shadow: 
+      0 6px 20px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(245, 158, 11, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px) scale(1.02);
+  }
+
+  &:active,
+  &.is-active {
+    background: linear-gradient(
+      135deg,
+      rgba(254, 240, 138, 0.35) 0%,
+      rgba(245, 158, 11, 0.45) 50%,
+      rgba(217, 119, 6, 0.50) 100%
+    );
+    border-color: rgba(254, 240, 138, 0.9);
+    box-shadow: 
+      0 2px 10px rgba(0, 0, 0, 0.45),
+      0 0 18px rgba(245, 158, 11, 0.45);
+    transform: translateY(0) scale(0.98);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #f59e0b;
+    outline-offset: 3px;
+  }
+
+  .phi-symbol {
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #fde047;
+    text-shadow: 0 0 10px rgba(245, 158, 11, 0.6);
+  }
+
+  .phi-text {
+    font-family: monospace, sans-serif;
+    letter-spacing: 0.5px;
+    color: #fef08a;
+  }
+}
+
+.stat-bubble {
+  font-family: $font-sniglet;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    rgba(254, 240, 138, 0.22) 0%,
+    rgba(245, 158, 11, 0.26) 50%,
+    rgba(217, 119, 6, 0.32) 100%
+  );
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.4),
+    0 0 16px rgba(245, 158, 11, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #ffffff;
+  text-shadow: 
+    0 1px 4px rgba(24, 18, 10, 0.95),
+    0 2px 8px rgba(0, 0, 0, 0.7);
+
+  @include m.mobile-landscape-short {
+    padding: 5px 12px;
+  }
+
+  .stat-num {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #ffffff;
+    font-family: $font-sniglet;
+    text-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+
+    @include m.mobile-landscape-short {
+      font-size: 0.95rem;
+    }
+  }
+
+  .stat-text {
+    font-size: 0.82rem;
+    color: #fef08a;
+  }
+}

@@ -3,12 +3,12 @@ import { ORBITRON_REGULAR_BASE64 } from '../orbitron-font.data';
 
 /**
  * Factory responsible for font loading, procedural 2D canvas texture generation,
- * glowing Orbitron glyph rendering, and material lifecycle for the Pi Spiral.
+ * glowing Orbitron glyph rendering, and material lifecycle for the Goldener Schnitt minigame.
  */
-export class PiTextureFactory {
+export class PhiTextureFactory {
   /**
    * Registers font data with multiple weight descriptors and family aliases
-   * so Canvas 2D font matching succeeds whether 400, 700, bold, or normal is specified.
+   * so Canvas 2D font matching succeeds consistently.
    */
   async registerOrbitronFontFaces(fontData: ArrayBuffer): Promise<void> {
     if (typeof FontFace === 'undefined' || typeof document === 'undefined' || !document.fonts) return;
@@ -40,11 +40,24 @@ export class PiTextureFactory {
   }
 
   /**
-   * Pre-loads the Orbitron font from public/fonts/Orbitron/static/Orbitron-Regular.ttf
-   * with multi-path resolution and embedded byte-for-byte binary fallback.
-   * Guarantees 100% reliable font availability even when deployed on Netcup webhosting.
+   * Pre-loads the Orbitron font with multi-path resolution and embedded binary fallback.
    */
   async loadOrbitronFont(): Promise<void> {
+    // If the font is already active in the document (from CSS @font-face), try loading it
+    if (typeof document !== 'undefined' && document.fonts) {
+      try {
+        await Promise.all([
+          document.fonts.load('700 240px Orbitron'),
+          document.fonts.load('700 290px Orbitron'),
+        ]);
+        if (document.fonts.check('700 240px Orbitron')) {
+          return;
+        }
+      } catch {
+        // Fall back to buffer fetch / embedded binary
+      }
+    }
+
     let buffer: ArrayBuffer | null = null;
 
     if (typeof window !== 'undefined') {
@@ -74,7 +87,6 @@ export class PiTextureFactory {
 
       if (!buffer) {
         try {
-          // Decode embedded exact Orbitron-Regular.ttf binary data
           const binaryString = atob(ORBITRON_REGULAR_BASE64.replace(/\s+/g, ''));
           const len = binaryString.length;
           const bytes = new Uint8Array(len);
@@ -94,7 +106,7 @@ export class PiTextureFactory {
   }
 
   /**
-   * Generates crisp CanvasTexture for center "3,14" in Orbitron font (#2563eb with drop-shadows).
+   * Generates crisp CanvasTexture for center "1,618" in Orbitron font with warm golden drop-shadows.
    */
   createCenterNumberTexture(renderer?: THREE.WebGLRenderer): THREE.CanvasTexture {
     const centerCanvas = document.createElement('canvas');
@@ -102,32 +114,30 @@ export class PiTextureFactory {
     centerCanvas.height = 512;
     const centerCtx = centerCanvas.getContext('2d')!;
 
-    // Clean transparent canvas
     centerCtx.clearRect(0, 0, 1024, 512);
-
     centerCtx.textAlign = 'center';
     centerCtx.textBaseline = 'middle';
     centerCtx.font = '700 280px "Orbitron", "Orbitron-Regular", sans-serif';
 
-    // 1. Subtle dark depth drop-shadow to elevate the number from the background
-    centerCtx.shadowColor = 'rgba(0, 0, 0, 0.80)';
+    // 1. Dark depth drop-shadow to elevate number from background
+    centerCtx.shadowColor = 'rgba(0, 0, 0, 0.85)';
     centerCtx.shadowOffsetX = 14;
     centerCtx.shadowOffsetY = 22;
     centerCtx.shadowBlur = 18;
-    centerCtx.fillText('3,14', 512, 256);
+    centerCtx.fillText('1,618', 512, 256);
 
-    // 2. Light blue drop-shadow (#38bdf8)
-    centerCtx.shadowColor = 'rgba(56, 189, 248, 0.75)';
+    // 2. Warm golden glow drop-shadow (#fbbf24 / #f59e0b)
+    centerCtx.shadowColor = 'rgba(251, 191, 36, 0.78)';
     centerCtx.shadowOffsetX = 6;
     centerCtx.shadowOffsetY = 10;
-    centerCtx.shadowBlur = 12;
-    centerCtx.fillText('3,14', 512, 256);
+    centerCtx.shadowBlur = 14;
+    centerCtx.fillText('1,618', 512, 256);
 
-    // 3. Solid distinct blue fill pass
+    // 3. Radiant solid gold text fill pass
     centerCtx.shadowColor = 'transparent';
     centerCtx.shadowBlur = 0;
-    centerCtx.fillStyle = '#2563eb';
-    centerCtx.fillText('3,14', 512, 256);
+    centerCtx.fillStyle = '#f59e0b';
+    centerCtx.fillText('1,618', 512, 256);
 
     const centerTexture = new THREE.CanvasTexture(centerCanvas);
     centerTexture.generateMipmaps = true;
@@ -141,115 +151,110 @@ export class PiTextureFactory {
 
   /**
    * Creates the center hero display meshes:
-   * 1. A majestic pulsating Pi symbol ("π") in the background
-   * 2. Free-floating, glowing "3,14" in Orbitron font in the foreground
+   * 1. A majestic pulsating Phi symbol ("φ") in warm glowing gold
+   * 2. Free-floating, glowing "1,618" in Orbitron font in the foreground
    */
   createCenterHero(
-    spiralGroup: THREE.Group,
+    parentGroup: THREE.Group,
     renderer?: THREE.WebGLRenderer
-  ): { centerTileMesh: THREE.Mesh; centerPiSymbolMesh: THREE.Mesh } {
-    // 1. Majestic Glowing Pi Symbol ("π") with direct dark blue border & hub-letter inner shadow
-    const piCanvas = document.createElement('canvas');
-    piCanvas.width = 1024;
-    piCanvas.height = 1024;
-    const piCtx = piCanvas.getContext('2d')!;
+  ): { centerTileMesh: THREE.Mesh; centerPhiSymbolMesh: THREE.Mesh } {
+    // 1. Majestic Glowing Phi Symbol ("φ")
+    const phiCanvas = document.createElement('canvas');
+    phiCanvas.width = 1024;
+    phiCanvas.height = 1024;
+    const phiCtx = phiCanvas.getContext('2d')!;
 
-    // Clean transparent canvas
-    piCtx.clearRect(0, 0, 1024, 1024);
+    phiCtx.clearRect(0, 0, 1024, 1024);
 
-    // Ethereal radial cyan/blue glow behind Pi
-    const piHalo = piCtx.createRadialGradient(512, 512, 60, 512, 512, 480);
-    piHalo.addColorStop(0, 'rgba(56, 189, 248, 0.45)');
-    piHalo.addColorStop(0.55, 'rgba(59, 130, 246, 0.20)');
-    piHalo.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
-    piCtx.fillStyle = piHalo;
-    piCtx.beginPath();
-    piCtx.arc(512, 512, 480, 0, Math.PI * 2);
-    piCtx.fill();
+    // Ethereal radial warm amber/gold halo
+    const phiHalo = phiCtx.createRadialGradient(512, 512, 60, 512, 512, 480);
+    phiHalo.addColorStop(0, 'rgba(251, 191, 36, 0.45)');
+    phiHalo.addColorStop(0.55, 'rgba(245, 158, 11, 0.22)');
+    phiHalo.addColorStop(1, 'rgba(251, 191, 36, 0.0)');
+    phiCtx.fillStyle = phiHalo;
+    phiCtx.beginPath();
+    phiCtx.arc(512, 512, 480, 0, Math.PI * 2);
+    phiCtx.fill();
 
-    piCtx.textAlign = 'center';
-    piCtx.textBaseline = 'middle';
-    piCtx.font = 'bold 700px "Sniglet-ExtraBold", "Sniglet", serif, sans-serif';
+    phiCtx.textAlign = 'center';
+    phiCtx.textBaseline = 'middle';
+    phiCtx.font = 'bold 700px "Sniglet-ExtraBold", "Sniglet", serif, sans-serif';
 
-    // Drop-shadow 1: Deep dark shadow (rgba(7, 20, 50, 0.90)) to elevate Pi from background
-    piCtx.shadowColor = 'rgba(7, 20, 50, 0.90)';
-    piCtx.shadowOffsetX = 12;
-    piCtx.shadowOffsetY = 20;
-    piCtx.shadowBlur = 24;
-    piCtx.fillStyle = '#071432';
-    piCtx.fillText('π', 512, 530);
+    // Drop-shadow 1: Deep dark shadow
+    phiCtx.shadowColor = 'rgba(20, 14, 5, 0.90)';
+    phiCtx.shadowOffsetX = 12;
+    phiCtx.shadowOffsetY = 20;
+    phiCtx.shadowBlur = 24;
+    phiCtx.fillStyle = '#1e1405';
+    phiCtx.fillText('φ', 512, 530);
 
-    // Drop-shadow 2: Radiant sky-blue glow aura
-    piCtx.shadowColor = 'rgba(56, 189, 248, 0.70)';
-    piCtx.shadowOffsetX = 0;
-    piCtx.shadowOffsetY = 0;
-    piCtx.shadowBlur = 28;
-    piCtx.fillStyle = '#071432';
-    piCtx.fillText('π', 512, 530);
+    // Drop-shadow 2: Radiant golden aura glow
+    phiCtx.shadowColor = 'rgba(251, 191, 36, 0.75)';
+    phiCtx.shadowOffsetX = 0;
+    phiCtx.shadowOffsetY = 0;
+    phiCtx.shadowBlur = 30;
+    phiCtx.fillStyle = '#1e1405';
+    phiCtx.fillText('φ', 512, 530);
 
-    // Luminous gradient body fill (hub-letter style: crisp white -> ice blue -> radiant cyan -> deep sky blue)
-    piCtx.shadowColor = 'transparent';
-    piCtx.shadowBlur = 0;
-    const piGrad = piCtx.createLinearGradient(0, 180, 0, 860);
-    piGrad.addColorStop(0, '#ffffff');
-    piGrad.addColorStop(0.35, '#bae6fd');
-    piGrad.addColorStop(0.68, '#38bdf8');
-    piGrad.addColorStop(1, '#0284c7');
-    piCtx.fillStyle = piGrad;
-    piCtx.fillText('π', 512, 530);
+    // Luminous gold gradient body
+    phiCtx.shadowColor = 'transparent';
+    phiCtx.shadowBlur = 0;
+    const phiGrad = phiCtx.createLinearGradient(0, 180, 0, 860);
+    phiGrad.addColorStop(0, '#ffffff');
+    phiGrad.addColorStop(0.32, '#fef08a');
+    phiGrad.addColorStop(0.65, '#f59e0b');
+    phiGrad.addColorStop(1, '#b45309');
+    phiCtx.fillStyle = phiGrad;
+    phiCtx.fillText('φ', 512, 530);
 
-    // Inset shadow / shadow to the inside
-    piCtx.save();
-    piCtx.globalCompositeOperation = 'source-atop';
+    // Inset depth shading
+    phiCtx.save();
+    phiCtx.globalCompositeOperation = 'source-atop';
 
-    // Inset inner edge shadow around the contour
-    piCtx.strokeStyle = 'rgba(7, 20, 50, 0.80)';
-    piCtx.lineWidth = 18;
-    piCtx.shadowColor = 'rgba(7, 20, 50, 0.90)';
-    piCtx.shadowBlur = 16;
-    piCtx.shadowOffsetX = 0;
-    piCtx.shadowOffsetY = 6;
-    piCtx.strokeText('π', 512, 530);
+    phiCtx.strokeStyle = 'rgba(20, 14, 5, 0.80)';
+    phiCtx.lineWidth = 18;
+    phiCtx.shadowColor = 'rgba(20, 14, 5, 0.90)';
+    phiCtx.shadowBlur = 16;
+    phiCtx.shadowOffsetX = 0;
+    phiCtx.shadowOffsetY = 6;
+    phiCtx.strokeText('φ', 512, 530);
 
-    // Inset bottom occlusion shading (bubble glass 3D depth)
-    const innerDepthGrad = piCtx.createLinearGradient(0, 320, 0, 860);
-    innerDepthGrad.addColorStop(0, 'rgba(7, 20, 50, 0.0)');
-    innerDepthGrad.addColorStop(0.55, 'rgba(7, 20, 50, 0.18)');
-    innerDepthGrad.addColorStop(1, 'rgba(7, 20, 50, 0.60)');
-    piCtx.fillStyle = innerDepthGrad;
-    piCtx.fillRect(0, 0, 1024, 1024);
+    const innerDepthGrad = phiCtx.createLinearGradient(0, 320, 0, 860);
+    innerDepthGrad.addColorStop(0, 'rgba(20, 14, 5, 0.0)');
+    innerDepthGrad.addColorStop(0.55, 'rgba(20, 14, 5, 0.20)');
+    innerDepthGrad.addColorStop(1, 'rgba(20, 14, 5, 0.65)');
+    phiCtx.fillStyle = innerDepthGrad;
+    phiCtx.fillRect(0, 0, 1024, 1024);
 
-    // Subtle top specular highlight gloss (hub-letter reflection)
-    const topHighlightGrad = piCtx.createLinearGradient(0, 180, 0, 420);
-    topHighlightGrad.addColorStop(0, 'rgba(255, 255, 255, 0.60)');
+    const topHighlightGrad = phiCtx.createLinearGradient(0, 180, 0, 420);
+    topHighlightGrad.addColorStop(0, 'rgba(255, 255, 255, 0.65)');
     topHighlightGrad.addColorStop(1, 'rgba(255, 255, 255, 0.0)');
-    piCtx.fillStyle = topHighlightGrad;
-    piCtx.fillRect(0, 0, 1024, 440);
+    phiCtx.fillStyle = topHighlightGrad;
+    phiCtx.fillRect(0, 0, 1024, 440);
 
-    piCtx.restore();
+    phiCtx.restore();
 
-    const piTexture = new THREE.CanvasTexture(piCanvas);
-    piTexture.generateMipmaps = true;
-    piTexture.minFilter = THREE.LinearMipmapLinearFilter;
-    piTexture.magFilter = THREE.LinearFilter;
+    const phiTexture = new THREE.CanvasTexture(phiCanvas);
+    phiTexture.generateMipmaps = true;
+    phiTexture.minFilter = THREE.LinearMipmapLinearFilter;
+    phiTexture.magFilter = THREE.LinearFilter;
     if (renderer) {
-      piTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      phiTexture.anisotropy = renderer.capabilities.getMaxAnisotropy();
     }
 
-    const piGeo = new THREE.PlaneGeometry(5.2, 5.2);
-    const piMat = new THREE.MeshBasicMaterial({
-      map: piTexture,
+    const phiGeo = new THREE.PlaneGeometry(5.2, 5.2);
+    const phiMat = new THREE.MeshBasicMaterial({
+      map: phiTexture,
       transparent: true,
       opacity: 0.95,
-      blending: THREE.NormalBlending,
       depthWrite: false,
       side: THREE.DoubleSide,
     });
-    const centerPiSymbolMesh = new THREE.Mesh(piGeo, piMat);
-    centerPiSymbolMesh.position.set(0, 0, 0.38);
-    spiralGroup.add(centerPiSymbolMesh);
+    const centerPhiSymbolMesh = new THREE.Mesh(phiGeo, phiMat);
+    centerPhiSymbolMesh.position.set(0, 0, 0.38);
+    parentGroup.add(centerPhiSymbolMesh);
 
-    // 2. Crisp Free-Floating "3,14" in Orbitron font
+    // 2. Center "1,618" in Orbitron font
     const centerTexture = this.createCenterNumberTexture(renderer);
     const centerGeo = new THREE.PlaneGeometry(3.0, 1.5);
     const centerMat = new THREE.MeshBasicMaterial({
@@ -260,13 +265,13 @@ export class PiTextureFactory {
     });
     const centerTileMesh = new THREE.Mesh(centerGeo, centerMat);
     centerTileMesh.position.set(0, 0, 0.60);
-    spiralGroup.add(centerTileMesh);
+    parentGroup.add(centerTileMesh);
 
-    return { centerTileMesh, centerPiSymbolMesh };
+    return { centerTileMesh, centerPhiSymbolMesh };
   }
 
   /**
-   * Refreshes the center "3,14" texture when Orbitron font is ready.
+   * Refreshes the center "1,618" texture when font is loaded.
    */
   updateCenterHeroNumberTexture(centerTileMesh?: THREE.Mesh, renderer?: THREE.WebGLRenderer): void {
     if (!centerTileMesh) return;
@@ -280,8 +285,8 @@ export class PiTextureFactory {
   }
 
   /**
-   * Pre-renders crisp textures and materials for digits 0-9 in Orbitron font (#3b82f6)
-   * with a clearly visible, bright luminous light-blue drop-shadow.
+   * Pre-renders crisp textures and materials for digits 0-9 in golden Orbitron font
+   * with bright luminous gold aura drop-shadows.
    */
   initDigitMaterials(
     existingMaterials: THREE.MeshBasicMaterial[] = [],
@@ -297,15 +302,14 @@ export class PiTextureFactory {
       canvas.height = 512;
       const ctx = canvas.getContext('2d')!;
 
-      // Clear transparent canvas
       ctx.clearRect(0, 0, 512, 512);
 
-      // 1. Ethereal centered circular blue glow halo with wider diffusion/spread
+      // 1. Ethereal centered circular gold glow halo
       const radialGlow = ctx.createRadialGradient(256, 256, 25, 256, 256, 235);
-      radialGlow.addColorStop(0, 'rgba(56, 189, 248, 0.46)');
-      radialGlow.addColorStop(0.35, 'rgba(59, 130, 246, 0.28)');
-      radialGlow.addColorStop(0.68, 'rgba(37, 99, 235, 0.12)');
-      radialGlow.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+      radialGlow.addColorStop(0, 'rgba(251, 191, 36, 0.48)');
+      radialGlow.addColorStop(0.35, 'rgba(245, 158, 11, 0.28)');
+      radialGlow.addColorStop(0.68, 'rgba(180, 83, 9, 0.12)');
+      radialGlow.addColorStop(1, 'rgba(251, 191, 36, 0.0)');
       ctx.fillStyle = radialGlow;
       ctx.beginPath();
       ctx.arc(256, 256, 235, 0, Math.PI * 2);
@@ -315,26 +319,26 @@ export class PiTextureFactory {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
 
-      // 2. Centered vibrant blue neon glow directly on the digit with broader spread
-      ctx.shadowColor = 'rgba(56, 189, 248, 0.95)';
+      // 2. Centered vibrant golden neon glow
+      ctx.shadowColor = 'rgba(251, 191, 36, 0.95)';
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
       ctx.shadowBlur = 52;
-      ctx.fillStyle = '#38bdf8';
+      ctx.fillStyle = '#fde047';
       ctx.fillText(d.toString(), 256, 256);
 
-      // 3. Drop-shadow placed slightly to the right behind the number with softer spread (+20px X, +8px Y)
-      ctx.shadowColor = '#38bdf8';
+      // 3. Drop-shadow placed slightly to the right behind number
+      ctx.shadowColor = '#f59e0b';
       ctx.shadowOffsetX = 20;
       ctx.shadowOffsetY = 8;
       ctx.shadowBlur = 20;
-      ctx.fillStyle = 'rgba(125, 211, 252, 0.85)';
+      ctx.fillStyle = 'rgba(253, 224, 71, 0.85)';
       ctx.fillText(d.toString(), 256, 256);
 
-      // 4. Front sharp number in #3b82f6 (crisp, solid glyph)
+      // 4. Front sharp number in #f59e0b (crisp golden glyph)
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
-      ctx.fillStyle = '#3b82f6';
+      ctx.fillStyle = '#f59e0b';
       ctx.fillText(d.toString(), 256, 256);
 
       const texture = new THREE.CanvasTexture(canvas);
@@ -362,8 +366,7 @@ export class PiTextureFactory {
   }
 
   /**
-   * Refreshes all Orbitron-based canvas textures (center 3,14 and digits 0-9)
-   * once the Orbitron webfont is confirmed loaded into the document FontFaceSet.
+   * Refreshes all Orbitron-based canvas textures once the webfont is loaded.
    */
   refreshAllOrbitronTextures(
     centerTileMesh?: THREE.Mesh,

@@ -1,0 +1,62 @@
+<div 
+  class="speech-bubble phi-speech-bubble" 
+  [class.is-closing]="isClosing" 
+  (click)="$event.stopPropagation()"
+  (pointerdown)="$event.stopPropagation()"
+  (pointerup)="$event.stopPropagation()"
+  (wheel)="onBubbleWheel($event)"
+  role="dialog"
+  aria-label="Aktueller Ziffernverlauf des Goldenen Schnitts (φ)"
+>
+  <div class="bubble-header">
+    <div class="bubble-title-group">
+      <span class="bubble-phi-icon" aria-hidden="true">φ</span>
+      <h4>Goldener Schnitt</h4>
+    </div>
+    <div class="bubble-header-actions">
+      <button 
+        type="button" 
+        class="bubble-action-btn" 
+        (click)="copyPhiNumber($event)" 
+        [title]="isPhiCopied() ? 'Kopiert!' : 'Zahl kopieren'"
+        [attr.aria-label]="isPhiCopied() ? 'In Zwischenablage kopiert' : 'Zahl kopieren'"
+      >
+        @if (isPhiCopied()) {
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span>Kopiert!</span>
+        } @else {
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          <span>Kopieren</span>
+        }
+      </button>
+      <button 
+        type="button" 
+        class="bubble-close-btn" 
+        (click)="handleClose($event)" 
+        aria-label="Schließen"
+        title="Schließen"
+      >×</button>
+    </div>
+  </div>
+
+  <div class="bubble-meta">
+    <span class="meta-badge">
+      <span class="meta-dot" aria-hidden="true"></span>
+      {{ totalSeedsFormatted }} Samen (137,5°)
+    </span>
+    <span class="meta-formula" title="Fibonacci-Konvergenz F(n+1) / F(n)">
+      {{ fibonacciRatioInfo().fnPlus1 }} / {{ fibonacciRatioInfo().fn }} ≈ {{ fibonacciRatioInfo().ratio.toFixed(6) }}
+    </span>
+  </div>
+
+  <div class="bubble-body" tabindex="0" role="region" aria-label="Generierte Nachkommastellen von Phi">
+    <div class="phi-digits-container">
+      <span class="phi-lead">1,618</span><span class="phi-stream">{{ generatedPhiDecimals }}</span><span class="phi-ellipsis" aria-label="und so weiter">...</span>
+    </div>
+  </div>
+</div>
