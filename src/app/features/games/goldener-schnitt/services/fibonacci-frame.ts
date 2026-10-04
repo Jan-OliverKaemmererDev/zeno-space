@@ -80,7 +80,7 @@ export class FibonacciFrame {
       this.maxSteps,
       7.2 + Math.log(seedOuterRadius / 2.75) / Math.log(phi)
     );
-    this.currentVisibleStep += (this.targetVisibleStep - this.currentVisibleStep) * 0.08;
+    this.currentVisibleStep += (this.targetVisibleStep - this.currentVisibleStep) * 0.16;
 
     // Rotate golden elements (spiral line, squares, golden pollen) in sync with the seeds
     if (this.goldenElementsGroup) {
@@ -252,6 +252,7 @@ export class FibonacciFrame {
       depthWrite: false,
     });
     this.squareLines = new THREE.LineSegments(squareGeo, squareMat);
+    this.squareLines.frustumCulled = false;
     this.goldenElementsGroup.add(this.squareLines);
 
     // Buffer geometry for Continuous Golden Spiral curve (radiant glowing gold)
@@ -270,6 +271,7 @@ export class FibonacciFrame {
       depthWrite: false,
     });
     this.spiralLine = new THREE.Line(spiralGeo, spiralMat);
+    this.spiralLine.frustumCulled = false;
     this.goldenElementsGroup.add(this.spiralLine);
   }
 
@@ -349,6 +351,7 @@ export class FibonacciFrame {
     });
 
     this.particlePoints = new THREE.Points(particleGeo, this.particleMaterial);
+    this.particlePoints.frustumCulled = false;
     this.goldenElementsGroup.add(this.particlePoints);
   }
 
@@ -399,6 +402,7 @@ export class FibonacciFrame {
     });
 
     this.starfieldPoints = new THREE.Points(starGeo, this.starfieldMaterial);
+    this.starfieldPoints.frustumCulled = false;
     this.frameGroup.add(this.starfieldPoints);
   }
 
@@ -599,7 +603,9 @@ export class FibonacciFrame {
       sizeAttenuation: true,
     });
 
-    return new THREE.Points(geometry, material);
+    const points = new THREE.Points(geometry, material);
+    points.frustumCulled = false;
+    return points;
   }
 
   /**

@@ -143,7 +143,7 @@ export class GameRegistryService {
       id: 'goldener-schnitt',
       title: 'Goldener Schnitt',
       subtitle: 'Phyllotaxis-Meditation',
-      description: 'Entfalte die göttliche Proportion in einer schwebenden 3D-Sonnenblumen-Phyllotaxis mit leuchtenden goldenen Samen und wachsenden Fibonacci-Spiralen.',
+      description: 'Entfalte die göttliche Proportion in einer schwebenden 3D-Sonnenblumen-Phyllotaxis mit leuchtenden goldenen Ziffern und wachsenden Fibonacci-Spiralen.',
       badge: '3D WebGL',
       category: 'mathematik',
       route: '/game/goldener-schnitt',
@@ -157,9 +157,14 @@ export class GameRegistryService {
       controls: {
         keyboard: [
           {
+            type: 'arrows',
+            keys: ['↑', '←', '↓', '→'],
+            label: 'Kamera im 3D-Raum bewegen',
+          },
+          {
             type: 'space',
             keys: ['LEERTASTE'],
-            label: '5 weitere goldene Samen erzeugen',
+            label: '5 weitere goldene Ziffern erzeugen',
           },
           {
             type: 'inline',
@@ -176,7 +181,7 @@ export class GameRegistryService {
           leftClick: true,
           drag: true,
           wheel: true,
-          label: 'Klicken für +5 Samen, Ziehen zum Neigen, Mausrad zum Zoomen',
+          label: 'Klicken für +5 Ziffern, Ziehen zum Neigen, Mausrad zum Zoomen',
         },
         objective: 'Erschaffe harmonische Sonnenblumen-Muster im goldenen Winkel (137,5°) und beobachte Fibonacci-Konvergenzen.',
       },

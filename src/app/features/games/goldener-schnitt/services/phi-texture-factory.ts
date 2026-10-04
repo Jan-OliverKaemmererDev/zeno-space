@@ -252,6 +252,7 @@ export class PhiTextureFactory {
     });
     const centerPhiSymbolMesh = new THREE.Mesh(phiGeo, phiMat);
     centerPhiSymbolMesh.position.set(0, 0, 0.38);
+    centerPhiSymbolMesh.frustumCulled = false;
     parentGroup.add(centerPhiSymbolMesh);
 
     // 2. Center "1,618" in Orbitron font
@@ -265,6 +266,7 @@ export class PhiTextureFactory {
     });
     const centerTileMesh = new THREE.Mesh(centerGeo, centerMat);
     centerTileMesh.position.set(0, 0, 0.60);
+    centerTileMesh.frustumCulled = false;
     parentGroup.add(centerTileMesh);
 
     return { centerTileMesh, centerPhiSymbolMesh };

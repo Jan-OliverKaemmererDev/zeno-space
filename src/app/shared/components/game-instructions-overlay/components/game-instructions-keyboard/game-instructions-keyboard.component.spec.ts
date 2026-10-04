@@ -18,6 +18,11 @@ describe('GameInstructionsKeyboardComponent', () => {
       label: 'Springen',
     },
     {
+      type: 'arrows',
+      keys: ['↑', '←', '↓', '→'],
+      label: '3D-Ansicht bewegen',
+    },
+    {
       type: 'inline',
       keys: ['1', '2', '3'],
       label: 'Werkzeug wählen',
@@ -47,6 +52,16 @@ describe('GameInstructionsKeyboardComponent', () => {
     expect(wasdKeys[1].textContent.trim()).toBe('A');
     expect(wasdKeys[2].textContent.trim()).toBe('S');
     expect(wasdKeys[3].textContent.trim()).toBe('D');
+  });
+
+  it('should render arrow keycaps correctly', () => {
+    const el = fixture.nativeElement;
+    const arrowKeys = el.querySelectorAll('.arrows-layout .keycap');
+    expect(arrowKeys.length).toBe(4);
+    expect(arrowKeys[0].textContent.trim()).toBe('↑');
+    expect(arrowKeys[1].textContent.trim()).toBe('←');
+    expect(arrowKeys[2].textContent.trim()).toBe('↓');
+    expect(arrowKeys[3].textContent.trim()).toBe('→');
   });
 
   it('should render spacebar keycap correctly', () => {

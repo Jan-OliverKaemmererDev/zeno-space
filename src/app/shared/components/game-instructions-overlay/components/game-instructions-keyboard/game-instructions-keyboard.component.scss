@@ -103,17 +103,27 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
     height: 36px;
     font-size: 0.85rem;
   }
+
+  &.keycap--arrow-up,
+  &.keycap--arrow-left,
+  &.keycap--arrow-down,
+  &.keycap--arrow-right {
+    font-size: 1.05rem;
+    line-height: 1;
+  }
 }
 
-/* WASD Block */
-.wasd-layout {
+/* WASD & Arrows Block */
+.wasd-layout,
+.arrows-layout {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.35rem;
 }
 
-.wasd-row {
+.wasd-row,
+.arrows-row {
   display: flex;
   gap: 0.35rem;
 }
@@ -217,10 +227,12 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
     }
   }
 
-  .wasd-layout {
+  .wasd-layout,
+  .arrows-layout {
     gap: 0.28rem;
 
-    .wasd-row {
+    .wasd-row,
+    .arrows-row {
       gap: 0.28rem;
     }
   }

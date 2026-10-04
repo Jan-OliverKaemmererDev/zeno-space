@@ -1,19 +1,19 @@
 <nav class="game-controls-dock" aria-label="Phyllotaxis-Steuerung">
-  <div class="dock-panel" role="toolbar" aria-label="Samen-Aktionen">
+  <div class="dock-panel" role="toolbar" aria-label="Ziffern-Aktionen">
     <!-- Action: +5 Seeds (Primary) -->
     <button 
       type="button" 
       class="dock-btn dock-btn--primary"
       (click)="addSeeds.emit()"
-      aria-label="Fünf weitere Samen im goldenen Winkel erzeugen"
-      title="Fünf weitere Samen hinzufügen (Shortcut: Leertaste)"
+      aria-label="Fünf weitere Ziffern im goldenen Winkel erzeugen"
+      title="Fünf weitere Ziffern hinzufügen (Shortcut: Leertaste)"
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="12" cy="12" r="9"/>
         <line x1="12" y1="8" x2="12" y2="16"/>
         <line x1="8" y1="12" x2="16" y2="12"/>
       </svg>
-      <span>+5 Samen</span>
+      <span>+5 Ziffern</span>
     </button>
 
     <!-- Toggle: Auto-Flow Mode -->
@@ -24,7 +24,7 @@
       [attr.aria-pressed]="isAutoFlowActive"
       (click)="toggleAutoFlow.emit()"
       aria-label="Auto-Flow Meditations-Modus umschalten"
-      title="Automatischer Samen-Fluss (Shortcut: A)"
+      title="Automatischer Ziffern-Fluss (Shortcut: A)"
     >
       @if (isAutoFlowActive) {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -104,7 +104,7 @@
         <circle cx="12" cy="12" r="10"/>
         <path d="M12 8v8M8 12h8"/>
       </svg>
-      <span>Klick auf Fläche / Leertaste für +5 Samen</span>
+      <span>Klick auf Fläche / Leertaste für +5 Ziffern</span>
     </span>
     <span aria-hidden="true">•</span>
     <span>Ziehen: 3D-Neigen</span>

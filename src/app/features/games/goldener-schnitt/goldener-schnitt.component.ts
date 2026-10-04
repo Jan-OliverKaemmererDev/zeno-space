@@ -17,6 +17,7 @@ import { PhiSeedTile } from './models/goldener-schnitt.types';
 import {
   calculateSeedTarget,
   easeOutBack,
+  PHYLLOTAXIS_SPREAD,
 } from './utils/phyllotaxis-geometry';
 import { FibonacciFrame } from './services/fibonacci-frame';
 import { PhiTextureFactory } from './services/phi-texture-factory';
@@ -137,6 +138,21 @@ export class GoldenerSchnittComponent implements AfterViewInit, OnDestroy {
   /** Shared materials for floating digits 0 through 9 in warm glowing gold Orbitron font. */
   private digitMaterials: THREE.MeshBasicMaterial[] = [];
 
+  /** High-performance InstancedMesh per decimal digit 0-9 (Königsklasse: 10 draw calls total). */
+  private digitInstancedMeshes: THREE.InstancedMesh[] = [];
+
+  /** Available instance slot pool per digit 0-9. */
+  private availableInstanceIds: number[][] = [];
+
+  /** Scratch 3D transform object for matrix updates. */
+  private readonly dummyObj = new THREE.Object3D();
+
+  /** Max instance buffer capacity allocated per digit. */
+  private readonly MAX_PER_DIGIT = 320;
+
+  /** Total count of generated digits after 1.618 (monotonically increasing). */
+  private totalGeneratedCount = 0;
+
   /** All active floating seeds currently placed in the scene. */
   private seeds: PhiSeedTile[] = [];
 
@@ -146,7 +162,7 @@ export class GoldenerSchnittComponent implements AfterViewInit, OnDestroy {
   // Camera & Zoom Parameters
   // ---------------------------------------------------------------------------
 
-  private readonly minCameraZ = 5.0;
+  private readonly minCameraZ = 2.0;
   private readonly maxCameraZ = 500.0;
   private readonly baseCameraZ = 28.0;
   private targetCameraZ = 28.0;
@@ -159,9 +175,9 @@ export class GoldenerSchnittComponent implements AfterViewInit, OnDestroy {
   /** Active arrow keys for smooth 3D spatial navigation. */
   private readonly activeArrowKeys = new Set<string>();
 
-  /** Continuous circular orbital rotation angle of the phyllotaxis disk. */
+  /** Rotation angle of the phyllotaxis disk (fixed to 0 to keep numbers and pattern stably oriented). */
   private diskRotation = 0;
-  private readonly rotationSpeed = 0.075;
+  private readonly rotationSpeed = 0;
 
   /** Tilt angle in radians: 0.20 (~11.5°) provides optimal 3D perspective to view phyllotaxis bowl. */
   private readonly defaultTiltX = 0.20;
@@ -275,6 +291,7 @@ export class GoldenerSchnittComponent implements AfterViewInit, OnDestroy {
     await this.textureFactory.loadOrbitronFont();
     this.initThreeScene();
     this.digitMaterials = this.textureFactory.initDigitMaterials([], this.renderer);
+    this.initInstancedMeshes();
     const hero = this.textureFactory.createCenterHero(this.bloomGroup, this.renderer);
     this.centerTileMesh = hero.centerTileMesh;
     this.centerPhiSymbolMesh = hero.centerPhiSymbolMesh;
@@ -288,10 +305,6 @@ export class GoldenerSchnittComponent implements AfterViewInit, OnDestroy {
           this.digitMaterials,
           this.renderer
         );
-        for (const seed of this.seeds) {
-          seed.material.map = this.digitMaterials[seed.digit]?.map || null;
-          seed.material.needsUpdate = true;
-        }
       });
     }
 
@@ -336,7 +349,7 @@ export class GoldenerSchnittComponent implements AfterViewInit, OnDestroy {
     this.scene.fog = new THREE.FogExp2(0x0d0b07, 0.0004);
 
     // 2. Camera
-    this.camera = new THREE.PerspectiveCamera(48, width / height, 0.1, 5000);
+    this.camera = new THREE.PerspectiveCamera(48, width / height, 0.02, 5000);
     this.camera.position.set(0, 0, this.currentCameraZ);
     this.camera.lookAt(this.currentLookAt);
 
@@ -376,6 +389,42 @@ export class GoldenerSchnittComponent implements AfterViewInit, OnDestroy {
     this.tileGeometry = new THREE.PlaneGeometry(1.05, 1.05);
   }
 
+  /**
+   * Initializes high-performance InstancedMesh instances for each digit 0-9.
+   * Reduces WebGL draw calls from thousands down to 10 for the entire scene.
+   */
+  private initInstancedMeshes(): void {
+    this.digitInstancedMeshes = [];
+    this.availableInstanceIds = [];
+
+    for (let d = 0; d < 10; d++) {
+      const mat = this.digitMaterials[d];
+      const instMesh = new THREE.InstancedMesh(this.tileGeometry, mat, this.MAX_PER_DIGIT);
+      instMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      instMesh.frustumCulled = false;
+      instMesh.count = this.MAX_PER_DIGIT;
+
+      // Initialize all instance matrices to hidden position (scale 0)
+      for (let i = 0; i < this.MAX_PER_DIGIT; i++) {
+        this.dummyObj.position.set(0, 0, -1000);
+        this.dummyObj.scale.set(0, 0, 0);
+        this.dummyObj.rotation.set(0, 0, 0);
+        this.dummyObj.updateMatrix();
+        instMesh.setMatrixAt(i, this.dummyObj.matrix);
+      }
+      instMesh.instanceMatrix.needsUpdate = true;
+
+      this.bloomGroup.add(instMesh);
+      this.digitInstancedMeshes.push(instMesh);
+
+      const ids: number[] = [];
+      for (let i = this.MAX_PER_DIGIT - 1; i >= 0; i--) {
+        ids.push(i);
+      }
+      this.availableInstanceIds.push(ids);
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Seed Spawning & Placement
   // ---------------------------------------------------------------------------
@@ -401,7 +450,30 @@ export class GoldenerSchnittComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Spawns a single seed at its calculated phyllotaxis coordinate.
+   * Calculates the minimum seed index that should remain visible in the active ring.
+   * Ensures the phyllotaxis ring retains a generous, constant radial thickness (>= 16.5 units)
+   * as the flower expands outward, preventing the ring from becoming narrow at high numbers (3000+).
+   */
+  private getFadeOutCutoffIndex(totalGenerated: number): number {
+    if (totalGenerated < 800) return 0;
+
+    // Generous radial thickness of the visible ring in Three.js world units (approx. 16.5 units)
+    const targetRingWidth = 16.5;
+    const deltaSqrt = targetRingWidth / PHYLLOTAXIS_SPREAD; // 16.5 / 0.68 ≈ 24.26
+    const sqrtN = Math.sqrt(totalGenerated);
+    const innerSqrt = Math.max(0, sqrtN - deltaSqrt);
+    const radiusBasedCutoff = Math.floor(innerSqrt * innerSqrt);
+
+    // Safety ceiling on total active seeds (max 2,400) to keep 60+ FPS on any hardware
+    const maxActiveCap = 2400;
+    const capBasedCutoff = Math.max(0, totalGenerated - maxActiveCap);
+
+    return Math.max(radiusBasedCutoff, capBasedCutoff);
+  }
+
+  /**
+   * Spawns a single seed at its calculated phyllotaxis coordinate using InstancedMesh.
+   * Employs center fade-out when seed count exceeds the dynamic botanical radial band.
    */
   private spawnSingleSeed(
     index: number,
@@ -409,42 +481,68 @@ export class GoldenerSchnittComponent implements AfterViewInit, OnDestroy {
     batchPosition: number,
     isAutoFlow = false
   ): void {
+    // 1. Dynamic Botanical Band: Fade out seeds that fall inside the minimum radial band thickness
+    const cutoffIndex = this.getFadeOutCutoffIndex(index + 1);
+    if (cutoffIndex > 0) {
+      for (const s of this.seeds) {
+        if (s.index < cutoffIndex && s.state !== 'fading' && s.state !== 'dead') {
+          s.state = 'fading';
+          s.isSleeping = false;
+        }
+      }
+    }
+
     const digit = getPhiDigitAfter618(index);
-    const currentTotal = this.seeds.length + 1;
-    const target = calculateSeedTarget(index, currentTotal, 0, this.diskRotation);
+    let instanceId = this.availableInstanceIds[digit]?.pop();
+    if (instanceId === undefined) {
+      // Slot fallback: reclaim oldest active instance of this digit
+      const oldestDigitSeed = this.seeds.find((s) => s.digit === digit && s.state !== 'dead');
+      if (oldestDigitSeed) {
+        instanceId = oldestDigitSeed.instanceId;
+        oldestDigitSeed.state = 'dead';
+      } else {
+        instanceId = 0;
+      }
+    }
 
-    const basePosition = new THREE.Vector3(target.x, target.y, target.z);
-    const targetPosition = new THREE.Vector3(target.x, target.y, target.z);
-    const baseMaterial = this.digitMaterials[digit] || this.digitMaterials[0];
-    const material = baseMaterial.clone();
-
-    const mesh = new THREE.Mesh(this.tileGeometry, material);
-    mesh.position.copy(basePosition);
-    mesh.rotation.z = 0;
-    mesh.scale.set(0, 0, 0);
-
-    this.bloomGroup.add(mesh);
+    // 2. CPU-Boost: Precompute target coordinates once at spawn time
+    const target = calculateSeedTarget(index, index + 1, 0, 0);
 
     const seed: PhiSeedTile = {
-      mesh,
-      material,
       index,
       digit,
-      theta: target.th,
+      instanceId,
+      baseX: target.x,
+      baseY: target.y,
+      baseZ: target.z,
       radius: target.r,
-      basePosition,
-      targetPosition,
+      theta: target.th,
       targetScale: target.scale,
+      state: 'spawning',
+      scaleProgress: 0,
+      fadeProgress: 1.0,
       elevation: 0,
       elevationVelocity: 0,
-      scaleProgress: 0,
       evadeOffset: new THREE.Vector2(0, 0),
       evadeScale: 1.0,
-      evadeRotation: 0,
+      isSleeping: false,
     };
 
+    // 3. Set initial instance matrix with scale 0 for pop-in ease
+    this.dummyObj.position.set(target.x, target.y, target.z);
+    this.dummyObj.scale.set(0, 0, 0);
+    this.dummyObj.rotation.set(0, 0, 0);
+    this.dummyObj.updateMatrix();
+
+    const instMesh = this.digitInstancedMeshes[digit];
+    if (instMesh) {
+      instMesh.setMatrixAt(instanceId, this.dummyObj.matrix);
+      instMesh.instanceMatrix.needsUpdate = true;
+    }
+
     this.seeds.push(seed);
-    this.seedCount.set(this.seeds.length);
+    this.totalGeneratedCount++;
+    this.seedCount.set(this.totalGeneratedCount);
 
     if (playAudio && this.isSoundEnabled()) {
       const pentatonicIndex = (digit + batchPosition) % 10;
@@ -464,10 +562,10 @@ export class GoldenerSchnittComponent implements AfterViewInit, OnDestroy {
     const dt = this.lastFrameTime > 0 ? Math.min(0.05, time - this.lastFrameTime) : 0.016;
     this.lastFrameTime = time;
 
-    // Golden orbital circular motion of the entire flower disk
-    this.diskRotation += dt * this.rotationSpeed;
+    // Golden orbital circular motion disabled to keep the phyllotaxis structure stably oriented
+    this.diskRotation = 0;
 
-    this.fibonacciFrame.update(time, this.seeds.length, this.diskRotation);
+    this.fibonacciFrame.update(time, this.seedCount(), this.diskRotation);
 
     if (this.isAutoFlowActive()) {
       this.autoFlowTimer += dt;
@@ -503,7 +601,6 @@ export class GoldenerSchnittComponent implements AfterViewInit, OnDestroy {
       let targetCenterPushX = 0;
       let targetCenterPushY = 0;
       let targetCenterScale = 1.0;
-      let targetCenterRot = 0;
 
       if (hasHit) {
         const dx = 0 - this.localHitPoint.x;
@@ -518,14 +615,13 @@ export class GoldenerSchnittComponent implements AfterViewInit, OnDestroy {
           targetCenterPushX = (dx / dist) * force * pushMagnitude;
           targetCenterPushY = (dy / dist) * force * pushMagnitude;
           targetCenterScale = 1.0 + force * 0.06;
-          targetCenterRot = (dx / dist) * force * 0.06;
         }
       }
 
       this.centerEvadeOffset.x += (targetCenterPushX - this.centerEvadeOffset.x) * 0.25;
       this.centerEvadeOffset.y += (targetCenterPushY - this.centerEvadeOffset.y) * 0.25;
       this.centerEvadeScale += (targetCenterScale - this.centerEvadeScale) * 0.22;
-      this.centerEvadeRotation += (targetCenterRot - this.centerEvadeRotation) * 0.22;
+      this.centerEvadeRotation = 0;
 
       const centerHover = Math.sin(time * 1.8) * 0.04;
       this.centerTileMesh.position.set(
@@ -538,93 +634,162 @@ export class GoldenerSchnittComponent implements AfterViewInit, OnDestroy {
         this.centerEvadeScale,
         this.centerEvadeScale
       );
-      this.centerTileMesh.rotation.z = this.centerEvadeRotation;
+      this.centerTileMesh.rotation.set(0, 0, 0);
     }
 
     if (this.centerPhiSymbolMesh) {
       const pulse = 1.0 + Math.sin(time * 2.2) * 0.08;
-      const subtleRot = Math.sin(time * 0.8) * 0.03;
       this.centerPhiSymbolMesh.scale.set(pulse, pulse, 1.0);
-      this.centerPhiSymbolMesh.rotation.z = subtleRot;
+      this.centerPhiSymbolMesh.rotation.set(0, 0, 0);
     }
 
-    // Physics & Circular Motion for all floating seeds
-    const totalSeeds = this.seeds.length;
+    // CPU-Boosted Physics & Instanced Matrix updates for floating seeds
     const lerpScaleSpeed = dt * 6.5;
-    const orbitLerp = 1.0 - Math.exp(-22.0 * dt);
+    const evadeLerp = 1.0 - Math.exp(-14.0 * dt);
+    const springK = 46.0;
+    const damping = 12.0;
 
+    const hitX = this.localHitPoint.x;
+    const hitY = this.localHitPoint.y;
+    const HOVER_RADIUS = 1.55;
+    const HOVER_RADIUS_SQ = HOVER_RADIUS * HOVER_RADIUS;
+
+    const needsMatrixUpload = [false, false, false, false, false, false, false, false, false, false];
+    let hasDeadSeeds = false;
+
+    const totalSeeds = this.seeds.length;
     for (let i = 0; i < totalSeeds; i++) {
       const seed = this.seeds[i];
-      // Target rotates smoothly along its circular orbit in accordance with the golden ratio
-      const target = calculateSeedTarget(seed.index, totalSeeds, time, this.diskRotation);
-      seed.targetPosition.set(target.x, target.y, target.z);
-      seed.targetScale = target.scale;
-      seed.radius = target.r;
-      seed.theta = target.th;
 
-      seed.basePosition.lerp(seed.targetPosition, orbitLerp);
+      // 1. Spawning pop-in animation
+      let stateChanged = false;
+      if (seed.state === 'spawning') {
+        seed.scaleProgress += lerpScaleSpeed;
+        if (seed.scaleProgress >= 1.0) {
+          seed.scaleProgress = 1.0;
+          seed.state = 'active';
+        }
+        stateChanged = true;
+      }
 
-      let targetSeedPushX = 0;
-      let targetSeedPushY = 0;
-      let targetSeedScale = 1.0;
-      let targetSeedRot = 0;
+      // 2. Center fade-out dissolve animation
+      if (seed.state === 'fading') {
+        seed.fadeProgress -= dt * 1.8;
+        if (seed.fadeProgress <= 0) {
+          seed.fadeProgress = 0;
+          seed.state = 'dead';
+          hasDeadSeeds = true;
+        }
+        stateChanged = true;
+      }
 
-      if (hasHit) {
-        const dx = seed.basePosition.x - this.localHitPoint.x;
-        const dy = seed.basePosition.y - this.localHitPoint.y;
-        const dist = Math.hypot(dx, dy);
-        const radius = 1.55;
+      // 3. Fast spatial hover evasion check (CPU-Boost: skip Math.hypot for distant seeds)
+      let targetPushX = 0;
+      let targetPushY = 0;
+      let targetPushScale = 1.0;
 
-        if (dist < radius && dist > 0.001) {
-          const norm = dist / radius;
-          const force = Math.pow(1 - norm, 1.6);
-          const pushMagnitude = 0.58;
-          targetSeedPushX = (dx / dist) * force * pushMagnitude;
-          targetSeedPushY = (dy / dist) * force * pushMagnitude;
-          targetSeedScale = 1.0 + force * 0.16;
-          targetSeedRot = (dx / dist) * force * 0.15;
+      if (hasHit && seed.state !== 'dead') {
+        const dx = seed.baseX - hitX;
+        const dy = seed.baseY - hitY;
+        // Fast 2D bounding box rejection
+        if (Math.abs(dx) < HOVER_RADIUS && Math.abs(dy) < HOVER_RADIUS) {
+          const distSq = dx * dx + dy * dy;
+          if (distSq < HOVER_RADIUS_SQ && distSq > 0.0001) {
+            const dist = Math.sqrt(distSq);
+            const norm = dist / HOVER_RADIUS;
+            const force = Math.pow(1 - norm, 1.6);
+            const pushMag = 0.58;
+            targetPushX = (dx / dist) * force * pushMag;
+            targetPushY = (dy / dist) * force * pushMag;
+            targetPushScale = 1.0 + force * 0.16;
+            seed.isSleeping = false;
+          }
         }
       }
 
-      const evadeLerp = 1.0 - Math.exp(-14.0 * dt);
-      seed.evadeOffset.x += (targetSeedPushX - seed.evadeOffset.x) * evadeLerp;
-      seed.evadeOffset.y += (targetSeedPushY - seed.evadeOffset.y) * evadeLerp;
-      seed.evadeScale += (targetSeedScale - seed.evadeScale) * evadeLerp;
-      seed.evadeRotation += (targetSeedRot - seed.evadeRotation) * evadeLerp;
+      // Spring elevation and evasion offset physics
+      let physicsActive = false;
+      if (!seed.isSleeping) {
+        seed.evadeOffset.x += (targetPushX - seed.evadeOffset.x) * evadeLerp;
+        seed.evadeOffset.y += (targetPushY - seed.evadeOffset.y) * evadeLerp;
+        seed.evadeScale += (targetPushScale - seed.evadeScale) * evadeLerp;
 
-      // Subtle outward botanical dish tilt along radius, digits remain upright and legible
-      const tiltAngle = 0.12;
-      const cosTh = Math.cos(seed.theta);
-      const sinTh = Math.sin(seed.theta);
-      seed.mesh.rotation.x = -sinTh * tiltAngle;
-      seed.mesh.rotation.y = cosTh * tiltAngle;
-      seed.mesh.rotation.z = seed.evadeRotation;
+        if (Math.abs(seed.elevation) > 0.001 || Math.abs(seed.elevationVelocity) > 0.001) {
+          const force = -springK * seed.elevation - damping * seed.elevationVelocity;
+          seed.elevationVelocity += force * dt;
+          seed.elevation += seed.elevationVelocity * dt;
 
-      if (seed.scaleProgress < 1) {
-        seed.scaleProgress = Math.min(1, seed.scaleProgress + lerpScaleSpeed);
-      }
-      const s = easeOutBack(seed.scaleProgress) * seed.targetScale * seed.evadeScale;
-      seed.mesh.scale.set(s, s, s);
+          if (Math.abs(seed.elevation) < 0.0015 && Math.abs(seed.elevationVelocity) < 0.0015) {
+            seed.elevation = 0;
+            seed.elevationVelocity = 0;
+          }
+          physicsActive = true;
+        }
 
-      if (Math.abs(seed.elevation) > 0.001 || Math.abs(seed.elevationVelocity) > 0.001) {
-        const springK = 46.0;
-        const damping = 12.0;
+        const isEvading =
+          Math.abs(seed.evadeOffset.x) > 0.001 ||
+          Math.abs(seed.evadeOffset.y) > 0.001 ||
+          Math.abs(seed.evadeScale - 1.0) > 0.005;
 
-        const force = -springK * seed.elevation - damping * seed.elevationVelocity;
-        seed.elevationVelocity += force * dt;
-        seed.elevation += seed.elevationVelocity * dt;
-
-        if (Math.abs(seed.elevation) < 0.0015 && Math.abs(seed.elevationVelocity) < 0.0015) {
-          seed.elevation = 0;
-          seed.elevationVelocity = 0;
+        if (isEvading || physicsActive) {
+          physicsActive = true;
+        } else if (seed.state === 'active') {
+          // If completely settled, enter sleep mode to save 100% of CPU cycles
+          seed.isSleeping = true;
         }
       }
 
-      seed.mesh.position.set(
-        seed.basePosition.x + seed.evadeOffset.x,
-        seed.basePosition.y + seed.evadeOffset.y,
-        seed.basePosition.z + seed.elevation
-      );
+      // 4. Update GPU instance matrix only if the seed is actively animating
+      if (stateChanged || physicsActive || !seed.isSleeping) {
+        const s =
+          (seed.state === 'spawning' ? easeOutBack(seed.scaleProgress) : 1.0) *
+          seed.targetScale *
+          seed.evadeScale *
+          seed.fadeProgress;
+
+        this.dummyObj.position.set(
+          seed.baseX + seed.evadeOffset.x,
+          seed.baseY + seed.evadeOffset.y,
+          seed.baseZ + seed.elevation
+        );
+        this.dummyObj.scale.set(s, s, s);
+        this.dummyObj.rotation.set(0, 0, 0);
+        this.dummyObj.updateMatrix();
+
+        const instMesh = this.digitInstancedMeshes[seed.digit];
+        if (instMesh) {
+          instMesh.setMatrixAt(seed.instanceId, this.dummyObj.matrix);
+          needsMatrixUpload[seed.digit] = true;
+        }
+      }
+    }
+
+    // 5. Commit matrix updates to WebGL for affected digit meshes
+    for (let d = 0; d < 10; d++) {
+      if (needsMatrixUpload[d]) {
+        this.digitInstancedMeshes[d].instanceMatrix.needsUpdate = true;
+      }
+    }
+
+    // 6. Clean up dead seeds that completed fading out
+    if (hasDeadSeeds) {
+      const remaining: PhiSeedTile[] = [];
+      for (const s of this.seeds) {
+        if (s.state === 'dead') {
+          this.dummyObj.position.set(0, 0, -1000);
+          this.dummyObj.scale.set(0, 0, 0);
+          this.dummyObj.updateMatrix();
+          const instMesh = this.digitInstancedMeshes[s.digit];
+          if (instMesh) {
+            instMesh.setMatrixAt(s.instanceId, this.dummyObj.matrix);
+            instMesh.instanceMatrix.needsUpdate = true;
+          }
+          this.availableInstanceIds[s.digit].push(s.instanceId);
+        } else {
+          remaining.push(s);
+        }
+      }
+      this.seeds = remaining;
     }
 
     // 3D Spatial Arrow-Keys Navigation
@@ -867,11 +1032,23 @@ export class GoldenerSchnittComponent implements AfterViewInit, OnDestroy {
     this.autoFlowChimeCounter = 0;
     this.clearPendingSpawnTimeouts();
 
-    for (const seed of this.seeds) {
-      this.bloomGroup.remove(seed.mesh);
-      seed.material.dispose();
+    for (let d = 0; d < 10; d++) {
+      this.availableInstanceIds[d] = [];
+      for (let i = 0; i < this.MAX_PER_DIGIT; i++) {
+        this.availableInstanceIds[d].push(i);
+        this.dummyObj.position.set(0, 0, -1000);
+        this.dummyObj.scale.set(0, 0, 0);
+        this.dummyObj.updateMatrix();
+        this.digitInstancedMeshes[d]?.setMatrixAt(i, this.dummyObj.matrix);
+      }
+      if (this.digitInstancedMeshes[d]) {
+        this.digitInstancedMeshes[d].count = this.MAX_PER_DIGIT;
+        this.digitInstancedMeshes[d].instanceMatrix.needsUpdate = true;
+      }
     }
+
     this.seeds = [];
+    this.totalGeneratedCount = 0;
     this.seedCount.set(0);
     this.scheduledCount = 0;
 
@@ -920,9 +1097,12 @@ export class GoldenerSchnittComponent implements AfterViewInit, OnDestroy {
     if (this.tileGeometry) {
       this.tileGeometry.dispose();
     }
-    for (const seed of this.seeds) {
-      seed.material.dispose();
+    for (const instMesh of this.digitInstancedMeshes) {
+      instMesh.geometry.dispose();
+      this.bloomGroup.remove(instMesh);
     }
+    this.digitInstancedMeshes = [];
+
     for (const mat of this.digitMaterials) {
       mat.dispose();
     }

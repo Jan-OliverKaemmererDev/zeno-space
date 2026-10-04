@@ -20,6 +20,20 @@
           </div>
         }
 
+        <!-- Arrow Keys 2-Row Layout -->
+        @else if (ctrl.type === 'arrows') {
+          <div class="arrows-layout" aria-label="Pfeiltasten">
+            <div class="arrows-row arrows-row--top">
+              <span class="keycap keycap--arrow-up" style="--key-delay: 0s" aria-label="Pfeiltaste nach oben">{{ ctrl.keys[0] || '↑' }}</span>
+            </div>
+            <div class="arrows-row arrows-row--bottom">
+              <span class="keycap keycap--arrow-left" style="--key-delay: 0.25s" aria-label="Pfeiltaste nach links">{{ ctrl.keys[1] || '←' }}</span>
+              <span class="keycap keycap--arrow-down" style="--key-delay: 0.5s" aria-label="Pfeiltaste nach unten">{{ ctrl.keys[2] || '↓' }}</span>
+              <span class="keycap keycap--arrow-right" style="--key-delay: 0.75s" aria-label="Pfeiltaste nach rechts">{{ ctrl.keys[3] || '→' }}</span>
+            </div>
+          </div>
+        }
+
         <!-- Wide Spacebar Layout -->
         @else if (ctrl.type === 'space') {
           <div class="space-layout" aria-label="Leertaste">

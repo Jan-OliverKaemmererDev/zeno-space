@@ -18,7 +18,7 @@ export class GoldenerSchnittControlsComponent {
   /** Whether chime sound effects are enabled. */
   @Input({ required: true }) isSoundEnabled!: boolean;
 
-  /** Emitted when "+5 Samen" button is clicked. */
+  /** Emitted when "+5 Ziffern" button is clicked. */
   readonly addSeeds = output<void>();
 
   /** Emitted when "Auto-Flow" toggle button is clicked. */
