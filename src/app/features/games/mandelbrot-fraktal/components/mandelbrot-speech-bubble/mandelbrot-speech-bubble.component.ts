@@ -15,8 +15,8 @@ export class MandelbrotSpeechBubbleComponent {
   @Input({ required: true }) coordSnippet!: string;
   @Input({ required: true }) zoomFormatted!: string;
   @Input({ required: true }) iterations!: number;
-  @Input({ required: true }) centerX!: number;
-  @Input({ required: true }) centerY!: number;
+  @Input({ required: true }) centerX!: number | string;
+  @Input({ required: true }) centerY!: number | string;
   @Input({ required: true }) rawZoom!: number;
   @Input() generationLevel: number = 0;
   @Input() isClosing: boolean = false;

@@ -2,8 +2,8 @@
  * Complex plane coordinate (Real and Imaginary parts).
  */
 export interface ComplexNumber {
-  re: number;
-  im: number;
+  re: number | string;
+  im: number | string;
 }
 
 /**

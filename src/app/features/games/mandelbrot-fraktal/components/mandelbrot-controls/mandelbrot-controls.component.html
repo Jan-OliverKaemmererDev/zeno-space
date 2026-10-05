@@ -6,6 +6,7 @@
       role="menu" 
       aria-label="Auswahl legendärer Mandelbrot-Orte"
       (click)="$event.stopPropagation()"
+      (wheel)="$event.stopPropagation()"
     >
       <div class="flyout-header">
         <h5>Legendäre Fraktal-Orte</h5>
@@ -16,7 +17,14 @@
           aria-label="Menü schließen"
         >×</button>
       </div>
-      <div class="flyout-list">
+      <div 
+        class="flyout-list"
+        (wheel)="onListWheel($event)"
+        (pointerdown)="onListPointerDown($event)"
+        (pointermove)="onListPointerMove($event)"
+        (pointerup)="onListPointerUp($event)"
+        (pointercancel)="onListPointerUp($event)"
+      >
         @for (wp of waypoints; track wp.id) {
           <button 
             type="button" 
@@ -53,7 +61,7 @@
     <!-- Toggle: Waypoints Dropdown -->
     <button 
       type="button" 
-      class="dock-btn dock-btn--secondary"
+      class="dock-btn dock-btn--secondary waypoints-toggle-btn"
       [class.active]="showWaypointMenu()"
       (click)="toggleWaypointMenu($event)"
       aria-label="Legendäre Orte der Mandelbrot-Menge wählen"
@@ -117,7 +125,7 @@
         <rect x="14" y="14" width="7" height="7"/>
         <rect x="3" y="14" width="7" height="7"/>
       </svg>
-      <span>WASD : Bewegen</span>
+      <span>WASD / Maus : Bewegen</span>
     </span>
     <span aria-hidden="true">•</span>
     <span>Mausrad : Zoom auf Mauszeiger</span>

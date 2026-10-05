@@ -79,6 +79,16 @@ describe('MandelbrotFraktalComponent', () => {
     expect(mockAudioService.playChime).toHaveBeenCalled();
   });
 
+  it('should trigger smooth animated zoom-out when resetToOverview is called from deep zoom', () => {
+    (component as any).currentZoom = 5000;
+    component.resetToOverview();
+
+    expect(component.currentWaypointId()).toBe('overview');
+    expect((component as any).isResetting).toBe(true);
+    expect((component as any).targetZoom).toBe(1.0);
+    expect(mockAudioService.playChime).toHaveBeenCalled();
+  });
+
   it('should close speech bubble on Escape if open', () => {
     const navigateSpy = vi.spyOn(router, 'navigate');
     component.showBubble.set(true);
@@ -128,11 +138,75 @@ describe('MandelbrotFraktalComponent', () => {
     expect((component as any).targetZoom).toBeGreaterThan(previousZoom);
   });
 
-  it('should keep corner pollen particles strictly anchored in corners', () => {
-    // Call onZoomInStep which triggers particles
-    component.onZoomInStep();
-    // Verify generation level is computed dynamically without crashing
-    expect(component.generationLevel()).toBeDefined();
+  it('should pan image when pointer is dragged across canvas', () => {
+    const initialCenterX = (component as any).targetCenterX.toNumber();
+    const initialCenterY = (component as any).targetCenterY.toNumber();
+
+    // Start drag
+    component.onPointerDown({
+      button: 0,
+      clientX: 200,
+      clientY: 200,
+      pointerId: 1,
+      target: document.createElement('div'),
+    } as any);
+
+    expect((component as any).isDragging).toBe(true);
+
+    // Drag 50px right, 50px down
+    component.onPointerMove({
+      clientX: 250,
+      clientY: 250,
+    } as any);
+
+    // Center X should decrease (camera moves left so image moves right)
+    expect((component as any).targetCenterX.toNumber()).toBeLessThan(initialCenterX);
+    // Center Y should increase (camera moves up so image moves down)
+    expect((component as any).targetCenterY.toNumber()).toBeGreaterThan(initialCenterY);
+
+    // End drag
+    component.onPointerUp({
+      pointerId: 1,
+      target: document.createElement('div'),
+    } as any);
+
+    expect((component as any).isDragging).toBe(false);
+  });
+
+  it('should release drag on window pointerup', () => {
+    component.onPointerDown({
+      button: 0,
+      clientX: 100,
+      clientY: 100,
+      pointerId: 1,
+    } as any);
+    expect((component as any).isDragging).toBe(true);
+
+    component.onWindowPointerUp();
+    expect((component as any).isDragging).toBe(false);
+  });
+
+  it('should close speech bubble on outside pointerdown', () => {
+    component.showBubble.set(true);
+    const outsideEl = document.createElement('div');
+    component.onDocumentPointerDown({ target: outsideEl } as any);
+
+    expect(component.closingBubble()).toBe(true);
+  });
+
+  it('should keep speech bubble open on inside pointerdown', () => {
+    component.showBubble.set(true);
+    const bubbleEl = document.createElement('div');
+    bubbleEl.className = 'mandelbrot-speech-bubble';
+    const childEl = document.createElement('span');
+    bubbleEl.appendChild(childEl);
+    document.body.appendChild(bubbleEl);
+
+    component.onDocumentPointerDown({ target: childEl } as any);
+    expect(component.showBubble()).toBe(true);
+    expect(component.closingBubble()).toBe(false);
+
+    document.body.removeChild(bubbleEl);
   });
 });
 

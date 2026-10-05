@@ -14,78 +14,32 @@ export const MANDELBROT_VERTEX_SHADER = /* glsl */ `
 
 /**
  * Custom GLSL Fragment Shader:
- * Implements robust Dekker Double-Single (53-bit) precision arithmetic for both coordinate
- * calculations and deep-zoom iterations.
- * This guarantees crystal-clear, non-pixelated fractal detail across trillions of zoom levels
- * without any blockiness or artificial coordinate snapping.
+ * Implements high-performance, flicker-free, non-pixelating Perturbation Theory.
+ *
+ * - Mode 0 (Shallow zoom < 1000): Direct float32 iteration with cardioid optimization.
+ * - Mode 1 (Deep zoom >= 1000, up to 10^30): High-speed perturbation iteration:
+ *     delta_{n+1} = 2 * Z_n * delta_n + delta_n^2 + delta_c
+ *   where Z_n is sampled from a stable CPU-computed reference orbit,
+ *   and delta_c = uDeltaCenter + st * uScale provides full sub-pixel accuracy.
+ *   If the reference orbit escapes at uRefEscapeIter < uMaxIterations,
+ *   un-escaped pixels seamlessly continue direct iteration without artificial truncation.
  */
 export const MANDELBROT_FRAGMENT_SHADER = /* glsl */ `
   precision highp float;
 
-  uniform vec2 uCenterHi;
-  uniform vec2 uCenterLo;
-  uniform float uScaleHi;
-  uniform float uScaleLo;
-  uniform float uMaxIterations;
   uniform vec2 uResolution;
   uniform float uTime;
+  uniform float uMaxIterations;
+  uniform float uScale;
+  uniform vec2 uCenter;
+  uniform vec2 uDeltaCenter;
+  uniform int uMode; // 0 = Direct float32, 1 = Perturbation Theory
+  uniform int uRefEscapeIter; // Iteration at which the reference orbit escaped (or 2048)
+
+  // Perturbation uniform (Fixed 2048x1 texture)
+  uniform sampler2D uRefOrbit;
 
   varying vec2 vUv;
-
-  // ---------------------------------------------------------------------------
-  // Robust Double-Single (float-float) Arithmetic (Andrew Thall / David Bailey)
-  // ---------------------------------------------------------------------------
-
-  // Knuth TwoSum: exact sum of two floats: s = a + b, e = round-off error
-  vec2 two_sum(float a, float b) {
-    float s = a + b;
-    float v = s - a;
-    float e = (a - (s - v)) + (b - v);
-    return vec2(s, e);
-  }
-
-  // Dekker splitting: split 24-bit float into two 12-bit parts
-  vec2 ds_split(float a) {
-    float c = 4097.0 * a;
-    float a_hi = c - (c - a);
-    float a_lo = a - a_hi;
-    return vec2(a_hi, a_lo);
-  }
-
-  // Dekker TwoProd: exact product of two floats: p = a * b, e = round-off error
-  vec2 two_prod(float a, float b) {
-    float p = a * b;
-    vec2 a_s = ds_split(a);
-    vec2 b_s = ds_split(b);
-    float err = ((a_s.x * b_s.x - p) + a_s.x * b_s.y + a_s.y * b_s.x) + a_s.y * b_s.y;
-    return vec2(p, err);
-  }
-
-  // Double-single addition (a + b)
-  vec2 ds_add(vec2 a, vec2 b) {
-    vec2 s = two_sum(a.x, b.x);
-    vec2 t = two_sum(a.y, b.y);
-    s.y += t.x;
-    s = two_sum(s.x, s.y);
-    s.y += t.y;
-    float hi = s.x + s.y;
-    float lo = s.y - (hi - s.x);
-    return vec2(hi, lo);
-  }
-
-  // Double-single subtraction (a - b)
-  vec2 ds_sub(vec2 a, vec2 b) {
-    return ds_add(a, vec2(-b.x, -b.y));
-  }
-
-  // Double-single multiplication (a * b)
-  vec2 ds_mul(vec2 a, vec2 b) {
-    vec2 p = two_prod(a.x, b.x);
-    p.y += a.x * b.y + a.y * b.x;
-    float hi = p.x + p.y;
-    float lo = p.y - (hi - p.x);
-    return vec2(hi, lo);
-  }
 
   // ---------------------------------------------------------------------------
   // Warm Golden Palette: Deep espresso, bronze, terracotta, amber, champagne
@@ -120,47 +74,37 @@ export const MANDELBROT_FRAGMENT_SHADER = /* glsl */ `
     vec2 st = vUv - 0.5;
     st.x *= aspect;
 
-    // Full 53-bit double-single scale and coordinate calculation:
-    // delta = st * scale
-    vec2 scaleDS = vec2(uScaleHi, uScaleLo);
-    vec2 dx = ds_mul(scaleDS, vec2(st.x, 0.0));
-    vec2 dy = ds_mul(scaleDS, vec2(st.y, 0.0));
-
-    // c = Center + delta (Full double-single precision)
-    vec2 cx = ds_add(vec2(uCenterHi.x, uCenterLo.x), dx);
-    vec2 cy = ds_add(vec2(uCenterHi.y, uCenterLo.y), dy);
-
-    // Cardioid & period-2 bulb check for overview performance
-    if (uScaleHi > 0.05) {
-      float q = (cx.x - 0.25) * (cx.x - 0.25) + cy.x * cy.x;
-      if (q * (q + (cx.x - 0.25)) < 0.25 * cy.x * cy.x) {
-        gl_FragColor = vec4(0.045, 0.028, 0.018, 1.0);
-        return;
-      }
-      if ((cx.x + 1.0) * (cx.x + 1.0) + cy.x * cy.x < 0.0625) {
-        gl_FragColor = vec4(0.045, 0.028, 0.018, 1.0);
-        return;
-      }
-    }
-
     float n = 0.0;
     float dotZ = 0.0;
     bool escaped = false;
 
-    // Adaptive precision paths:
-    // 1) Fast single-precision path for shallow-to-medium zoom (zoom < 5,000)
-    // 2) Emulated 53-bit double-single path for deep zoom (zoom >= 5,000)
-    if (uScaleHi > 0.0006) {
-      float fx = cx.x;
-      float fy = cy.x;
-      float zxf = 0.0;
-      float zyf = 0.0;
+    // -------------------------------------------------------------------------
+    // Mode 0: Direct float32 iteration for overview (zoom < 1000)
+    // -------------------------------------------------------------------------
+    if (uMode == 0) {
+      vec2 c = uCenter + st * uScale;
 
-      for (int i = 0; i < 500; i++) {
-        if (float(i) >= uMaxIterations) break;
+      // Cardioid & period-2 bulb check for overview performance
+      if (uScale > 0.05) {
+        float q = (c.x - 0.25) * (c.x - 0.25) + c.y * c.y;
+        if (q * (q + (c.x - 0.25)) < 0.25 * c.y * c.y) {
+          gl_FragColor = vec4(0.045, 0.028, 0.018, 1.0);
+          return;
+        }
+        if ((c.x + 1.0) * (c.x + 1.0) + c.y * c.y < 0.0625) {
+          gl_FragColor = vec4(0.045, 0.028, 0.018, 1.0);
+          return;
+        }
+      }
 
-        float zx2 = zxf * zxf;
-        float zy2 = zyf * zyf;
+      vec2 z = vec2(0.0);
+      int maxIterInt = int(min(uMaxIterations, 1000.0));
+
+      for (int i = 0; i < 1000; i++) {
+        if (i >= maxIterInt) break;
+
+        float zx2 = z.x * z.x;
+        float zy2 = z.y * z.y;
         dotZ = zx2 + zy2;
 
         if (dotZ > 4.0) {
@@ -169,35 +113,69 @@ export const MANDELBROT_FRAGMENT_SHADER = /* glsl */ `
           break;
         }
 
-        zyf = 2.0 * zxf * zyf + fy;
-        zxf = zx2 - zy2 + fx;
+        z = vec2(zx2 - zy2 + c.x, 2.0 * z.x * z.y + c.y);
       }
-    } else {
-      // Deep zoom: emulated 53-bit double-single iterations
-      vec2 zx = vec2(0.0);
-      vec2 zy = vec2(0.0);
+    }
+    // -------------------------------------------------------------------------
+    // Mode 1: Perturbation theory for deep zoom (zoom >= 1000, up to 10^30)
+    // -------------------------------------------------------------------------
+    else {
+      // Exact relative coordinate from reference point:
+      vec2 dc = uDeltaCenter + st * uScale;
+      vec2 delta = vec2(0.0);
+      vec2 z = vec2(0.0);
 
-      for (int i = 0; i < 480; i++) {
-        if (float(i) >= uMaxIterations) break;
+      int maxIterInt = int(min(uMaxIterations, 2048.0));
+      int refLimit = min(maxIterInt, uRefEscapeIter);
 
-        vec2 zx2 = ds_mul(zx, zx);
-        vec2 zy2 = ds_mul(zy, zy);
-        dotZ = zx2.x + zy2.x;
+      // Stage A: High-precision perturbation theory while reference orbit is valid
+      for (int i = 0; i < 2048; i++) {
+        if (i >= refLimit) break;
 
-        if (dotZ > 4.0) {
-          n = float(i);
+        // Fetch Z_i from reference orbit texture (Fixed 2048 width)
+        vec2 Z = texture2D(uRefOrbit, vec2((float(i) + 0.5) / 2048.0, 0.5)).xy;
+
+        z = Z + delta;
+        float mag2 = dot(z, z);
+
+        if (mag2 > 4.0) {
           escaped = true;
+          n = float(i);
+          dotZ = mag2;
           break;
         }
 
-        // 2.0 * zx * zy
-        vec2 two_zx = ds_add(zx, zx);
-        vec2 two_zx_zy = ds_mul(two_zx, zy);
+        // Perturbation recurrence:
+        // delta_{n+1} = 2 * Z * delta + delta^2 + dc
+        float twoZ_re = 2.0 * (Z.x * delta.x - Z.y * delta.y);
+        float twoZ_im = 2.0 * (Z.x * delta.y + Z.y * delta.x);
 
-        // zx = zx^2 - zy^2 + cx
-        zx = ds_add(ds_sub(zx2, zy2), cx);
-        // zy = 2.0 * zx * zy + cy
-        zy = ds_add(two_zx_zy, cy);
+        float d2_re = delta.x * delta.x - delta.y * delta.y;
+        float d2_im = 2.0 * delta.x * delta.y;
+
+        delta.x = twoZ_re + d2_re + dc.x;
+        delta.y = twoZ_im + d2_im + dc.y;
+      }
+
+      // Stage B: Direct continuation if reference orbit escaped early and pixel is still unescaped
+      if (!escaped && refLimit < maxIterInt) {
+        vec2 c = uCenter + st * uScale;
+        for (int i = 0; i < 2048; i++) {
+          int iter = refLimit + i;
+          if (iter >= maxIterInt) break;
+
+          float zx2 = z.x * z.x;
+          float zy2 = z.y * z.y;
+          dotZ = zx2 + zy2;
+
+          if (dotZ > 4.0) {
+            escaped = true;
+            n = float(iter);
+            break;
+          }
+
+          z = vec2(zx2 - zy2 + c.x, 2.0 * z.x * z.y + c.y);
+        }
       }
     }
 
@@ -205,9 +183,10 @@ export const MANDELBROT_FRAGMENT_SHADER = /* glsl */ `
       // Inside Mandelbrot set: obsidian velvet
       gl_FragColor = vec4(0.045, 0.028, 0.018, 1.0);
     } else {
-      // Smooth continuous iteration calculation (removes color banding)
-      float logZn = log(dotZ) * 0.5;
-      float nu = log(logZn / log(2.0)) / log(2.0);
+      // Smooth continuous iteration calculation (removes color banding and protects against NaN)
+      float safeDotZ = clamp(dotZ, 1.0001, 1.0e10);
+      float logZn = log(safeDotZ) * 0.5;
+      float nu = clamp(log(max(logZn * 1.442695, 0.0001)) * 1.442695, 0.0, 1.0);
       float smoothIter = n + 1.0 - nu;
 
       vec3 color = getWarmGoldenColor(smoothIter);
@@ -223,35 +202,25 @@ export const MANDELBROT_FRAGMENT_SHADER = /* glsl */ `
 `;
 
 /**
- * Splits a 64-bit JavaScript number into a high and low 32-bit float pair
- * for emulated double precision in WebGL GLSL.
- */
-export function splitDouble(val: number): [number, number] {
-  const hi = Math.fround(val);
-  const lo = val - hi;
-  return [hi, lo];
-}
-
-/**
  * Creates a Three.js ShaderMaterial preconfigured for smooth Mandelbrot rendering
- * with emulated double precision and warm golden colors.
+ * with Perturbation Theory and warm golden colors.
  */
-export function createMandelbrotShaderMaterial(): THREE.ShaderMaterial {
-  const [cRxHi, cRxLo] = splitDouble(-0.65);
-  const [cRyHi, cRyLo] = splitDouble(0.0);
-  const [scaleHi, scaleLo] = splitDouble(3.0);
-
+export function createMandelbrotShaderMaterial(
+  orbitTexture: THREE.DataTexture
+): THREE.ShaderMaterial {
   return new THREE.ShaderMaterial({
     vertexShader: MANDELBROT_VERTEX_SHADER,
     fragmentShader: MANDELBROT_FRAGMENT_SHADER,
     uniforms: {
-      uCenterHi: { value: new THREE.Vector2(cRxHi, cRyHi) },
-      uCenterLo: { value: new THREE.Vector2(cRxLo, cRyLo) },
-      uScaleHi: { value: scaleHi },
-      uScaleLo: { value: scaleLo },
-      uMaxIterations: { value: 120.0 },
       uResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
       uTime: { value: 0.0 },
+      uMaxIterations: { value: 120.0 },
+      uScale: { value: 3.0 },
+      uCenter: { value: new THREE.Vector2(-0.65, 0.0) },
+      uDeltaCenter: { value: new THREE.Vector2(0.0, 0.0) },
+      uMode: { value: 0 },
+      uRefEscapeIter: { value: 2048 },
+      uRefOrbit: { value: orbitTexture },
     },
     depthWrite: false,
     depthTest: false,

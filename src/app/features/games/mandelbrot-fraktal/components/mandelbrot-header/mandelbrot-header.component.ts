@@ -18,8 +18,8 @@ export class MandelbrotHeaderComponent {
   @Input({ required: true }) iterations!: number;
   @Input({ required: true }) currentWaypointName!: string;
   @Input({ required: true }) coordSnippet!: string;
-  @Input({ required: true }) currentCenterX!: number;
-  @Input({ required: true }) currentCenterY!: number;
+  @Input({ required: true }) currentCenterX!: number | string;
+  @Input({ required: true }) currentCenterY!: number | string;
   @Input({ required: true }) currentZoomRaw!: number;
   @Input() generationLevel: number = 0;
   @Input({ required: true }) showBubble!: boolean;

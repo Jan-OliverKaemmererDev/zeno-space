@@ -1,3 +1,5 @@
+import { BigFixed } from './big-fixed';
+
 /**
  * Formats a zoom factor into a user-friendly mathematical string.
  *
@@ -45,9 +47,12 @@ function toSuperscript(num: number): string {
 /**
  * Formats a real or imaginary coordinate with adaptive precision.
  */
-export function formatCoordinate(val: number, zoom: number): string {
-  const precision = Math.min(14, Math.max(4, Math.floor(Math.log10(Math.max(1, zoom))) + 4));
-  return val.toFixed(precision).replace('.', ',');
+export function formatCoordinate(val: number | BigFixed, zoom: number): string {
+  const precision = Math.min(32, Math.max(4, Math.floor(Math.log10(Math.max(1, zoom))) + 4));
+  if (val instanceof BigFixed) {
+    return val.toString(precision).replace('.', ',');
+  }
+  return val.toFixed(Math.min(16, precision)).replace('.', ',');
 }
 
 /**
@@ -70,5 +75,6 @@ export function clamp(val: number, min: number, max: number): number {
  */
 export function getRecommendedIterations(zoom: number): number {
   const logZoom = Math.log10(Math.max(1, zoom));
-  return Math.min(500, Math.round(90 + logZoom * 40));
+  return Math.min(2048, Math.round(90 + logZoom * 45));
 }
+

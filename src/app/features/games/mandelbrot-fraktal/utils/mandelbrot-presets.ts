@@ -7,12 +7,25 @@ import { MandelbrotWaypoint } from '../models/mandelbrot.types';
  */
 export const MANDELBROT_WAYPOINTS: MandelbrotWaypoint[] = [
   {
+    id: 'deep-spirals',
+    name: 'Ewige Spirale (10¹⁸×)',
+    subtitle: 'Extremtiefer Perturbations-Zoom',
+    center: {
+      re: '-0.743643887037158704752191506114774',
+      im: '0.131825904205311970493132056385139',
+    },
+    zoom: 1.0e18,
+    maxIterations: 1200,
+    description:
+      'Reise in unvorstellbare Tiefen von 1 Trillion ×: Dank Perturbationstheorie entfalten sich selbst bei 10¹⁸ gestochen scharfe Spiralmuster ohne jeden Pixelverlust.',
+  },
+  {
     id: 'wikipedia-sequence',
     name: 'Scepter-Tal (Wikipedia)',
     subtitle: 'Tiefer Zoom in die Spiral-Filamente',
     center: {
-      re: -0.7436438870371587,
-      im: 0.131825904205312,
+      re: '-0.743643887037158704752191506114774',
+      im: '0.131825904205311970493132056385139',
     },
     zoom: 25000.0,
     maxIterations: 360,

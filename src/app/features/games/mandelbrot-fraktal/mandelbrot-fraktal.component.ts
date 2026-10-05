@@ -21,7 +21,16 @@ import {
   clamp,
   getRecommendedIterations,
 } from './utils/mandelbrot-math';
-import { createMandelbrotShaderMaterial, splitDouble } from './services/mandelbrot-shader';
+import { BigFixed } from './utils/big-fixed';
+import {
+  createMandelbrotShaderMaterial,
+} from './services/mandelbrot-shader';
+import {
+  computeReferenceOrbit,
+  computeRobustReferenceOrbit,
+  createOrUpdateOrbitTexture,
+  ReferenceOrbitResult,
+} from './services/mandelbrot-reference-orbit';
 import { MandelbrotHeaderComponent } from './components/mandelbrot-header/mandelbrot-header.component';
 import { MandelbrotControlsComponent } from './components/mandelbrot-controls/mandelbrot-controls.component';
 
@@ -41,7 +50,7 @@ interface CornerPollenParticle {
 /**
  * Interactive Flat 2D Mandelbrot Fractal Minigame.
  * Features:
- * - True 53-bit emulated double-precision deep zoom (up to 2 Trillion ×) without pixelation.
+ * - Perturbation Theory with 128-bit CPU reference orbit for deep zoom (up to 10^30) without pixelation.
  * - Smooth continuous camera travel with zero snapping or abrupt resets.
  * - Corner pollen particle fountains that appear strictly in the 4 corners, stream inwards,
  *   and fade out smoothly towards the center without ever intruding into the middle of the screen.
@@ -68,8 +77,8 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
   // ---------------------------------------------------------------------------
 
   readonly currentZoomRaw = signal<number>(1.0);
-  readonly currentCenterX = signal<number>(-0.65);
-  readonly currentCenterY = signal<number>(0.0);
+  readonly currentCenterX = signal<number | string>('-0.65');
+  readonly currentCenterY = signal<number | string>('0.0');
   readonly iterations = signal<number>(100);
   readonly isSoundEnabled = signal<boolean>(true);
   readonly currentWaypointId = signal<string>('overview');
@@ -90,9 +99,9 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
   readonly zoomFormatted = computed(() => formatZoomFactor(this.totalZoom()));
 
   readonly coordSnippet = computed(() => {
-    const rx = formatCoordinate(this.currentCenterX(), this.totalZoom());
-    const iy = formatCoordinate(this.currentCenterY(), this.totalZoom());
-    const sign = this.currentCenterY() >= 0 ? '+' : '-';
+    const rx = formatCoordinate(this.renderCenterX, this.totalZoom());
+    const iy = formatCoordinate(this.renderCenterY, this.totalZoom());
+    const sign = this.renderCenterY.raw >= 0n ? '+' : '-';
     return `c = ${rx} ${sign} ${iy.replace('-', '')}i`;
   });
 
@@ -114,6 +123,14 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
   private fractalMesh!: THREE.Mesh;
   private shaderMaterial!: THREE.ShaderMaterial;
 
+  // Stable Reference Orbit for Perturbation Theory (Mode 1)
+  private orbitTexture: THREE.DataTexture | null = null;
+  private refOrbitResult: ReferenceOrbitResult | null = null;
+  private refCenterRe: BigFixed = BigFixed.fromNumber(-0.65);
+  private refCenterIm: BigFixed = BigFixed.zero();
+  private refZoom: number = 1.0;
+  private refMaxIter: number = 120;
+
   // ---------------------------------------------------------------------------
   // Corner Pollen Particle Overlay (Strictly Anchored to the 4 Corners)
   // ---------------------------------------------------------------------------
@@ -124,21 +141,33 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
   private zoomDirection: 'in' | 'out' = 'in';
 
   // ---------------------------------------------------------------------------
-  // Coordinates & Deep Continuous Zoom Engine
+  // Coordinates & Deep Continuous Zoom Engine (128-bit BigFixed)
   // ---------------------------------------------------------------------------
 
   private currentZoom = 1.0;
   private targetZoom = 1.0;
   private readonly minZoom = 0.5;
-  private readonly maxZoom = 2.0e12; // 2 Trillion × zoom without blockiness or snapping
+  private readonly maxZoom = 1.0e30; // Limitless zoom up to 10^30
 
-  private targetCenterX = -0.65;
-  private targetCenterY = 0.0;
-  private renderCenterX = -0.65;
-  private renderCenterY = 0.0;
+  private targetCenterX: BigFixed = BigFixed.fromNumber(-0.65);
+  private targetCenterY: BigFixed = BigFixed.zero();
+  private renderCenterX: BigFixed = BigFixed.fromNumber(-0.65);
+  private renderCenterY: BigFixed = BigFixed.zero();
+
+  // Reset animation state
+  private isResetting = false;
+  private resetStartCenterRe: BigFixed = BigFixed.fromNumber(-0.65);
+  private resetStartCenterIm: BigFixed = BigFixed.zero();
 
   // Active key sets for continuous WASD and Arrow controls
   private readonly activeKeys = new Set<string>();
+
+  // Mouse drag panning state (matches WASD pan across complex space)
+  private isDragging = false;
+  private dragStartX = 0;
+  private dragStartY = 0;
+  private dragOriginCenterX: BigFixed = BigFixed.fromNumber(-0.65);
+  private dragOriginCenterY: BigFixed = BigFixed.zero();
 
   // Audio chimes pacing
   private lastChimeZoomLog = 0;
@@ -191,7 +220,20 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     container.appendChild(this.renderer.domElement);
 
-    this.shaderMaterial = createMandelbrotShaderMaterial();
+    // Initial reference orbit
+    this.refOrbitResult = computeRobustReferenceOrbit(
+      this.renderCenterX,
+      this.renderCenterY,
+      3.0,
+      null
+    );
+    this.orbitTexture = createOrUpdateOrbitTexture(null, this.refOrbitResult.data, 2048);
+    this.refCenterRe = this.refOrbitResult.centerRe;
+    this.refCenterIm = this.refOrbitResult.centerIm;
+    this.refZoom = 1.0;
+    this.refMaxIter = this.refOrbitResult.escapeIteration;
+
+    this.shaderMaterial = createMandelbrotShaderMaterial(this.orbitTexture);
     this.shaderMaterial.uniforms['uResolution'].value.set(width, height);
 
     const quadGeo = new THREE.PlaneGeometry(2, 2);
@@ -221,11 +263,6 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
     const countPerCorner = 110; // 440 fine golden pollen particles in total
     const maxReach = Math.min(Math.max(260, Math.min(width, height) * 0.44), 560);
 
-    // Base inward angles:
-    // Corner 0 (Top-Left): ~45 deg (+x, +y)
-    // Corner 1 (Top-Right): ~135 deg (-x, +y)
-    // Corner 2 (Bottom-Left): ~-45 deg (+x, -y)
-    // Corner 3 (Bottom-Right): ~-135 deg (-x, -y)
     const baseAngles = [
       Math.PI * 0.25,
       Math.PI * 0.75,
@@ -235,14 +272,13 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
 
     for (let c = 0; c < 4; c++) {
       for (let i = 0; i < countPerCorner; i++) {
-        // Wide fan spread for natural corner scattering (+/- 38 deg)
         const spread = (Math.random() - 0.5) * 1.35;
         this.cornerParticles.push({
           cornerIndex: c,
-          dist: Math.random() * maxReach, // Staggered along stream
+          dist: Math.random() * maxReach,
           angle: baseAngles[c] + spread,
           speed: 2.2 + Math.random() * 3.6,
-          radius: 0.55 + Math.random() * 0.85, // Ultra-fine pollen (0.55 - 1.4 px)
+          radius: 0.55 + Math.random() * 0.85,
           colorMix: Math.random(),
           baseAlpha: 0.45 + Math.random() * 0.45,
           flutterFreq: 0.016 + Math.random() * 0.024,
@@ -289,32 +325,110 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
     const dt = 0.016;
 
     // Process continuous WASD & arrow key movements
-    this.processActiveKeys(dt);
+    if (this.activeKeys.size > 0) {
+      this.isResetting = false;
+      this.processActiveKeys(dt);
+    }
 
-    // Smooth inertia interpolation (Lerp)
-    this.currentZoom = lerp(this.currentZoom, this.targetZoom, 0.14);
-    this.renderCenterX = lerp(this.renderCenterX, this.targetCenterX, 0.14);
-    this.renderCenterY = lerp(this.renderCenterY, this.targetCenterY, 0.14);
+    if (this.isResetting) {
+      // Smooth logarithmic zoom out
+      const curLog = Math.log(this.currentZoom);
+      const newLog = curLog * 0.93;
 
-    // Split center coordinate & scale for emulated 53-bit double precision
-    const [cRxHi, cRxLo] = splitDouble(this.renderCenterX);
-    const [cRyHi, cRyLo] = splitDouble(this.renderCenterY);
+      if (newLog < 0.015) {
+        this.currentZoom = 1.0;
+        this.targetZoom = 1.0;
+        this.renderCenterX = this.targetCenterX;
+        this.renderCenterY = this.targetCenterY;
+        this.isResetting = false;
+      } else {
+        this.currentZoom = Math.exp(newLog);
 
-    const currentScale = 3.0 / this.currentZoom;
-    const [scaleHi, scaleLo] = splitDouble(currentScale);
+        // Keep centered on deep feature until overview region is in sight,
+        // then smoothly blend toward (-0.65, 0.0)
+        if (this.currentZoom > 4.0) {
+          this.renderCenterX = this.resetStartCenterRe;
+          this.renderCenterY = this.resetStartCenterIm;
+        } else {
+          const t = Math.max(0, Math.min(1, (4.0 - this.currentZoom) / 3.0));
+          const smoothT = t * t * (3.0 - 2.0 * t);
+          this.renderCenterX = this.resetStartCenterRe.add(
+            this.targetCenterX.sub(this.resetStartCenterRe).mulNumber(smoothT)
+          );
+          this.renderCenterY = this.resetStartCenterIm.add(
+            this.targetCenterY.sub(this.resetStartCenterIm).mulNumber(smoothT)
+          );
+        }
+      }
+
+      this.triggerZoomParticles('out');
+      this.checkZoomChime();
+    } else {
+      // Smooth inertia interpolation (Lerp)
+      this.currentZoom = lerp(this.currentZoom, this.targetZoom, 0.14);
+      const diffX = this.targetCenterX.sub(this.renderCenterX);
+      this.renderCenterX = this.renderCenterX.add(diffX.mulNumber(0.14));
+      const diffY = this.targetCenterY.sub(this.renderCenterY);
+      this.renderCenterY = this.renderCenterY.add(diffY.mulNumber(0.14));
+    }
 
     const recIter = getRecommendedIterations(this.totalZoom());
-    this.shaderMaterial.uniforms['uCenterHi'].value.set(cRxHi, cRyHi);
-    this.shaderMaterial.uniforms['uCenterLo'].value.set(cRxLo, cRyLo);
-    this.shaderMaterial.uniforms['uScaleHi'].value = scaleHi;
-    this.shaderMaterial.uniforms['uScaleLo'].value = scaleLo;
-    this.shaderMaterial.uniforms['uMaxIterations'].value = recIter;
+    const currentScale = 3.0 / this.currentZoom;
+
     this.shaderMaterial.uniforms['uTime'].value = timestamp * 0.001;
+    this.shaderMaterial.uniforms['uMaxIterations'].value = recIter;
+    this.shaderMaterial.uniforms['uScale'].value = currentScale;
+
+    this.shaderMaterial.uniforms['uCenter'].value.set(
+      this.renderCenterX.toNumber(),
+      this.renderCenterY.toNumber()
+    );
+
+    if (this.currentZoom < 1000) {
+      // Mode 0: Fast direct float32 for overview (zoom < 1000)
+      this.shaderMaterial.uniforms['uMode'].value = 0;
+    } else {
+      // Mode 1: Perturbation Theory (Deep zoom >= 1000, up to 10^30)
+      this.shaderMaterial.uniforms['uMode'].value = 1;
+
+      // Stable reference orbit re-anchoring check
+      const diffX = this.renderCenterX.sub(this.refCenterRe).toNumber();
+      const diffY = this.renderCenterY.sub(this.refCenterIm).toNumber();
+      const distFromRef = Math.hypot(diffX, diffY);
+
+      // Re-anchor ONLY when:
+      // 1. We have no orbit yet
+      // 2. The camera panned so far away that refCenter is off-screen by more than 2 screen widths
+      const needsNewOrbit =
+        !this.refOrbitResult ||
+        distFromRef > currentScale * 2.0;
+
+      if (needsNewOrbit) {
+        this.refOrbitResult = computeRobustReferenceOrbit(
+          this.renderCenterX,
+          this.renderCenterY,
+          currentScale,
+          this.refOrbitResult
+        );
+        this.refCenterRe = this.refOrbitResult.centerRe;
+        this.refCenterIm = this.refOrbitResult.centerIm;
+        this.refZoom = this.currentZoom;
+        this.refMaxIter = this.refOrbitResult.escapeIteration;
+        createOrUpdateOrbitTexture(this.orbitTexture, this.refOrbitResult.data);
+      }
+
+      // Exact offset from stable reference center to camera center in float32
+      const deltaRe = this.renderCenterX.sub(this.refCenterRe).toNumber();
+      const deltaIm = this.renderCenterY.sub(this.refCenterIm).toNumber();
+      this.shaderMaterial.uniforms['uDeltaCenter'].value.set(deltaRe, deltaIm);
+      this.shaderMaterial.uniforms['uRefEscapeIter'].value =
+        this.refOrbitResult?.escapeIteration ?? 2048;
+    }
 
     // Sync with reactive UI signals
     this.currentZoomRaw.set(this.currentZoom);
-    this.currentCenterX.set(this.renderCenterX);
-    this.currentCenterY.set(this.renderCenterY);
+    this.currentCenterX.set(formatCoordinate(this.renderCenterX, this.currentZoom));
+    this.currentCenterY.set(formatCoordinate(this.renderCenterY, this.currentZoom));
     this.iterations.set(recIter);
 
     // Render WebGL flat 2D scene
@@ -326,10 +440,6 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
 
   // ---------------------------------------------------------------------------
   // Corner Pollen Particles Renderer
-  // - Particles stay strictly anchored to the 4 corners.
-  // - Continuous flowing inward movement.
-  // - Smooth fade-out towards the middle: particles NEVER reach the center!
-  // - Fades out completely when zooming stops.
   // ---------------------------------------------------------------------------
 
   private renderCornerPollenParticles(dt: number): void {
@@ -339,15 +449,13 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
     const width = canvas.width;
     const height = canvas.height;
 
-    // Decay zoom activity timer
     if (this.zoomActiveTimer > 0) {
-      this.zoomActiveTimer -= dt * 1.6; // Smoothly fades over ~0.62s after scrolling stops
+      this.zoomActiveTimer -= dt * 1.6;
       if (this.zoomActiveTimer < 0) {
         this.zoomActiveTimer = 0;
       }
     }
 
-    // When inactive, clear canvas and skip rendering
     if (this.zoomActiveTimer <= 0) {
       ctx.clearRect(0, 0, width, height);
       return;
@@ -360,10 +468,8 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
     const maxReach = Math.min(Math.max(260, Math.min(width, height) * 0.44), 560);
 
     for (const p of this.cornerParticles) {
-      // Advance particle distance along inward stream
       p.dist += p.speed * dir;
 
-      // Loop continuously within the extended corner reach
       if (p.dist > maxReach) {
         p.dist = 0;
         p.speed = 2.2 + Math.random() * 3.6;
@@ -371,7 +477,6 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
         p.dist = maxReach;
       }
 
-      // Lateral scattering wave for an airy, billowing wind breeze
       const progress = p.dist / maxReach;
       const lateral = Math.sin(p.dist * p.flutterFreq) * p.flutterAmp * progress;
       const rad = p.angle;
@@ -380,37 +485,28 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
       const mainX = p.dist * Math.cos(rad) + lateral * Math.cos(normalRad);
       const mainY = p.dist * Math.sin(rad) + lateral * Math.sin(normalRad);
 
-      // Compute exact screen coordinate anchored to corner with edge dispersion
       let px = 0;
       let py = 0;
       if (p.cornerIndex === 0) {
-        // Top-Left
         px = mainX + p.edgeOffset * 0.7;
         py = mainY + p.edgeOffset * 0.7;
       } else if (p.cornerIndex === 1) {
-        // Top-Right
         px = width + mainX - p.edgeOffset * 0.7;
         py = mainY + p.edgeOffset * 0.7;
       } else if (p.cornerIndex === 2) {
-        // Bottom-Left
         px = mainX + p.edgeOffset * 0.7;
         py = height + mainY - p.edgeOffset * 0.7;
       } else {
-        // Bottom-Right
         px = width + mainX - p.edgeOffset * 0.7;
         py = height + mainY - p.edgeOffset * 0.7;
       }
 
-      // Smooth fade-out towards the middle:
-      // Allows particles to be blown further into the image before softly dissolving
       const u = Math.min(1.0, Math.max(0.0, progress));
       let edgeFade = 1.0;
 
       if (u < 0.10) {
-        // Gentle entrance near the corner border
         edgeFade = u / 0.10;
       } else if (u > 0.58) {
-        // Soft quadratic dissolve before reaching the central region
         const t = (u - 0.58) / 0.42;
         const remaining = Math.max(0.0, 1.0 - t);
         edgeFade = remaining * remaining;
@@ -419,7 +515,6 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
       const particleAlpha = p.baseAlpha * edgeFade * masterOpacity;
       if (particleAlpha < 0.008) continue;
 
-      // Ultra-fine golden pollen glow
       const drawRadius = Math.max(0.7, p.radius * 1.8);
       const grad = ctx.createRadialGradient(px, py, 0, px, py, drawRadius);
 
@@ -434,7 +529,6 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
         grad.addColorStop(0.75, `rgba(217, 119, 6, ${particleAlpha * 0.3})`);
         grad.addColorStop(1.0, 'rgba(217, 119, 6, 0.0)');
       } else {
-        // Warm champagne highlight
         grad.addColorStop(0.0, `rgba(255, 255, 245, ${particleAlpha})`);
         grad.addColorStop(0.45, `rgba(253, 230, 138, ${particleAlpha * 0.75})`);
         grad.addColorStop(1.0, 'rgba(253, 230, 138, 0.0)');
@@ -460,7 +554,6 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
   onKeyDown(event: KeyboardEvent): void {
     const key = event.key.toLowerCase();
 
-    // WASD and Arrow keys registration
     if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown'].includes(key)) {
       event.preventDefault();
       this.activeKeys.add(key);
@@ -503,23 +596,24 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
     if (this.activeKeys.size === 0) return;
 
     // Movement speed proportional to 1/currentZoom so screen pan feels constant
-    const panSpeed = (2.2 / Math.max(0.1, this.currentZoom)) * dt * 2.8;
+    const panStep = (2.2 / Math.max(0.1, this.currentZoom)) * dt * 2.8;
+    const panDeltaFixed = BigFixed.fromNumber(panStep);
 
     // W: Move Up
     if (this.activeKeys.has('w')) {
-      this.targetCenterY += panSpeed;
+      this.targetCenterY = this.targetCenterY.add(panDeltaFixed);
     }
     // S: Move Down
     if (this.activeKeys.has('s')) {
-      this.targetCenterY -= panSpeed;
+      this.targetCenterY = this.targetCenterY.sub(panDeltaFixed);
     }
     // A: Move Left
     if (this.activeKeys.has('a')) {
-      this.targetCenterX -= panSpeed;
+      this.targetCenterX = this.targetCenterX.sub(panDeltaFixed);
     }
     // D: Move Right
     if (this.activeKeys.has('d')) {
-      this.targetCenterX += panSpeed;
+      this.targetCenterX = this.targetCenterX.add(panDeltaFixed);
     }
 
     // ArrowUp: Zoom In
@@ -550,26 +644,23 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
     const aspect = rect.width / Math.max(rect.height, 1);
 
     // Offset in complex space relative to center at current zoom
-    const complexOffset = new THREE.Vector2(
-      (mouseX * 0.5 * aspect * 3.0) / this.currentZoom,
-      (mouseY * 0.5 * 3.0) / this.currentZoom
-    );
+    const complexOffsetX = (mouseX * 0.5 * aspect * 3.0) / this.currentZoom;
+    const complexOffsetY = (mouseY * 0.5 * 3.0) / this.currentZoom;
 
     // Exact complex coordinate under mouse pointer
-    const mouseC_X = this.targetCenterX + complexOffset.x;
-    const mouseC_Y = this.targetCenterY + complexOffset.y;
+    const mouseC_X = this.targetCenterX.add(BigFixed.fromNumber(complexOffsetX));
+    const mouseC_Y = this.targetCenterY.add(BigFixed.fromNumber(complexOffsetY));
 
     const zoomStep = event.deltaY < 0 ? 1.25 : 1 / 1.25;
     const nextTargetZoom = clamp(this.targetZoom * zoomStep, this.minZoom, this.maxZoom);
 
     // Keep the complex coordinate directly under the mouse pointer
-    const newOffset = new THREE.Vector2(
-      (mouseX * 0.5 * aspect * 3.0) / nextTargetZoom,
-      (mouseY * 0.5 * 3.0) / nextTargetZoom
-    );
+    const newOffsetX = (mouseX * 0.5 * aspect * 3.0) / nextTargetZoom;
+    const newOffsetY = (mouseY * 0.5 * 3.0) / nextTargetZoom;
 
-    this.targetCenterX = mouseC_X - newOffset.x;
-    this.targetCenterY = mouseC_Y - newOffset.y;
+    this.isResetting = false;
+    this.targetCenterX = mouseC_X.sub(BigFixed.fromNumber(newOffsetX));
+    this.targetCenterY = mouseC_Y.sub(BigFixed.fromNumber(newOffsetY));
     this.targetZoom = nextTargetZoom;
 
     // Trigger corner pollen particles
@@ -578,19 +669,74 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
   }
 
   onPointerDown(event: PointerEvent): void {
-    // Strictly flat: no drag tilt
+    if (event.button !== 0) return; // Primary mouse button only
+    if (this.showBubble()) {
+      this.closeBubble();
+    }
+    this.isDragging = true;
+    this.isResetting = false;
+    this.dragStartX = event.clientX;
+    this.dragStartY = event.clientY;
+    this.dragOriginCenterX = this.targetCenterX;
+    this.dragOriginCenterY = this.targetCenterY;
+    try {
+      (event.target as HTMLElement)?.setPointerCapture?.(event.pointerId);
+    } catch {
+      // Ignore if pointer capture is unsupported or denied
+    }
   }
 
   onPointerMove(event: PointerEvent): void {
-    // Strictly flat: no drag tilt
+    if (!this.isDragging) return;
+
+    const container = this.containerRef?.nativeElement;
+    const height = Math.max(container?.clientHeight || window.innerHeight, 1);
+
+    const deltaPixelsX = event.clientX - this.dragStartX;
+    const deltaPixelsY = event.clientY - this.dragStartY;
+
+    const currentScale = 3.0 / this.currentZoom;
+    const complexDeltaX = (deltaPixelsX / height) * currentScale;
+    const complexDeltaY = (deltaPixelsY / height) * currentScale;
+
+    this.targetCenterX = this.dragOriginCenterX.sub(BigFixed.fromNumber(complexDeltaX));
+    this.targetCenterY = this.dragOriginCenterY.add(BigFixed.fromNumber(complexDeltaY));
   }
 
   onPointerUp(event?: PointerEvent): void {
-    // Strictly flat: no drag tilt
+    if (!this.isDragging) return;
+    this.isDragging = false;
+    if (event) {
+      try {
+        (event.target as HTMLElement)?.releasePointerCapture?.(event.pointerId);
+      } catch {
+        // Ignore if pointer release fails
+      }
+    }
+  }
+
+  @HostListener('window:pointerup')
+  onWindowPointerUp(): void {
+    if (this.isDragging) {
+      this.isDragging = false;
+    }
+  }
+
+  @HostListener('document:pointerdown', ['$event'])
+  onDocumentPointerDown(event: PointerEvent): void {
+    if (!this.showBubble()) return;
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
+
+    if (target.closest('.mandelbrot-speech-bubble') || target.closest('.mandelbrot-snippet-pill')) {
+      return;
+    }
+
+    this.closeBubble();
   }
 
   onDoubleClick(event: MouseEvent): void {
-    // Double click zooms into clicked point
+    this.isResetting = false;
     const container = this.containerRef.nativeElement;
     const rect = container.getBoundingClientRect();
     const aspect = rect.width / Math.max(rect.height, 1);
@@ -601,8 +747,8 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
     const complexOffsetX = (mouseX * 0.5 * aspect * 3.0) / this.currentZoom;
     const complexOffsetY = (mouseY * 0.5 * 3.0) / this.currentZoom;
 
-    this.targetCenterX += complexOffsetX * 0.5;
-    this.targetCenterY += complexOffsetY * 0.5;
+    this.targetCenterX = this.targetCenterX.add(BigFixed.fromNumber(complexOffsetX * 0.5));
+    this.targetCenterY = this.targetCenterY.add(BigFixed.fromNumber(complexOffsetY * 0.5));
     this.targetZoom = clamp(this.targetZoom * 2.2, this.minZoom, this.maxZoom);
 
     this.triggerZoomParticles('in');
@@ -614,41 +760,59 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
   // ---------------------------------------------------------------------------
 
   onZoomInStep(): void {
+    this.isResetting = false;
     this.targetZoom = clamp(this.targetZoom * 1.5, this.minZoom, this.maxZoom);
     this.triggerZoomParticles('in');
     this.triggerHarmonicChime();
   }
 
   /**
-   * Resets view to the initial overview and frees particle canvas.
+   * Resets view to the initial overview with a smooth, cinematic zoom-out animation.
    */
   resetToOverview(): void {
-    this.targetZoom = 1.0;
-    this.currentZoom = 1.0;
-    this.targetCenterX = -0.65;
-    this.targetCenterY = 0.0;
-    this.renderCenterX = -0.65;
-    this.renderCenterY = 0.0;
     this.currentWaypointId.set('overview');
-    this.zoomActiveTimer = 0;
+    this.targetZoom = 1.0;
+    this.targetCenterX = BigFixed.fromNumber(-0.65);
+    this.targetCenterY = BigFixed.zero();
 
-    if (this.particleCtx && this.particleCanvasRef) {
-      this.particleCtx.clearRect(
-        0,
-        0,
-        this.particleCanvasRef.nativeElement.width,
-        this.particleCanvasRef.nativeElement.height
-      );
+    if (this.currentZoom > 1.05) {
+      this.isResetting = true;
+      this.resetStartCenterRe = this.renderCenterX;
+      this.resetStartCenterIm = this.renderCenterY;
+      this.triggerZoomParticles('out');
+    } else {
+      this.isResetting = false;
+      this.currentZoom = 1.0;
+      this.renderCenterX = BigFixed.fromNumber(-0.65);
+      this.renderCenterY = BigFixed.zero();
+      this.currentZoomRaw.set(1.0);
+      if (this.particleCtx && this.particleCanvasRef) {
+        this.particleCtx.clearRect(
+          0,
+          0,
+          this.particleCanvasRef.nativeElement.width,
+          this.particleCanvasRef.nativeElement.height
+        );
+      }
     }
 
+    this.refOrbitResult = null;
     this.triggerHarmonicChime();
   }
 
   onWaypointSelected(waypoint: MandelbrotWaypoint): void {
+    this.isResetting = false;
     this.currentWaypointId.set(waypoint.id);
-    this.targetCenterX = waypoint.center.re;
-    this.targetCenterY = waypoint.center.im;
+    this.targetCenterX =
+      typeof waypoint.center.re === 'string'
+        ? BigFixed.fromString(waypoint.center.re)
+        : BigFixed.fromNumber(waypoint.center.re);
+    this.targetCenterY =
+      typeof waypoint.center.im === 'string'
+        ? BigFixed.fromString(waypoint.center.im)
+        : BigFixed.fromNumber(waypoint.center.im);
     this.targetZoom = clamp(waypoint.zoom, this.minZoom, this.maxZoom);
+    this.refOrbitResult = null;
     this.triggerZoomParticles('in');
     this.triggerHarmonicChime();
   }
@@ -699,6 +863,10 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
   // ---------------------------------------------------------------------------
 
   private disposeThree(): void {
+    if (this.orbitTexture) {
+      this.orbitTexture.dispose();
+      this.orbitTexture = null;
+    }
     if (this.fractalMesh) {
       this.fractalMesh.geometry.dispose();
       (this.fractalMesh.material as THREE.Material).dispose();

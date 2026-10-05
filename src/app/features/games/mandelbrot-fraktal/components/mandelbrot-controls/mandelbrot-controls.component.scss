@@ -86,9 +86,22 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   .flyout-list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    max-height: 220px;
+    gap: 6px;
+    max-height: 185px;
     overflow-y: auto;
+    overflow-x: hidden;
+    touch-action: pan-y;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    user-select: none;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+      width: 0;
+      height: 0;
+    }
   }
 
   .waypoint-item {

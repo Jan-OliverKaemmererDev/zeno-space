@@ -60,4 +60,69 @@ describe('MandelbrotControlsComponent', () => {
 
     expect(resetSpy).toHaveBeenCalled();
   });
+
+  it('should scroll list when onListWheel is triggered', () => {
+    const mockElement = { scrollTop: 10 };
+    const mockEvent = {
+      stopPropagation: vi.fn(),
+      preventDefault: vi.fn(),
+      deltaY: 50,
+      currentTarget: mockElement,
+    } as any;
+
+    component.onListWheel(mockEvent);
+
+    expect(mockEvent.stopPropagation).toHaveBeenCalled();
+    expect(mockEvent.preventDefault).toHaveBeenCalled();
+    expect(mockElement.scrollTop).toBe(60);
+  });
+
+  it('should drag-to-scroll list on pointer down, move, and up', () => {
+    const mockElement = { scrollTop: 0 };
+
+    component.onListPointerDown({
+      button: 0,
+      clientY: 100,
+      pointerId: 1,
+      currentTarget: mockElement,
+    } as any);
+
+    component.onListPointerMove({
+      clientY: 50,
+      currentTarget: mockElement,
+    } as any);
+
+    expect(mockElement.scrollTop).toBe(50);
+
+    component.onListPointerUp();
+    expect((component as any).isListDragging).toBe(false);
+  });
+
+  it('should close waypoint menu when pointerdown occurs outside', () => {
+    component.showWaypointMenu.set(true);
+    const outsideElement = document.createElement('div');
+    component.onDocumentPointerDown({ target: outsideElement } as any);
+    expect(component.showWaypointMenu()).toBe(false);
+  });
+
+  it('should keep waypoint menu open when pointerdown occurs inside flyout or toggle btn', () => {
+    component.showWaypointMenu.set(true);
+    const flyout = document.createElement('div');
+    flyout.className = 'waypoints-flyout';
+    const childOfFlyout = document.createElement('span');
+    flyout.appendChild(childOfFlyout);
+    document.body.appendChild(flyout);
+
+    component.onDocumentPointerDown({ target: childOfFlyout } as any);
+    expect(component.showWaypointMenu()).toBe(true);
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'waypoints-toggle-btn';
+    document.body.appendChild(toggleBtn);
+    component.onDocumentPointerDown({ target: toggleBtn } as any);
+    expect(component.showWaypointMenu()).toBe(true);
+
+    document.body.removeChild(flyout);
+    document.body.removeChild(toggleBtn);
+  });
 });
