@@ -75,34 +75,28 @@ export class MandelbrotControlsComponent {
     this.listDragStartY = event.clientY;
     const el = event.currentTarget as HTMLElement;
     this.listScrollStartY = el?.scrollTop || 0;
-    try {
-      el?.setPointerCapture?.(event.pointerId);
-    } catch {
-      // Ignored if capture unsupported
-    }
   }
 
   onListPointerMove(event: PointerEvent): void {
     if (!this.isListDragging) return;
     const dy = event.clientY - this.listDragStartY;
-    if (Math.abs(dy) > 4) {
+    if (Math.abs(dy) > 6) {
       this.hasListDragged = true;
     }
-    const el = event.currentTarget as HTMLElement;
-    if (el) {
-      el.scrollTop = this.listScrollStartY - dy;
+    if (this.hasListDragged) {
+      const el = event.currentTarget as HTMLElement;
+      if (el) {
+        el.scrollTop = this.listScrollStartY - dy;
+      }
     }
   }
 
   onListPointerUp(event?: PointerEvent): void {
     if (!this.isListDragging) return;
     this.isListDragging = false;
-    if (event) {
-      try {
-        (event.currentTarget as HTMLElement)?.releasePointerCapture?.(event.pointerId);
-      } catch {
-        // Ignored
-      }
-    }
+    // Allow pending click events to check hasListDragged before resetting
+    setTimeout(() => {
+      this.hasListDragged = false;
+    }, 100);
   }
 }

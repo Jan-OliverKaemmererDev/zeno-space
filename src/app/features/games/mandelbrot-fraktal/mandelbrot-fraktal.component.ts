@@ -159,6 +159,17 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
   private resetStartCenterRe: BigFixed = BigFixed.fromNumber(-0.65);
   private resetStartCenterIm: BigFixed = BigFixed.zero();
 
+  // Waypoint flight animation state
+  private isFlying = false;
+  private flightStartCenterRe: BigFixed = BigFixed.fromNumber(-0.65);
+  private flightStartCenterIm: BigFixed = BigFixed.zero();
+  private flightTargetCenterRe: BigFixed = BigFixed.fromNumber(-0.65);
+  private flightTargetCenterIm: BigFixed = BigFixed.zero();
+  private flightStartZoom = 1.0;
+  private flightTargetZoom = 1.0;
+  private flightProgress = 0.0;
+  private flightDuration = 1.6;
+
   // Active key sets for continuous WASD and Arrow controls
   private readonly activeKeys = new Set<string>();
 
@@ -363,6 +374,42 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
 
       this.triggerZoomParticles('out');
       this.checkZoomChime();
+    } else if (this.isFlying) {
+      this.flightProgress += dt / this.flightDuration;
+
+      if (this.flightProgress >= 1.0) {
+        this.flightProgress = 1.0;
+        this.currentZoom = this.flightTargetZoom;
+        this.renderCenterX = this.flightTargetCenterRe;
+        this.renderCenterY = this.flightTargetCenterIm;
+        this.isFlying = false;
+      } else {
+        const t = this.flightProgress;
+
+        // Smooth ease-in-out curve for zoom
+        const zoomT = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+        // Center curve: align target location before diving into high zoom
+        const isZoomingIn = this.flightTargetZoom >= this.flightStartZoom;
+        const centerT = isZoomingIn
+          ? 1 - Math.pow(1 - t, 2.2)
+          : Math.pow(t, 2.2);
+
+        // Continuous logarithmic zoom
+        const logStart = Math.log(this.flightStartZoom);
+        const logTarget = Math.log(this.flightTargetZoom);
+        const curLog = logStart + (logTarget - logStart) * zoomT;
+        this.currentZoom = Math.exp(curLog);
+
+        // Smooth coordinate interpolation across complex space
+        const diffX = this.flightTargetCenterRe.sub(this.flightStartCenterRe);
+        const diffY = this.flightTargetCenterIm.sub(this.flightStartCenterIm);
+        this.renderCenterX = this.flightStartCenterRe.add(diffX.mulNumber(centerT));
+        this.renderCenterY = this.flightStartCenterIm.add(diffY.mulNumber(centerT));
+
+        this.triggerZoomParticles(isZoomingIn ? 'in' : 'out');
+        this.checkZoomChime();
+      }
     } else {
       // Smooth inertia interpolation (Lerp)
       this.currentZoom = lerp(this.currentZoom, this.targetZoom, 0.14);
@@ -594,6 +641,8 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
 
   private processActiveKeys(dt: number): void {
     if (this.activeKeys.size === 0) return;
+    this.isResetting = false;
+    this.isFlying = false;
 
     // Movement speed proportional to 1/currentZoom so screen pan feels constant
     const panStep = (2.2 / Math.max(0.1, this.currentZoom)) * dt * 2.8;
@@ -659,6 +708,7 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
     const newOffsetY = (mouseY * 0.5 * 3.0) / nextTargetZoom;
 
     this.isResetting = false;
+    this.isFlying = false;
     this.targetCenterX = mouseC_X.sub(BigFixed.fromNumber(newOffsetX));
     this.targetCenterY = mouseC_Y.sub(BigFixed.fromNumber(newOffsetY));
     this.targetZoom = nextTargetZoom;
@@ -675,6 +725,7 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
     }
     this.isDragging = true;
     this.isResetting = false;
+    this.isFlying = false;
     this.dragStartX = event.clientX;
     this.dragStartY = event.clientY;
     this.dragOriginCenterX = this.targetCenterX;
@@ -737,6 +788,7 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
 
   onDoubleClick(event: MouseEvent): void {
     this.isResetting = false;
+    this.isFlying = false;
     const container = this.containerRef.nativeElement;
     const rect = container.getBoundingClientRect();
     const aspect = rect.width / Math.max(rect.height, 1);
@@ -761,6 +813,7 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
 
   onZoomInStep(): void {
     this.isResetting = false;
+    this.isFlying = false;
     this.targetZoom = clamp(this.targetZoom * 1.5, this.minZoom, this.maxZoom);
     this.triggerZoomParticles('in');
     this.triggerHarmonicChime();
@@ -770,6 +823,7 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
    * Resets view to the initial overview with a smooth, cinematic zoom-out animation.
    */
   resetToOverview(): void {
+    this.isFlying = false;
     this.currentWaypointId.set('overview');
     this.targetZoom = 1.0;
     this.targetCenterX = BigFixed.fromNumber(-0.65);
@@ -803,17 +857,36 @@ export class MandelbrotFraktalComponent implements AfterViewInit, OnDestroy {
   onWaypointSelected(waypoint: MandelbrotWaypoint): void {
     this.isResetting = false;
     this.currentWaypointId.set(waypoint.id);
-    this.targetCenterX =
+    const destCenterX =
       typeof waypoint.center.re === 'string'
         ? BigFixed.fromString(waypoint.center.re)
         : BigFixed.fromNumber(waypoint.center.re);
-    this.targetCenterY =
+    const destCenterY =
       typeof waypoint.center.im === 'string'
         ? BigFixed.fromString(waypoint.center.im)
         : BigFixed.fromNumber(waypoint.center.im);
-    this.targetZoom = clamp(waypoint.zoom, this.minZoom, this.maxZoom);
-    this.refOrbitResult = null;
-    this.triggerZoomParticles('in');
+    const destZoom = clamp(waypoint.zoom, this.minZoom, this.maxZoom);
+
+    this.targetCenterX = destCenterX;
+    this.targetCenterY = destCenterY;
+    this.targetZoom = destZoom;
+
+    // Start smooth cosmic flight
+    this.isFlying = true;
+    this.flightStartCenterRe = this.renderCenterX;
+    this.flightStartCenterIm = this.renderCenterY;
+    this.flightTargetCenterRe = destCenterX;
+    this.flightTargetCenterIm = destCenterY;
+    this.flightStartZoom = Math.max(1.0, this.currentZoom);
+    this.flightTargetZoom = destZoom;
+    this.flightProgress = 0.0;
+
+    const logSpan = Math.abs(Math.log10(this.flightTargetZoom) - Math.log10(this.flightStartZoom));
+    this.flightDuration = Math.max(1.3, Math.min(2.8, 1.1 + logSpan * 0.16));
+
+    this.zoomDirection = destZoom >= this.currentZoom ? 'in' : 'out';
+    this.zoomActiveTimer = 1.0;
+    this.triggerZoomParticles(this.zoomDirection);
     this.triggerHarmonicChime();
   }
 

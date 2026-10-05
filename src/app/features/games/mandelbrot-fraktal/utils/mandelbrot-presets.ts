@@ -8,16 +8,16 @@ import { MandelbrotWaypoint } from '../models/mandelbrot.types';
 export const MANDELBROT_WAYPOINTS: MandelbrotWaypoint[] = [
   {
     id: 'deep-spirals',
-    name: 'Ewige Spirale (10¹⁸×)',
-    subtitle: 'Extremtiefer Perturbations-Zoom',
+    name: 'Ewige Spirale',
+    subtitle: 'Unendlicher goldener Spiralstrudel',
     center: {
-      re: '-0.743643887037158704752191506114774',
-      im: '0.131825904205311970493132056385139',
+      re: -0.77568377,
+      im: 0.13646737,
     },
-    zoom: 1.0e18,
-    maxIterations: 1200,
+    zoom: 36000.0,
+    maxIterations: 450,
     description:
-      'Reise in unvorstellbare Tiefen von 1 Trillion ×: Dank Perturbationstheorie entfalten sich selbst bei 10¹⁸ gestochen scharfe Spiralmuster ohne jeden Pixelverlust.',
+      'Ein berühmter Misiurewicz-Punkt: Unendliche, ineinander verschlungene Spiral-Arme winden sich fraktal in die Tiefe, ohne jemals in einem schwarzen Kern zu enden.',
   },
   {
     id: 'wikipedia-sequence',
@@ -63,11 +63,11 @@ export const MANDELBROT_WAYPOINTS: MandelbrotWaypoint[] = [
     name: 'Elefanten-Tal',
     subtitle: 'Sanft gewundene Rüssel & Bögen',
     center: {
-      re: 0.281718,
-      im: 0.01773,
+      re: 0.269,
+      im: 0.005,
     },
-    zoom: 450.0,
-    maxIterations: 200,
+    zoom: 290.0,
+    maxIterations: 220,
     description:
       'Am östlichen Rand der Hauptkardioide wachsen weiche, gebogene Bögen empor, die an stilisierte Elefantenrüssel und schwebende Bögen erinnern.',
   },
