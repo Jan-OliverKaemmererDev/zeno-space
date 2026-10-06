@@ -1,0 +1,53 @@
+<section class="lucky-progress-dock" aria-label="Fortschritt der Glückskarten">
+  <div class="progress-main">
+    <div class="progress-info-row">
+      <div class="status-badge" [class.is-ready]="canDrawToday">
+        <span class="status-dot"></span>
+        <span class="status-text">
+          @if (canDrawToday) {
+            Heute bereit zum Aufdecken
+          } @else {
+            Heutige Weisheit enthüllt
+          }
+        </span>
+      </div>
+
+      <div class="count-badge">
+        <span class="count-highlight">{{ seenCount }}</span>
+        <span class="count-divider">/</span>
+        <span class="count-total">{{ totalCount }}</span>
+        <span class="cycle-text">· Zyklus {{ cycleCount }}</span>
+      </div>
+    </div>
+
+    <!-- Glowing Progress Bar -->
+    <div 
+      class="progress-track"
+      role="progressbar"
+      [attr.aria-valuenow]="seenCount"
+      aria-valuemin="0"
+      [attr.aria-valuemax]="totalCount"
+      [attr.aria-label]="seenCount + ' von ' + totalCount + ' Weisheiten im Zyklus ' + cycleCount + ' entdeckt'"
+    >
+      <div class="progress-fill" [style.width.%]="percentage">
+        <div class="progress-head-glow"></div>
+      </div>
+    </div>
+
+    <!-- Countdown / Tip Line -->
+    @if (!canDrawToday && countdownFormatted) {
+      <div class="countdown-row">
+        <svg class="clock-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span class="countdown-label">Nächste Karte verfügbar in:</span>
+        <span class="countdown-time">{{ countdownFormatted }}</span>
+      </div>
+    } @else {
+      <p class="cycle-hint">
+        Jede der 100 Weisheiten erscheint genau einmal, bevor der Zyklus neu beginnt.
+      </p>
+    }
+  </div>
+</section>

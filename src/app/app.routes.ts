@@ -51,6 +51,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'game/glueckskarte',
+    loadComponent: () =>
+      import('./features/games/glueckskarte/glueckskarte.component').then(
+        (m) => m.GlueckskarteComponent
+      ),
+  },
+  {
     path: '**',
     redirectTo: '',
   },

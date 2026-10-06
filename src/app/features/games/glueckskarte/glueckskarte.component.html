@@ -1,0 +1,172 @@
+<div class="glueckskarte-scene" role="main" aria-label="Zen Glückskarte – Tägliche Weisheits-Meditation">
+  <!-- Ambient Space Nebulae -->
+  <div class="ambient-glow-mesh" aria-hidden="true">
+    <div class="nebula-cyan"></div>
+    <div class="nebula-purple"></div>
+  </div>
+
+  <!-- Top Glass Navigation Bar -->
+  <header class="scene-header">
+    <button 
+      type="button" 
+      class="back-link nav-btn--back" 
+      (click)="onNavigateHome()"
+      aria-label="Zurück zur Spielübersicht"
+      title="Zurück zur Übersicht (ESC)"
+    >
+      <span class="back-icon" aria-hidden="true">←</span>
+      <span class="nav-btn-text">Zurück</span>
+    </button>
+
+    <div class="header-titles">
+      <h1 class="header-title">Zen Glückskarte</h1>
+      <p class="header-subtitle">Tägliche Inspiration für deinen Geist</p>
+    </div>
+
+    <button 
+      type="button" 
+      class="stat-pill sound-pill nav-btn--sound"
+      (click)="toggleSound()"
+      [attr.aria-label]="audioService.isMuted() ? 'Sound einschalten' : 'Sound stummschalten'"
+      [title]="audioService.isMuted() ? 'Sound einschalten' : 'Sound stummschalten'"
+    >
+      @if (audioService.isMuted()) {
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <line x1="1" y1="1" x2="23" y2="23"/>
+          <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/>
+          <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/>
+        </svg>
+        <span class="sound-text">Stumm</span>
+      } @else {
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+        </svg>
+        <span class="sound-text">Audio</span>
+      }
+    </button>
+  </header>
+
+  <!-- Interactive Stage Area -->
+  <section class="stage-container">
+    <!-- Sparkle Burst Overlay -->
+    <div class="sparkles-container" aria-hidden="true">
+      @for (sparkle of sparkles(); track sparkle.id) {
+        <span 
+          class="sparkle-particle"
+          [style.--tx.px]="sparkle.x"
+          [style.--ty.px]="sparkle.y"
+          [style.--scale]="sparkle.scale"
+          [style.--delay.s]="sparkle.delay"
+        ></span>
+      }
+    </div>
+
+    <!-- Main Stage Grid: Center Card/Fan on Left, Unlocked Chronicle on Right -->
+    <div class="stage-layout-grid">
+      <div class="stage-primary-column">
+        <!-- ======================================================== -->
+        <!-- CASE 1: 4 FACE-DOWN FAN CARDS (When not yet drawn today) -->
+        <!-- ======================================================== -->
+        @if (!isFlipped()) {
+          <div class="fan-selection-wrapper">
+            <div class="fan-intro">
+              <span class="fan-zen-badge">Intuitive Wahl</span>
+              <h2 class="fan-headline">Wähle deine heutige Glückskarte</h2>
+              <p class="fan-subheadline">
+                Vier Tore, eine Bestimmung. Welcher Impuls ruft dich heute?
+              </p>
+            </div>
+
+            <div class="fan-cards-arc" role="region" aria-label="Vier verdeckte Glückskarten in Fächerform">
+              @for (cardIndex of fanCards; track cardIndex) {
+                <button
+                  type="button"
+                  class="fan-card fan-card--{{ cardIndex }}"
+                  (mouseenter)="onFanCardHover()"
+                  (click)="onSelectCard(cardIndex)"
+                  [attr.aria-label]="'Glückskarte ' + (cardIndex + 1) + ' wählen'"
+                  [title]="'Glückskarte ' + (cardIndex + 1) + ' wählen (Taste ' + (cardIndex + 1) + ')'"
+                >
+                  <!-- Outer Glow Frame -->
+                  <div class="fan-card-glow"></div>
+                  <div class="fan-card-glass"></div>
+                  <div class="fan-shimmer-sweep" aria-hidden="true"></div>
+
+                  <!-- Sacred Geometry Ornament -->
+                  <div class="fan-ornament-wrap">
+                    <svg class="fan-ornament" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="50" cy="50" r="44" stroke="url(#fanSkyGrad)" stroke-width="1.2" stroke-dasharray="3 3" opacity="0.6"/>
+                      <circle cx="50" cy="50" r="26" stroke="url(#fanSkyGrad)" stroke-width="1.2" opacity="0.85"/>
+                      <!-- Petals -->
+                      <path d="M50 22C44 22 40 28 40 34C40 44 50 50 50 50C50 50 60 44 60 34C60 28 56 22 50 22Z" fill="url(#fanSkyGrad)" opacity="0.85"/>
+                      <path d="M78 50C78 44 72 40 66 40C56 40 50 50 50 50C50 50 56 60 66 60C72 60 78 56 78 50Z" fill="url(#fanSkyGrad)" opacity="0.85"/>
+                      <path d="M50 78C56 78 60 72 60 66C60 56 50 50 50 50C50 50 40 56 40 66C40 72 44 78 50 78Z" fill="url(#fanSkyGrad)" opacity="0.85"/>
+                      <path d="M22 50C22 56 28 60 34 60C44 60 50 50 50 50C50 50 44 40 34 40C28 40 22 44 22 50Z" fill="url(#fanSkyGrad)" opacity="0.85"/>
+                      <circle cx="50" cy="50" r="5" fill="#fde68a"/>
+                      <defs>
+                        <linearGradient id="fanSkyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                          <stop offset="0%" stop-color="#e0f2fe"/>
+                          <stop offset="50%" stop-color="#38bdf8"/>
+                          <stop offset="100%" stop-color="#60a5fa"/>
+                        </linearGradient>
+                      </defs>
+                    </svg>
+                  </div>
+
+                  <!-- Card Content Tag -->
+                  <div class="fan-card-footer">
+                    <span class="fan-card-pill">Karte {{ cardIndex + 1 }}</span>
+                  </div>
+                </button>
+              }
+            </div>
+          </div>
+        } @else {
+          <!-- ======================================================== -->
+          <!-- CASE 2: REVEALED SINGLE CARD (Immediate on revisit)      -->
+          <!-- ======================================================== -->
+          <div class="revealed-stage-wrapper">
+            <app-lucky-card
+              [quote]="currentQuote()"
+              [isFlipped]="true"
+              [canDrawToday]="false"
+              [cycleCount]="progress().cycleCount"
+            ></app-lucky-card>
+          </div>
+        }
+
+        <!-- Cycle & Daily Progress Dock -->
+        <app-lucky-progress
+          [seenCount]="progress().seenCount"
+          [totalCount]="progress().totalCount"
+          [cycleCount]="progress().cycleCount"
+          [percentage]="progress().percentage"
+          [canDrawToday]="canDrawToday() && !isFlipped()"
+          [countdownFormatted]="countdown()"
+        ></app-lucky-progress>
+      </div>
+
+      <!-- Right Column: Unlocked Chronicle List (Vertically Centered on Right) -->
+      <aside class="stage-sidebar-column" aria-label="Chronik freigeschalteter Sprüche">
+        <app-unlocked-quotes-list
+          [quotes]="unlockedQuotes()"
+          [activeQuoteId]="activeQuoteId()"
+          (selectQuote)="onSelectUnlockedQuote($event)"
+        ></app-unlocked-quotes-list>
+      </aside>
+    </div>
+  </section>
+
+  <!-- Bottom Floating Instruction Dock -->
+  <footer class="scene-footer">
+    <div class="shortcut-tip">
+      @if (canDrawToday() && !isFlipped()) {
+        <span>Wähle per Klick oder Tasten <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></span>
+        <span class="sep">·</span>
+      }
+      <span><kbd>ESC</kbd> Zurück zur Übersicht</span>
+    </div>
+  </footer>
+</div>

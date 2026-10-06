@@ -1,0 +1,689 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+.glueckskarte-scene {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow-x: hidden;
+  background: radial-gradient(circle at 50% 18%, #0f1c34 0%, #0a1324 40%, #060a14 100%);
+  color: #f8fafc;
+  box-sizing: border-box;
+  padding: 24px 24px;
+  font-family: $font-sniglet;
+  user-select: none;
+}
+
+/* ==========================================================================
+   Harmonious Ambient Space Glow Mesh
+   ========================================================================== */
+.ambient-glow-mesh {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.nebula-cyan {
+  position: absolute;
+  top: 8%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 820px;
+  height: 600px;
+  background: radial-gradient(ellipse at center, rgba(56, 189, 248, 0.09) 0%, rgba(99, 102, 241, 0.05) 50%, transparent 75%);
+  filter: blur(80px);
+  animation: floatNebula 26s infinite ease-in-out alternate;
+}
+
+.nebula-purple {
+  position: absolute;
+  bottom: 12%;
+  right: 15%;
+  width: 650px;
+  height: 650px;
+  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.07) 0%, rgba(56, 189, 248, 0.03) 50%, transparent 70%);
+  filter: blur(90px);
+  animation: floatNebula 22s infinite ease-in-out alternate-reverse;
+}
+
+@keyframes floatNebula {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(30px, -20px) scale(1.10); }
+}
+
+/* ==========================================================================
+   Top Glass HUD Header (Pi-Spiral Style)
+   ========================================================================== */
+.scene-header {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1140px;
+  width: 100%;
+  margin: 0 auto;
+  gap: 16px;
+}
+
+.header-titles {
+  text-align: center;
+}
+
+.header-title {
+  margin: 0;
+  font-family: $font-sniglet;
+  font-size: 1.85rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #ffffff;
+  text-shadow: 
+    0 1px 4px rgba(7, 20, 50, 0.95),
+    0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.header-subtitle {
+  margin: 2px 0 0;
+  font-family: $font-sniglet;
+  font-size: 0.88rem;
+  color: #93c5fd;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+
+/* Pi-Spiral signature back link */
+.back-link {
+  font-family: $font-sniglet;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    rgba(186, 230, 253, 0.26) 0%,
+    rgba(56, 189, 248, 0.32) 50%,
+    rgba(96, 165, 250, 0.38) 100%
+  );
+  border: 1px solid rgba(147, 197, 253, 0.48);
+  color: #ffffff;
+  font-size: 0.96rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-shadow: 
+    0 1px 4px rgba(7, 20, 50, 0.95),
+    0 2px 8px rgba(0, 0, 0, 0.7);
+  box-shadow: 
+    0 4px 14px rgba(14, 116, 144, 0.24),
+    0 0 16px rgba(56, 189, 248, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.25s ease;
+  cursor: pointer;
+  text-decoration: none;
+
+  .back-icon {
+    font-size: 1.15rem;
+    transition: transform 0.25s ease;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+  }
+
+  &:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(224, 242, 254, 0.38) 0%,
+      rgba(56, 189, 248, 0.48) 50%,
+      rgba(96, 165, 250, 0.52) 100%
+    );
+    border-color: rgba(224, 242, 254, 0.72);
+    box-shadow: 
+      0 6px 22px rgba(0, 0, 0, 0.4),
+      0 0 22px rgba(56, 189, 248, 0.38),
+      inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    transform: translateY(-2px);
+
+    .back-icon {
+      transform: translateX(-4px);
+    }
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+/* Pi-Spiral signature stat-pill */
+.sound-pill {
+  font-family: $font-sniglet;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    rgba(186, 230, 253, 0.22) 0%,
+    rgba(56, 189, 248, 0.26) 50%,
+    rgba(96, 165, 250, 0.30) 100%
+  );
+  border: 1px solid rgba(147, 197, 253, 0.45);
+  box-shadow: 
+    0 4px 14px rgba(0, 0, 0, 0.35),
+    0 0 14px rgba(56, 189, 248, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-size: 0.90rem;
+  color: #ffffff;
+  text-shadow: 
+    0 1px 4px rgba(7, 20, 50, 0.95),
+    0 2px 8px rgba(0, 0, 0, 0.7);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  svg {
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.8));
+  }
+
+  &:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(224, 242, 254, 0.32) 0%,
+      rgba(56, 189, 248, 0.40) 50%,
+      rgba(96, 165, 250, 0.46) 100%
+    );
+    border-color: rgba(224, 242, 254, 0.75);
+    box-shadow: 
+      0 6px 20px rgba(0, 0, 0, 0.4),
+      0 0 20px rgba(56, 189, 248, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    transform: translateY(-2px) scale(1.02);
+  }
+
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+}
+
+/* ==========================================================================
+   Stage Container & Two-Column Grid (Wider separation to prevent overlap)
+   ========================================================================== */
+.stage-container {
+  position: relative;
+  z-index: 5;
+  margin: 16px auto;
+  width: 100%;
+  max-width: 1160px;
+  padding: 0 16px;
+  box-sizing: border-box;
+}
+
+.stage-layout-grid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 68px;
+  width: 100%;
+}
+
+.stage-primary-column {
+  flex: 1;
+  max-width: 580px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.stage-sidebar-column {
+  width: 350px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ==========================================================================
+   4-Card Fan Selection
+   ========================================================================== */
+.fan-selection-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: fadeInFan 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes fadeInFan {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.fan-intro {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.fan-zen-badge {
+  font-family: $font-sniglet;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: linear-gradient(
+    135deg,
+    rgba(186, 230, 253, 0.22) 0%,
+    rgba(56, 189, 248, 0.26) 50%,
+    rgba(96, 165, 250, 0.30) 100%
+  );
+  border: 1px solid rgba(147, 197, 253, 0.45);
+  box-shadow: 
+    0 4px 14px rgba(0, 0, 0, 0.35),
+    0 0 14px rgba(56, 189, 248, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  padding: 5px 16px;
+  border-radius: 9999px;
+  font-weight: 600;
+  display: inline-block;
+  margin-bottom: 8px;
+  text-shadow: 0 1px 4px rgba(7, 20, 50, 0.95);
+}
+
+.fan-headline {
+  margin: 0;
+  font-family: $font-sniglet;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: 0.01em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.fan-subheadline {
+  margin: 6px 0 0;
+  font-family: $font-sniglet;
+  font-size: 0.92rem;
+  color: #94a3b8;
+}
+
+.fan-cards-arc {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 360px;
+  perspective: 1200px;
+  padding: 30px 0;
+}
+
+.fan-card {
+  position: relative;
+  width: 175px;
+  height: 265px;
+  margin: 0 -30px;
+  border-radius: 24px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  overflow: hidden; /* Clips all children including the shimmer strictly inside card bounds */
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 16px 18px;
+  box-sizing: border-box;
+  transform-origin: 50% 120%;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+  user-select: none;
+
+  &--0 {
+    transform: rotate(-13deg) translateY(14px);
+    z-index: 1;
+  }
+
+  &--1 {
+    transform: rotate(-4deg) translateY(2px);
+    z-index: 2;
+  }
+
+  &--2 {
+    transform: rotate(4deg) translateY(2px);
+    z-index: 3;
+  }
+
+  &--3 {
+    transform: rotate(13deg) translateY(14px);
+    z-index: 4;
+  }
+
+  /* Smooth lift on hover/focus */
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-38px) scale(1.08) rotate(0deg) !important;
+    z-index: 20 !important;
+
+    .fan-card-glow {
+      border-color: rgba(224, 242, 254, 0.85);
+      box-shadow: 
+        0 24px 50px rgba(0, 0, 0, 0.75),
+        0 0 35px rgba(56, 189, 248, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.65);
+    }
+
+    .fan-ornament-wrap {
+      transform: scale(1.12);
+      filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.65));
+    }
+
+    .fan-card-pill {
+      background: linear-gradient(
+        135deg,
+        rgba(224, 242, 254, 0.38) 0%,
+        rgba(56, 189, 248, 0.48) 50%,
+        rgba(96, 165, 250, 0.52) 100%
+      );
+      border-color: rgba(224, 242, 254, 0.75);
+      color: #ffffff;
+      box-shadow: 
+        0 4px 12px rgba(0, 0, 0, 0.4),
+        0 0 14px rgba(56, 189, 248, 0.35);
+    }
+  }
+
+  &:active {
+    transform: translateY(-28px) scale(1.04) rotate(0deg) !important;
+  }
+}
+
+.fan-card-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid rgba(147, 197, 253, 0.45);
+  box-shadow: 
+    0 16px 40px rgba(0, 0, 0, 0.6),
+    0 0 24px rgba(56, 189, 248, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.40);
+  pointer-events: none;
+  transition: all 0.35s ease;
+  z-index: 1;
+}
+
+.fan-card-glass {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(14, 26, 48, 0.55) 45%,
+    rgba(8, 16, 32, 0.75) 100%
+  );
+  backdrop-filter: blur(26px) saturate(135%);
+  -webkit-backdrop-filter: blur(26px) saturate(135%);
+  z-index: 0;
+}
+
+/* Reduced-length diagonal shimmer contained within card boundaries */
+.fan-shimmer-sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    130deg,
+    transparent 32%,
+    rgba(255, 255, 255, 0.08) 44%,
+    rgba(255, 255, 255, 0.18) 50%,
+    rgba(255, 255, 255, 0.08) 56%,
+    transparent 68%
+  );
+  pointer-events: none;
+  z-index: 2;
+}
+
+.fan-ornament-wrap {
+  position: relative;
+  z-index: 3;
+  margin-top: 14px;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.4s ease;
+  filter: drop-shadow(0 0 14px rgba(56, 189, 248, 0.4));
+}
+
+.fan-ornament {
+  width: 90px;
+  height: 90px;
+  display: block;
+}
+
+.fan-card-footer {
+  position: relative;
+  z-index: 3;
+}
+
+.fan-card-pill {
+  font-family: $font-sniglet;
+  font-size: 0.78rem;
+  letter-spacing: 0.05em;
+  color: #f1f5f9;
+  background: linear-gradient(
+    135deg,
+    rgba(186, 230, 253, 0.22) 0%,
+    rgba(56, 189, 248, 0.26) 50%,
+    rgba(96, 165, 250, 0.30) 100%
+  );
+  border: 1px solid rgba(147, 197, 253, 0.45);
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  padding: 4px 14px;
+  border-radius: 9999px;
+  font-weight: 600;
+  text-shadow: 0 1px 3px rgba(7, 20, 50, 0.9);
+  transition: all 0.3s ease;
+}
+
+/* ==========================================================================
+   Revealed Single Card Stage Wrapper
+   ========================================================================== */
+.revealed-stage-wrapper {
+  width: 100%;
+  animation: revealFadeIn 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@keyframes revealFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ==========================================================================
+   Sparkle Burst Particles
+   ========================================================================== */
+.sparkles-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 25;
+}
+
+.sparkle-particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffffff 0%, #38bdf8 65%, transparent 100%);
+  box-shadow: 0 0 12px #38bdf8;
+  animation: burstParticle 1s cubic-bezier(0.12, 0.8, 0.32, 1) forwards;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes burstParticle {
+  0% {
+    transform: translate(0, 0) scale(0);
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(var(--scale, 1));
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   Footer Controls Tip (Dock Style)
+   ========================================================================== */
+.scene-footer {
+  position: relative;
+  z-index: 10;
+  text-align: center;
+  margin-top: 16px;
+}
+
+.shortcut-tip {
+  font-family: $font-sniglet;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.84rem;
+  color: #94a3b8;
+  padding: 7px 18px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.10) 0%,
+    rgba(14, 26, 48, 0.45) 50%,
+    rgba(8, 16, 32, 0.60) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+
+  .sep {
+    color: #475569;
+  }
+
+  kbd {
+    display: inline-block;
+    padding: 2px 7px;
+    font-size: 0.74rem;
+    font-family: monospace;
+    font-weight: 600;
+    color: #f1f5f9;
+    background: rgba(147, 197, 253, 0.18);
+    border: 1px solid rgba(147, 197, 253, 0.4);
+    border-radius: 6px;
+  }
+}
+
+/* ==========================================================================
+   Responsive Adaptations
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .stage-layout-grid {
+    gap: 44px;
+  }
+}
+
+@media (max-width: 920px) {
+  .stage-layout-grid {
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .stage-primary-column {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .stage-sidebar-column {
+    width: 100%;
+    max-width: 440px;
+  }
+}
+
+@media (max-width: 600px) {
+  .glueckskarte-scene {
+    padding: 16px 12px;
+  }
+
+  .header-title {
+    font-size: 1.45rem;
+  }
+
+  .header-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .nav-btn-text {
+    display: none;
+  }
+
+  .back-link {
+    padding: 8px 12px;
+  }
+
+  .stage-container {
+    margin: 12px auto;
+  }
+
+  .fan-headline {
+    font-size: 1.4rem;
+  }
+
+  .fan-cards-arc {
+    height: 270px;
+  }
+
+  .fan-card {
+    width: 130px;
+    height: 195px;
+    margin: 0 -24px;
+    padding: 16px 10px 12px;
+
+    &--0 { transform: rotate(-10deg) translateY(8px); }
+    &--1 { transform: rotate(-3deg) translateY(2px); }
+    &--2 { transform: rotate(3deg) translateY(2px); }
+    &--3 { transform: rotate(10deg) translateY(8px); }
+
+    &:hover,
+    &:focus-visible {
+      transform: translateY(-24px) scale(1.08) rotate(0deg) !important;
+    }
+  }
+
+  .fan-ornament {
+    width: 65px;
+    height: 65px;
+  }
+}

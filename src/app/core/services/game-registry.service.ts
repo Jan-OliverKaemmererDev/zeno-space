@@ -268,6 +268,41 @@ export class GameRegistryService {
         objective: 'Mische Regen, Knisterfeuer und Sphärenklänge zu deiner persönlichen Traumkulisse.',
       },
     },
+    {
+      id: 'glueckskarte',
+      title: 'Zen Glückskarte',
+      subtitle: 'Tägliche Weisheits-Meditation',
+      description: 'Ziehe täglich eine von 100 tiefsinnigen Karten aus Stoa, Buddhismus, Birkenbihl und Genies. Jede Weisheit genau einmal pro 100-Tage-Zyklus.',
+      badge: 'Chill Sandbox',
+      category: 'relax',
+      route: '/game/glueckskarte',
+      icon: 'clover',
+      primaryColor: '#34d399',
+      glowColor: 'rgba(52, 211, 153, 0.28)',
+      tags: ['Relax'],
+      floatDelay: '2.4s',
+      floatDuration: '10.2s',
+      sizeClass: 'bubble--md',
+      controls: {
+        keyboard: [
+          {
+            type: 'space',
+            keys: ['LEERTASTE'],
+            label: 'Tageskarte umdrehen & Weisheit enthüllen',
+          },
+          {
+            type: 'inline',
+            keys: ['ESC'],
+            label: 'Zurück zur Übersicht',
+          },
+        ],
+        mouse: {
+          leftClick: true,
+          label: 'Klicken zum Enthüllen der Tages-Glückskarte',
+        },
+        objective: 'Ziehe täglich genau eine Weisheit. Nach 100 Tagen startet ein neuer Zyklus.',
+      },
+    },
   ]);
 
   /**

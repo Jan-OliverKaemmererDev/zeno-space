@@ -1,0 +1,434 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+:host {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  font-family: $font-sniglet;
+}
+
+/* Glass Panel modeled after Pi Spiral Controls dock-panel & Speech Bubble */
+.unlocked-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 560px;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.13) 0%,
+    rgba(14, 26, 48, 0.55) 45%,
+    rgba(8, 16, 32, 0.75) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 24px;
+  padding: 18px 16px 14px;
+  box-sizing: border-box;
+  backdrop-filter: blur(26px) saturate(135%);
+  -webkit-backdrop-filter: blur(26px) saturate(135%);
+  box-shadow:
+    0 20px 48px -10px rgba(0, 0, 0, 0.55),
+    0 0 35px -4px rgba(56, 189, 248, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+/* ==========================================================================
+   Panel Header
+   ========================================================================== */
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 6px 12px;
+  border-bottom: 1px solid rgba(147, 197, 253, 0.16);
+  flex-shrink: 0;
+}
+
+.panel-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #38bdf8;
+}
+
+.panel-icon {
+  color: #fbbf24;
+  filter: drop-shadow(0 0 6px rgba(251, 191, 36, 0.5));
+}
+
+.panel-title {
+  margin: 0;
+  font-family: $font-sniglet;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.02em;
+  text-shadow: 
+    0 1px 4px rgba(7, 20, 50, 0.95),
+    0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+/* Pi-Spiral signature counter pill */
+.panel-counter {
+  font-family: $font-sniglet;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(
+    135deg,
+    rgba(186, 230, 253, 0.24) 0%,
+    rgba(56, 189, 248, 0.28) 50%,
+    rgba(96, 165, 250, 0.34) 100%
+  );
+  border: 1px solid rgba(147, 197, 253, 0.48);
+  box-shadow: 
+    0 4px 14px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.38);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 4px rgba(7, 20, 50, 0.95);
+
+  .counter-total {
+    color: #cbd5e1;
+    font-weight: 500;
+  }
+}
+
+/* ==========================================================================
+   Scroll Wrapper with Top & Bottom Fade Mask
+   ========================================================================== */
+.panel-scroll-wrapper {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  /* Top and Bottom Fade Masks */
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.7) 8%,
+    black 18%,
+    black 82%,
+    rgba(0, 0, 0, 0.7) 92%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.7) 8%,
+    black 18%,
+    black 82%,
+    rgba(0, 0, 0, 0.7) 92%,
+    transparent 100%
+  );
+}
+
+.panel-scroll-viewport {
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  outline: none;
+  box-sizing: border-box;
+
+  /* Disable Scrollbar visually */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.unlocked-items-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  /* Generous vertical padding allows top & bottom items to sit in the exact center */
+  padding: 130px 4px;
+}
+
+/* ==========================================================================
+   Empty State
+   ========================================================================== */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  padding: 40px 20px;
+  color: #64748b;
+  font-family: $font-sniglet;
+}
+
+.empty-ornament {
+  font-size: 2rem;
+  color: #38bdf8;
+  opacity: 0.6;
+  margin-bottom: 12px;
+  filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.5));
+  animation: pulseEmpty 3s infinite ease-in-out;
+}
+
+@keyframes pulseEmpty {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 0.8; transform: scale(1.1); }
+}
+
+.empty-text {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: #94a3b8;
+}
+
+/* ==========================================================================
+   Unlocked Item Cards
+   ========================================================================== */
+.unlocked-item {
+  position: relative;
+  width: 100%;
+  border-radius: 18px;
+  cursor: pointer;
+  outline: none;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+              opacity 0.35s ease,
+              box-shadow 0.35s ease;
+  user-select: none;
+  box-sizing: border-box;
+  font-family: $font-sniglet;
+
+  /* Non-active cards (above & below) are compact and slightly muted */
+  opacity: 0.65;
+  transform: scale(0.95);
+
+  &:hover {
+    opacity: 0.90;
+    transform: scale(0.98) translateY(-2px);
+
+    .item-glass-backdrop {
+      background: rgba(30, 41, 59, 0.7);
+    }
+
+    .item-border-glow {
+      border-color: rgba(147, 197, 253, 0.45);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 14px rgba(56, 189, 248, 0.2);
+    }
+  }
+
+  &:focus-visible {
+    .item-border-glow {
+      border-color: #38bdf8;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+    }
+  }
+
+  /* Active / Centered Card: Magnified, Glowing, Full Opacity */
+  &.is-active {
+    opacity: 1;
+    transform: scale(1.02);
+    z-index: 5;
+
+    .item-border-glow {
+      border-color: rgba(224, 242, 254, 0.75);
+      box-shadow: 
+        0 8px 24px rgba(0, 0, 0, 0.45),
+        0 0 24px rgba(56, 189, 248, 0.38),
+        inset 0 1px 0 rgba(255, 255, 255, 0.50);
+    }
+
+    .item-glass-backdrop {
+      background: linear-gradient(
+        135deg,
+        rgba(186, 230, 253, 0.26) 0%,
+        rgba(56, 189, 248, 0.34) 50%,
+        rgba(96, 165, 250, 0.40) 100%
+      );
+    }
+
+    &:hover {
+      transform: scale(1.03) translateY(-1px);
+    }
+  }
+}
+
+.item-glass-backdrop {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(14, 26, 48, 0.5);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  z-index: 0;
+  transition: background 0.3s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.item-border-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  pointer-events: none;
+  z-index: 1;
+  transition: all 0.35s ease;
+}
+
+/* ==========================================================================
+   Active Content Styling (Larger & Prominent)
+   ========================================================================== */
+.item-content--active {
+  position: relative;
+  z-index: 2;
+  padding: 16px 16px 14px;
+}
+
+.item-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.active-category-pill {
+  font-family: $font-sniglet;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(7, 20, 50, 0.95);
+}
+
+.active-focus-tag {
+  font-family: $font-sniglet;
+  font-size: 0.70rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #bae6fd;
+  background: rgba(56, 189, 248, 0.25);
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid rgba(147, 197, 253, 0.5);
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+}
+
+.active-quote-text {
+  margin: 0 0 10px;
+  padding: 0;
+  font-family: $font-sniglet;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: #ffffff;
+  font-style: normal;
+  font-weight: 500;
+  text-shadow: 
+    0 1px 4px rgba(7, 20, 50, 0.95),
+    0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.active-author-row {
+  font-family: $font-sniglet;
+  font-size: 0.86rem;
+  color: #fde68a;
+
+  .active-author {
+    font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  }
+
+  .active-source {
+    color: #e2e8f0;
+    font-style: italic;
+    opacity: 0.85;
+  }
+}
+
+/* ==========================================================================
+   Compact Content Styling (Above & Below)
+   ========================================================================== */
+.item-content--compact {
+  position: relative;
+  z-index: 2;
+  padding: 12px 14px;
+}
+
+.compact-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.compact-quote-id {
+  font-family: $font-sniglet;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #94a3b8;
+  font-variant-numeric: tabular-nums;
+}
+
+.compact-author {
+  font-family: $font-sniglet;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.compact-quote-snippet {
+  margin: 0;
+  font-family: $font-sniglet;
+  font-size: 0.86rem;
+  line-height: 1.42;
+  color: #94a3b8;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   Panel Footer
+   ========================================================================== */
+.panel-footer {
+  padding-top: 10px;
+  border-top: 1px solid rgba(147, 197, 253, 0.16);
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.scroll-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: $font-sniglet;
+  font-size: 0.76rem;
+  color: #94a3b8;
+
+  svg {
+    color: #38bdf8;
+  }
+}
+
+/* ==========================================================================
+   Responsive Adaptations
+   ========================================================================== */
+@media (max-width: 900px) {
+  :host {
+    max-width: 100%;
+    margin-top: 24px;
+  }
+
+  .unlocked-panel {
+    height: 380px;
+  }
+
+  .unlocked-items-flow {
+    padding: 80px 4px;
+  }
+}

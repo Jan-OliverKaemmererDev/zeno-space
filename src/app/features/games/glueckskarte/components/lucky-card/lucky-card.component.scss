@@ -1,0 +1,426 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+:host {
+  display: block;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  font-family: $font-sniglet;
+}
+
+.card-perspective-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1.48;
+  min-height: 520px;
+  perspective: 1400px;
+  outline: none;
+  cursor: default;
+  user-select: none;
+
+  &.is-clickable {
+    cursor: pointer;
+
+    &:hover .face-border-glow {
+      opacity: 0.95;
+      transform: scale(1.02);
+      border-color: rgba(224, 242, 254, 0.8);
+      box-shadow: 
+        0 24px 50px rgba(0, 0, 0, 0.7),
+        0 0 35px rgba(56, 189, 248, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    &:hover .sacred-ornament-wrap {
+      transform: scale(1.08);
+      filter: drop-shadow(0 0 20px rgba(56, 189, 248, 0.6));
+    }
+  }
+
+  &:focus-visible {
+    .face-border-glow {
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.8), 0 0 30px rgba(56, 189, 248, 0.5);
+    }
+  }
+}
+
+.card-flipper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.85s cubic-bezier(0.25, 1, 0.35, 1);
+  will-change: transform;
+}
+
+/* ==========================================================================
+   Card Faces Common Base (Pi-Spiral Frosted Glass)
+   ========================================================================== */
+.card-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 28px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.face-border-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid rgba(147, 197, 253, 0.45);
+  box-shadow: 
+    0 20px 48px -10px rgba(0, 0, 0, 0.65),
+    0 0 30px rgba(56, 189, 248, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.4s ease, box-shadow 0.4s ease, border-color 0.4s ease;
+  z-index: 1;
+
+  &--revealed {
+    border-color: rgba(186, 230, 253, 0.55);
+    box-shadow: 
+      0 20px 48px -10px rgba(0, 0, 0, 0.65),
+      0 0 32px rgba(56, 189, 248, 0.30),
+      inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  }
+}
+
+.face-glass-surface {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(14, 26, 48, 0.65) 45%,
+    rgba(8, 16, 32, 0.85) 100%
+  );
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  z-index: 0;
+
+  &--revealed {
+    background: linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.16) 0%,
+      rgba(14, 26, 48, 0.75) 45%,
+      rgba(8, 16, 32, 0.90) 100%
+    );
+  }
+}
+
+/* ==========================================================================
+   Back Face: Mysterious Sacred Zen Design
+   ========================================================================== */
+.card-back {
+  transform: rotateY(0deg);
+  padding: 36px 28px 24px;
+  align-items: center;
+  text-align: center;
+}
+
+.shimmer-sweep {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 42%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 58%
+  );
+  transform: rotate(25deg);
+  animation: shimmerSweep 7s infinite ease-in-out;
+  pointer-events: none;
+  z-index: 2;
+}
+
+@keyframes shimmerSweep {
+  0% { transform: translateY(-70%) rotate(25deg); }
+  40%, 100% { transform: translateY(70%) rotate(25deg); }
+}
+
+.sacred-ornament-wrap {
+  position: relative;
+  z-index: 3;
+  margin-top: 18px;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.5s ease;
+  filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.45));
+}
+
+.sacred-ornament {
+  width: 140px;
+  height: 140px;
+  display: block;
+}
+
+.card-back-content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: auto 0;
+}
+
+.zen-badge {
+  font-family: $font-sniglet;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #ffffff;
+  background: linear-gradient(
+    135deg,
+    rgba(186, 230, 253, 0.24) 0%,
+    rgba(56, 189, 248, 0.30) 50%,
+    rgba(96, 165, 250, 0.36) 100%
+  );
+  border: 1px solid rgba(147, 197, 253, 0.5);
+  box-shadow: 
+    0 4px 14px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  padding: 5px 16px;
+  border-radius: 9999px;
+  font-weight: 600;
+  text-shadow: 0 1px 4px rgba(7, 20, 50, 0.95);
+}
+
+.card-back-title {
+  margin: 0;
+  font-family: $font-sniglet;
+  font-size: 2.2rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ffffff 0%, #bae6fd 60%, #fde68a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 4px rgba(7, 20, 50, 0.95);
+}
+
+.card-back-subtitle {
+  margin: 0;
+  font-family: $font-sniglet;
+  font-size: 0.95rem;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  kbd {
+    display: inline-block;
+    padding: 2px 7px;
+    font-size: 0.75rem;
+    font-family: monospace;
+    font-weight: 600;
+    color: #e2e8f0;
+    background: rgba(147, 197, 253, 0.2);
+    border: 1px solid rgba(147, 197, 253, 0.4);
+    border-radius: 6px;
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+  }
+}
+
+.card-back-footer {
+  position: relative;
+  z-index: 3;
+}
+
+.cycle-pill {
+  font-family: $font-sniglet;
+  font-size: 0.78rem;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Front Face: Revealed Daily Quote
+   ========================================================================= */
+.card-front {
+  transform: rotateY(180deg);
+  padding: 30px 28px 24px;
+}
+
+.card-front-inner {
+  position: relative;
+  z-index: 3;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-front-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.category-tag {
+  font-family: $font-sniglet;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #ffffff;
+  background: linear-gradient(
+    135deg,
+    rgba(186, 230, 253, 0.24) 0%,
+    rgba(56, 189, 248, 0.30) 50%,
+    rgba(96, 165, 250, 0.36) 100%
+  );
+  border: 1px solid rgba(147, 197, 253, 0.5);
+  box-shadow: 
+    0 4px 14px rgba(0, 0, 0, 0.3),
+    0 0 14px rgba(56, 189, 248, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  padding: 5px 14px;
+  border-radius: 9999px;
+  text-shadow: 0 1px 4px rgba(7, 20, 50, 0.95);
+}
+
+.quote-number-pill {
+  font-family: $font-sniglet;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #bae6fd;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
+  font-variant-numeric: tabular-nums;
+}
+
+.quote-body {
+  position: relative;
+  margin: auto 0;
+  padding: 10px 0;
+  text-align: center;
+}
+
+.quote-mark {
+  font-size: 3.2rem;
+  line-height: 1;
+  color: rgba(186, 230, 253, 0.35);
+  font-family: Georgia, serif;
+  display: block;
+  user-select: none;
+
+  &--open {
+    margin-bottom: -16px;
+  }
+
+  &--close {
+    margin-top: -12px;
+  }
+}
+
+.quote-text {
+  margin: 0;
+  font-family: $font-sniglet;
+  font-size: 1.25rem;
+  line-height: 1.65;
+  color: #ffffff;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.7);
+}
+
+.quote-author-wrap {
+  margin-top: 18px;
+}
+
+.quote-author {
+  margin: 0;
+  font-family: $font-sniglet;
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: #fde68a;
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.quote-source {
+  margin: 3px 0 0;
+  font-family: $font-sniglet;
+  font-size: 0.88rem;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Reflection Box modeled after Pi Speech Bubble panel */
+.reflection-box {
+  background: rgba(14, 26, 48, 0.6);
+  border: 1px solid rgba(147, 197, 253, 0.3);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-top: 16px;
+  text-align: left;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.reflection-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 5px;
+  color: #38bdf8;
+  text-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+}
+
+.reflection-icon {
+  flex-shrink: 0;
+}
+
+.reflection-title {
+  font-family: $font-sniglet;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.reflection-text {
+  margin: 0;
+  font-family: $font-sniglet;
+  font-size: 0.90rem;
+  line-height: 1.48;
+  color: #e2e8f0;
+}
+
+/* ==========================================================================
+   Responsive Adaptations
+   ========================================================================== */
+@media (max-width: 480px) {
+  .card-face {
+    padding: 24px 20px 20px;
+    border-radius: 22px;
+  }
+
+  .card-back-title {
+    font-size: 1.9rem;
+  }
+
+  .quote-text {
+    font-size: 1.1rem;
+    line-height: 1.55;
+  }
+
+  .sacred-ornament {
+    width: 110px;
+    height: 110px;
+  }
+}

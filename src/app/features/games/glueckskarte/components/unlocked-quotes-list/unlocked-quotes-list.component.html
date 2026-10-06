@@ -1,0 +1,104 @@
+<aside class="unlocked-panel" aria-label="Sammlung freigeschalteter Glückskarten">
+  <!-- Panel Header -->
+  <header class="panel-header">
+    <div class="panel-header-left">
+      <svg class="panel-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+      </svg>
+      <h3 class="panel-title">Deine Chronik</h3>
+    </div>
+    <span class="panel-counter" [title]="quotes.length + ' von 100 Weisheiten im Zyklus freigeschaltet'">
+      {{ quotes.length }} <span class="counter-total">/ 100</span>
+    </span>
+  </header>
+
+  <!-- Scroll Viewport with Top & Bottom Fade Mask -->
+  <div class="panel-scroll-wrapper">
+    <div 
+      #scrollContainer
+      class="panel-scroll-viewport"
+      tabindex="0"
+      role="region"
+      aria-label="Scrollbare Liste freigeschalteter Sprüche"
+    >
+      @if (quotes.length === 0) {
+        <div class="empty-state">
+          <div class="empty-ornament">✦</div>
+          <p class="empty-text">
+            Noch keine Weisheit enthüllt.<br>
+            Wähle links eine Karte, um deine Chronik zu beginnen.
+          </p>
+        </div>
+      } @else {
+        <div class="unlocked-items-flow">
+          @for (quote of quotes; track quote.id) {
+            <article
+              class="unlocked-item"
+              [class.is-active]="quote.id === activeQuoteId"
+              (mouseenter)="onItemHover()"
+              (click)="onCardClick(quote)"
+              [attr.aria-current]="quote.id === activeQuoteId ? 'true' : null"
+              tabindex="0"
+              role="button"
+              [attr.aria-label]="quote.author + ': ' + quote.text"
+            >
+              <!-- Card Surface Backdrop & Glow -->
+              <div class="item-glass-backdrop"></div>
+              <div class="item-border-glow"></div>
+
+              @if (quote.id === activeQuoteId) {
+                <!-- ============================================== -->
+                <!-- ACTIVE / CENTER QUOTE (Prominent & Larger)      -->
+                <!-- ============================================== -->
+                <div class="item-content item-content--active">
+                  <div class="item-meta-row">
+                    <span 
+                      class="active-category-pill"
+                      [style.--accent-color]="getCategoryColor(quote.category)"
+                    >
+                      Aktuelle Weisheit · #{{ quote.id }}
+                    </span>
+                    <span class="active-focus-tag">Fokus</span>
+                  </div>
+
+                  <blockquote class="active-quote-text">
+                    “{{ quote.text }}”
+                  </blockquote>
+
+                  <div class="active-author-row">
+                    <span class="active-author">{{ quote.author }}</span>
+                    @if (quote.source) {
+                      <span class="active-source">· {{ quote.source }}</span>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <!-- ============================================== -->
+                <!-- SURROUNDING QUOTES (Above & Below)             -->
+                <!-- ============================================== -->
+                <div class="item-content item-content--compact">
+                  <div class="compact-meta-row">
+                    <span class="compact-quote-id">#{{ quote.id }}</span>
+                    <span class="compact-author">{{ quote.author }}</span>
+                  </div>
+                  <p class="compact-quote-snippet">
+                    “{{ quote.text }}”
+                  </p>
+                </div>
+              }
+            </article>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <footer class="panel-footer">
+    <span class="scroll-hint">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path d="M12 5v14M19 12l-7 7-7-7"/>
+      </svg>
+      Mit Mausrad scrollen
+    </span>
+  </footer>
+</aside>
