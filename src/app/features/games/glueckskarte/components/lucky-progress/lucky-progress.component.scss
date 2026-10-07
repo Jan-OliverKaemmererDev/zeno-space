@@ -6,8 +6,8 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 :host {
   display: block;
   width: 100%;
-  max-width: 480px;
-  margin: 18px auto 0;
+  max-width: 360px;
+  margin: 0 auto;
   font-family: $font-sniglet;
 }
 
@@ -20,8 +20,8 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
     rgba(8, 16, 32, 0.55) 100%
   );
   border: 1px solid rgba(255, 255, 255, 0.24);
-  border-radius: 24px;
-  padding: 16px 22px;
+  border-radius: 20px;
+  padding: 14px 18px;
   backdrop-filter: blur(26px) saturate(135%);
   -webkit-backdrop-filter: blur(26px) saturate(135%);
   box-shadow:

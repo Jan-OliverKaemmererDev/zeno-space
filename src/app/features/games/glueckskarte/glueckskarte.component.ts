@@ -74,6 +74,23 @@ export class GlueckskarteComponent implements OnInit, OnDestroy {
   /** Whether the user can draw today */
   readonly canDrawToday = computed(() => this.storageService.canDrawToday());
 
+  /** Bubble letters heading data for playful bounce & cursor evasion */
+  readonly titleWords: { letters: { char: string; globalIndex: number }[] }[] = (() => {
+    const rawWords = ['Zen', 'Glückskarte'];
+    let runningIndex = 0;
+    return rawWords.map((word) => ({
+      letters: Array.from(word).map((char) => ({
+        char,
+        globalIndex: runningIndex++,
+      })),
+    }));
+  })();
+
+  // Heading Letters Pointer Evasion
+  private mouseEvadeRafId: number | null = null;
+  private lastPointerEvent: PointerEvent | null = null;
+  private isDestroyed = false;
+
   ngOnInit(): void {
     // Check if card was already revealed earlier today.
     // If so, skip the 4 fan cards and display today's revealed card directly!
@@ -90,10 +107,87 @@ export class GlueckskarteComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.isDestroyed = true;
     if (this.timerIntervalId !== null) {
       clearInterval(this.timerIntervalId);
       this.timerIntervalId = null;
     }
+    if (this.mouseEvadeRafId !== null) {
+      cancelAnimationFrame(this.mouseEvadeRafId);
+      this.mouseEvadeRafId = null;
+    }
+  }
+
+  /**
+   * Pointer move handler for bubble letters evasion physics.
+   */
+  onHeadingPointerMove(event: PointerEvent): void {
+    this.lastPointerEvent = event;
+    if (this.mouseEvadeRafId !== null) return;
+
+    this.mouseEvadeRafId = requestAnimationFrame(() => {
+      this.mouseEvadeRafId = null;
+      if (!this.lastPointerEvent || this.isDestroyed) return;
+      this.applyEvadeToLetters(this.lastPointerEvent);
+    });
+  }
+
+  /**
+   * Smoothly resets letter positions when the pointer leaves the heading.
+   */
+  onHeadingPointerLeave(): void {
+    if (this.mouseEvadeRafId !== null) {
+      cancelAnimationFrame(this.mouseEvadeRafId);
+      this.mouseEvadeRafId = null;
+    }
+    this.lastPointerEvent = null;
+    this.resetLettersEvade();
+  }
+
+  private applyEvadeToLetters(event: PointerEvent): void {
+    const letters = document.querySelectorAll<HTMLElement>('.header-titles .bubble-letter');
+    const mouseX = event.clientX;
+    const mouseY = event.clientY;
+    const radius = 80;
+    const maxPush = 14;
+
+    letters.forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = cx - mouseX;
+      const dy = cy - mouseY;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist < radius && dist > 0.001) {
+        const norm = dist / radius;
+        const force = Math.pow(1 - norm, 1.6);
+        const pushX = (dx / dist) * force * maxPush;
+        const pushY = (dy / dist) * force * maxPush;
+        const scale = 1 + force * 0.08;
+        const rot = (dx / dist) * force * 2.8;
+
+        el.style.setProperty('--evade-x', `${pushX.toFixed(2)}px`);
+        el.style.setProperty('--evade-y', `${pushY.toFixed(2)}px`);
+        el.style.setProperty('--evade-scale', `${scale.toFixed(3)}`);
+        el.style.setProperty('--evade-rot', `${rot.toFixed(2)}deg`);
+      } else {
+        el.style.setProperty('--evade-x', '0px');
+        el.style.setProperty('--evade-y', '0px');
+        el.style.setProperty('--evade-scale', '1');
+        el.style.setProperty('--evade-rot', '0deg');
+      }
+    });
+  }
+
+  private resetLettersEvade(): void {
+    const letters = document.querySelectorAll<HTMLElement>('.header-titles .bubble-letter');
+    letters.forEach((el) => {
+      el.style.setProperty('--evade-x', '0px');
+      el.style.setProperty('--evade-y', '0px');
+      el.style.setProperty('--evade-scale', '1');
+      el.style.setProperty('--evade-rot', '0deg');
+    });
   }
 
   /**
@@ -107,15 +201,21 @@ export class GlueckskarteComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Fan card index (0..3) chosen by the user for entrance flight animation, or null if on revisit */
+  readonly originCardIndex = signal<number | null>(null);
+
   /**
    * Selects a card from the fan (or via keyboard) and reveals today's random wisdom quote.
    *
-   * @param _cardIndex - Visual index (0..3) of the selected card in the fan
+   * @param cardIndex - Visual index (0..3) of the selected card in the fan
    */
-  onSelectCard(_cardIndex: number = 0): void {
+  onSelectCard(cardIndex: number = 0): void {
     if (!this.canDrawToday() || this.isFlipped()) {
       return;
     }
+
+    // Set origin index to trigger smooth flight & flip animation
+    this.originCardIndex.set(cardIndex);
 
     // Play soothing pentatonic chords
     this.playRevealChimes();
@@ -127,6 +227,13 @@ export class GlueckskarteComponent implements OnInit, OnDestroy {
     const drawn = this.storageService.drawCard();
     this.currentQuote.set(drawn);
     this.isFlipped.set(true);
+  }
+
+  /**
+   * Called once the 3D flight & flip keyframe animation from the fan completes.
+   */
+  onCardAnimationFinished(): void {
+    this.originCardIndex.set(null);
   }
 
   /**

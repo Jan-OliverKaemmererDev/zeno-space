@@ -30,6 +30,23 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   overflow: hidden;
 }
 
+.nebula-top-left {
+  position: absolute;
+  top: -120px;
+  left: -120px;
+  width: 820px;
+  height: 820px;
+  background: radial-gradient(
+    circle at center,
+    rgba(56, 189, 248, 0.22) 0%,
+    rgba(99, 102, 241, 0.16) 35%,
+    rgba(139, 92, 246, 0.08) 60%,
+    transparent 75%
+  );
+  filter: blur(85px);
+  pointer-events: none;
+}
+
 .nebula-cyan {
   position: absolute;
   top: 8%;
@@ -53,6 +70,65 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   animation: floatNebula 22s infinite ease-in-out alternate-reverse;
 }
 
+/* Corner Rotating Zen Sacred Geometry Mandalas (1/4 visible in corners) */
+.zen-corner-mandala-wrap {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  width: 720px;
+  height: 720px;
+  pointer-events: none;
+  z-index: 0;
+  transform: translate(50%, 50%);
+  overflow: visible;
+
+  &--top-left {
+    bottom: auto;
+    right: auto;
+    top: 0;
+    left: 0;
+    width: 1000px;
+    height: 1000px;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.zen-corner-mandala {
+  width: 100%;
+  height: 100%;
+  display: block;
+  animation: rotateMandala 90s linear infinite;
+  transform-origin: center center;
+  filter: drop-shadow(0 0 16px rgba(56, 189, 248, 0.20));
+
+  &--ccw {
+    animation: rotateMandalaCCW 90s linear infinite;
+    filter: 
+      drop-shadow(0 0 14px rgba(255, 255, 255, 0.65))
+      drop-shadow(0 0 32px rgba(56, 189, 248, 0.60))
+      drop-shadow(0 0 75px rgba(99, 102, 241, 0.40));
+    opacity: 0.98;
+  }
+}
+
+@keyframes rotateMandala {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rotateMandalaCCW {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
 @keyframes floatNebula {
   0% { transform: translate(0, 0) scale(1); }
   100% { transform: translate(30px, -20px) scale(1.10); }
@@ -74,29 +150,196 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 }
 
 .header-titles {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   text-align: center;
+  position: relative;
+  touch-action: none;
+}
+
+.header-title-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .header-title {
   margin: 0;
-  font-family: $font-sniglet;
-  font-size: 1.85rem;
-  font-weight: 700;
+  padding: 0;
+  font-family: var(--zeno-font-bubble, $font-sniglet);
+  font-size: 3.4rem;
+  font-weight: 600;
   letter-spacing: 0.02em;
-  color: #ffffff;
-  text-shadow: 
-    0 1px 4px rgba(7, 20, 50, 0.95),
-    0 2px 8px rgba(0, 0, 0, 0.7);
+  line-height: 1.2;
+  display: inline-flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  column-gap: 0.38em;
+  user-select: none;
+
+  @media (max-width: 1200px) {
+    font-size: 2.95rem;
+  }
+
+  @media (max-width: 900px) {
+    font-size: 2.35rem;
+    column-gap: 0.3em;
+  }
+
+  @media (max-width: 600px) {
+    font-size: 1.8rem;
+    column-gap: 0.22em;
+  }
+
+  @media (max-width: 380px) {
+    font-size: 1.45rem;
+  }
 }
 
-.header-subtitle {
-  margin: 2px 0 0;
-  font-family: $font-sniglet;
-  font-size: 0.88rem;
-  color: #93c5fd;
-  letter-spacing: 0.02em;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+.bubble-word {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+  word-break: keep-all;
 }
+
+.bubble-letter-carrier {
+  display: inline-block;
+  position: relative;
+  opacity: 0;
+  transform: translate3d(0, 0, 0) scale(0.95);
+  will-change: transform, opacity;
+  animation: 
+    laolaWave 1.25s forwards calc(0.2s + var(--bubble-index, 0) * 0.045s),
+    bubbleFloating 6s ease-in-out calc(1.45s + var(--bubble-index, 0) * 0.045s) infinite alternate;
+}
+
+.bubble-letter {
+  display: inline-block;
+  position: relative;
+  background: linear-gradient(
+    180deg,
+    #ffffff 0%,
+    #e0f2fe 28%,
+    #38bdf8 62%,
+    #60a5fa 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 4px 14px rgba(7, 20, 50, 0.85))
+          drop-shadow(0 2px 5px rgba(0, 0, 0, 0.55))
+          drop-shadow(0 0 18px rgba(56, 189, 248, 0.5))
+          drop-shadow(0 0 24px rgba(96, 165, 250, 0.35));
+
+  // Dynamic subtle evasion from mouse pointer like a floating soap bubble in air
+  transform: translate3d(var(--evade-x, 0px), var(--evade-y, 0px), 0)
+             scale(var(--evade-scale, 1))
+             rotate(var(--evade-rot, 0deg));
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+/* Companion Rotating Flower next to Header Title */
+.header-flower-companion {
+  position: absolute;
+  top: -14px;
+  right: -52px;
+  width: 46px;
+  height: 46px;
+  pointer-events: none;
+  filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.7))
+          drop-shadow(0 0 18px rgba(253, 224, 71, 0.5));
+  z-index: 2;
+  opacity: 0;
+  animation: 
+    headerFlowerEntry 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.5s forwards,
+    bubbleFloating 6s ease-in-out 1.75s infinite alternate;
+
+  @media (max-width: 900px) {
+    top: -12px;
+    right: -42px;
+    width: 38px;
+    height: 38px;
+  }
+
+  @media (max-width: 600px) {
+    top: -8px;
+    right: -32px;
+    width: 30px;
+    height: 30px;
+  }
+}
+
+.header-flower-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  transform-origin: 50% 50%;
+  animation: rotateFlowerClockwise 12s linear infinite;
+  will-change: transform;
+}
+
+@keyframes rotateFlowerClockwise {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes headerFlowerEntry {
+  0% {
+    opacity: 0;
+    transform: scale(0.4) rotate(-30deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.18) rotate(10deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* Buttery-smooth Laola wave & floating motion */
+@keyframes laolaWave {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.95);
+    animation-timing-function: cubic-bezier(0.22, 0.85, 0.36, 1);
+  }
+  44% {
+    opacity: 1;
+    transform: translate3d(0, -22px, 0) scale(1.1);
+    animation-timing-function: cubic-bezier(0.32, 0.9, 0.4, 1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes bubbleFloating {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -5px, 0) scale(1.015);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+
 
 /* Pi-Spiral signature back link */
 .back-link {
@@ -232,24 +475,59 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 68px;
+  gap: 56px;
   width: 100%;
 }
 
 .stage-primary-column {
   flex: 1;
-  max-width: 580px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+
+  &--fan {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  &--revealed {
+    max-width: 500px;
+    width: 100%;
+  }
 }
 
 .stage-sidebar-column {
-  width: 350px;
+  width: 360px;
   flex-shrink: 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  gap: 16px;
+  animation: fadeInSidebar 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes fadeInSidebar {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sidebar-progress-component {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.sidebar-chronicle-component {
+  width: 100%;
+  display: flex;
   justify-content: center;
 }
 
@@ -328,17 +606,17 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   justify-content: center;
   align-items: center;
   width: 100%;
-  height: 360px;
+  height: 420px;
   perspective: 1200px;
   padding: 30px 0;
 }
 
 .fan-card {
   position: relative;
-  width: 175px;
-  height: 265px;
-  margin: 0 -30px;
-  border-radius: 24px;
+  width: 215px;
+  height: 320px;
+  margin: 0 -24px;
+  border-radius: 26px;
   border: none;
   background: transparent;
   cursor: pointer;
@@ -349,36 +627,36 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  padding: 24px 16px 18px;
+  padding: 28px 18px 22px;
   box-sizing: border-box;
   transform-origin: 50% 120%;
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
   user-select: none;
 
   &--0 {
-    transform: rotate(-13deg) translateY(14px);
+    transform: rotate(-13deg) translateY(16px);
     z-index: 1;
   }
 
   &--1 {
-    transform: rotate(-4deg) translateY(2px);
+    transform: rotate(-4deg) translateY(3px);
     z-index: 2;
   }
 
   &--2 {
-    transform: rotate(4deg) translateY(2px);
+    transform: rotate(4deg) translateY(3px);
     z-index: 3;
   }
 
   &--3 {
-    transform: rotate(13deg) translateY(14px);
+    transform: rotate(13deg) translateY(16px);
     z-index: 4;
   }
 
   /* Smooth lift on hover/focus */
   &:hover,
   &:focus-visible {
-    transform: translateY(-38px) scale(1.08) rotate(0deg) !important;
+    transform: translateY(-44px) scale(1.08) rotate(0deg) !important;
     z-index: 20 !important;
 
     .fan-card-glow {
@@ -469,8 +747,8 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 }
 
 .fan-ornament {
-  width: 90px;
-  height: 90px;
+  width: 115px;
+  height: 115px;
   display: block;
 }
 
@@ -481,7 +759,7 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 
 .fan-card-pill {
   font-family: $font-sniglet;
-  font-size: 0.78rem;
+  font-size: 0.84rem;
   letter-spacing: 0.05em;
   color: #f1f5f9;
   background: linear-gradient(
@@ -506,18 +784,6 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
    ========================================================================== */
 .revealed-stage-wrapper {
   width: 100%;
-  animation: revealFadeIn 0.7s cubic-bezier(0.23, 1, 0.32, 1);
-}
-
-@keyframes revealFadeIn {
-  from {
-    opacity: 0;
-    transform: scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
 }
 
 /* ==========================================================================
@@ -635,14 +901,6 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 @media (max-width: 600px) {
   .glueckskarte-scene {
     padding: 16px 12px;
-  }
-
-  .header-title {
-    font-size: 1.45rem;
-  }
-
-  .header-subtitle {
-    font-size: 0.8rem;
   }
 
   .nav-btn-text {

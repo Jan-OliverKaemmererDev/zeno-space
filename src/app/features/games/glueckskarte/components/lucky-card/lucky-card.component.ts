@@ -5,7 +5,10 @@ import {
   EventEmitter,
   HostListener,
   Input,
+  OnChanges,
+  OnInit,
   Output,
+  SimpleChanges,
 } from '@angular/core';
 import { CATEGORY_CONFIG } from '../../data/glueckskarte.data';
 import { LuckQuote } from '../../models/glueckskarte.model';
@@ -21,7 +24,7 @@ import { LuckQuote } from '../../models/glueckskarte.model';
   styleUrls: ['./lucky-card.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LuckyCardComponent {
+export class LuckyCardComponent implements OnInit, OnChanges {
   /** The revealed quote object, or null if unrevealed */
   @Input() quote: LuckQuote | null = null;
 
@@ -34,14 +37,53 @@ export class LuckyCardComponent {
   /** Current completion cycle number */
   @Input() cycleCount = 1;
 
+  /** Fan card index (0..3) if transitioning from fan selection, or null if on revisit */
+  @Input() originCardIndex: number | null = null;
+
   /** Emitted when the user triggers the flip via click or keyboard */
   @Output() flipCard = new EventEmitter<void>();
+
+  /** Emitted when the 3D entrance flight and flip from the fan completes */
+  @Output() animationFinished = new EventEmitter<void>();
+
+  /** Whether the front quote face is fully settled and back face completely removed */
+  isFullyRevealed = false;
 
   /** Hover micro-tilt degrees */
   tiltX = 0;
   tiltY = 0;
 
   constructor(private readonly el: ElementRef<HTMLElement>) {}
+
+  ngOnInit(): void {
+    this.updateRevealedState();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['originCardIndex'] || changes['isFlipped']) {
+      this.updateRevealedState();
+    }
+  }
+
+  private updateRevealedState(): void {
+    if (this.originCardIndex === null && this.isFlipped) {
+      this.isFullyRevealed = true;
+    } else if (this.originCardIndex !== null) {
+      this.isFullyRevealed = false;
+    } else if (!this.isFlipped) {
+      this.isFullyRevealed = false;
+    }
+  }
+
+  /**
+   * Resets the fan origin animation lock once the keyframe completes.
+   */
+  onAnimationEnd(event: AnimationEvent): void {
+    if (event.animationName.includes('flipCard3D') || event.animationName.includes('flyChassis')) {
+      this.isFullyRevealed = true;
+      this.animationFinished.emit();
+    }
+  }
 
   /**
    * Retrieves category metadata including color and label.

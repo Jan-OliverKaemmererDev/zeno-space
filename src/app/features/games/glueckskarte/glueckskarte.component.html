@@ -1,8 +1,133 @@
 <div class="glueckskarte-scene" role="main" aria-label="Zen Glückskarte – Tägliche Weisheits-Meditation">
-  <!-- Ambient Space Nebulae -->
+  <!-- Ambient Space Nebulae & Rotating Corner Mandala -->
   <div class="ambient-glow-mesh" aria-hidden="true">
-    <div class="nebula-cyan"></div>
+    <div class="nebula-top-left"></div>
     <div class="nebula-purple"></div>
+
+    <!-- Top-Left Rotating Sacred Geometry Zen Mandala (Counter-Clockwise, 1/4 visible in corner) -->
+    <div class="zen-corner-mandala-wrap zen-corner-mandala-wrap--top-left">
+      <svg class="zen-corner-mandala zen-corner-mandala--ccw" viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Concentric Sacred Rings -->
+        <circle cx="400" cy="400" r="390" stroke="url(#mandalaTlCyanGrad)" stroke-width="2.6" stroke-dasharray="4 8" opacity="0.95"/>
+        <circle cx="400" cy="400" r="360" stroke="url(#mandalaTlCyanGrad)" stroke-width="2.2" opacity="0.85"/>
+        <circle cx="400" cy="400" r="330" stroke="url(#mandalaTlGoldGrad)" stroke-width="2.2" stroke-dasharray="6 6" opacity="0.95"/>
+        <circle cx="400" cy="400" r="300" stroke="url(#mandalaTlCyanGrad)" stroke-width="2.2" opacity="0.9"/>
+        <circle cx="400" cy="400" r="260" stroke="url(#mandalaTlGoldGrad)" stroke-width="2.6" opacity="0.95"/>
+        <circle cx="400" cy="400" r="220" stroke="url(#mandalaTlCyanGrad)" stroke-width="2.2" stroke-dasharray="3 6" opacity="0.85"/>
+        <circle cx="400" cy="400" r="180" stroke="url(#mandalaTlGoldGrad)" stroke-width="2.4" opacity="0.95"/>
+        <circle cx="400" cy="400" r="140" stroke="url(#mandalaTlCyanGrad)" stroke-width="2.2" opacity="0.9"/>
+        <circle cx="400" cy="400" r="100" stroke="url(#mandalaTlGoldGrad)" stroke-width="2.6" stroke-dasharray="2 4" opacity="1.0"/>
+        <circle cx="400" cy="400" r="60" stroke="url(#mandalaTlCyanGrad)" stroke-width="2.4" opacity="0.95"/>
+        <circle cx="400" cy="400" r="20" fill="url(#mandalaTlGoldGrad)" opacity="1.0"/>
+
+        <!-- 12-Ray Petals & Radiating Spokes -->
+        <g opacity="0.9">
+          <line x1="400" y1="10" x2="400" y2="790" stroke="url(#mandalaTlCyanGrad)" stroke-width="2.0"/>
+          <line x1="10" y1="400" x2="790" y2="400" stroke="url(#mandalaTlCyanGrad)" stroke-width="2.0"/>
+          <line x1="124" y1="124" x2="676" y2="676" stroke="url(#mandalaTlCyanGrad)" stroke-width="2.0"/>
+          <line x1="124" y1="676" x2="676" y2="124" stroke="url(#mandalaTlCyanGrad)" stroke-width="2.0"/>
+          <line x1="53" y1="263" x2="747" y2="537" stroke="url(#mandalaTlGoldGrad)" stroke-width="1.6" stroke-dasharray="4 6"/>
+          <line x1="53" y1="537" x2="747" y2="263" stroke="url(#mandalaTlGoldGrad)" stroke-width="1.6" stroke-dasharray="4 6"/>
+          <line x1="263" y1="53" x2="537" y2="747" stroke="url(#mandalaTlGoldGrad)" stroke-width="1.6" stroke-dasharray="4 6"/>
+          <line x1="263" y1="747" x2="537" y2="53" stroke="url(#mandalaTlGoldGrad)" stroke-width="1.6" stroke-dasharray="4 6"/>
+        </g>
+
+        <!-- Flower of Life / Sacred Interlocking Circles -->
+        <g stroke="url(#mandalaTlCyanGrad)" stroke-width="2.2" opacity="0.85">
+          <circle cx="400" cy="220" r="180"/>
+          <circle cx="400" cy="580" r="180"/>
+          <circle cx="220" cy="400" r="180"/>
+          <circle cx="580" cy="400" r="180"/>
+          <circle cx="273" cy="273" r="180"/>
+          <circle cx="527" cy="273" r="180"/>
+          <circle cx="273" cy="527" r="180"/>
+          <circle cx="527" cy="527" r="180"/>
+        </g>
+
+        <!-- Sacred Hexagram & Petal Polygons -->
+        <g fill="none" stroke="url(#mandalaTlGoldGrad)" stroke-width="2.2" opacity="0.95">
+          <polygon points="400,100 487,313 700,400 487,487 400,700 313,487 100,400 313,313"/>
+          <polygon points="400,150 460,340 650,400 460,460 400,650 340,460 150,400 340,340" stroke-dasharray="4 4"/>
+        </g>
+
+        <!-- Gradients -->
+        <defs>
+          <linearGradient id="mandalaTlCyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+            <stop offset="30%" stop-color="#bae6fd" stop-opacity="1"/>
+            <stop offset="60%" stop-color="#38bdf8" stop-opacity="0.95"/>
+            <stop offset="100%" stop-color="#818cf8" stop-opacity="0.9"/>
+          </linearGradient>
+          <linearGradient id="mandalaTlGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="1"/>
+            <stop offset="25%" stop-color="#fef08a" stop-opacity="1"/>
+            <stop offset="70%" stop-color="#facc15" stop-opacity="0.95"/>
+            <stop offset="100%" stop-color="#fbbf24" stop-opacity="0.85"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+
+    <!-- Bottom-Right Rotating Sacred Geometry Zen Mandala (1/4 visible in corner) -->
+    <div class="zen-corner-mandala-wrap">
+      <svg class="zen-corner-mandala" viewBox="0 0 800 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <!-- Concentric Sacred Rings -->
+        <circle cx="400" cy="400" r="390" stroke="url(#mandalaCyanGrad)" stroke-width="1.5" stroke-dasharray="4 8" opacity="0.45"/>
+        <circle cx="400" cy="400" r="360" stroke="url(#mandalaCyanGrad)" stroke-width="1.2" opacity="0.35"/>
+        <circle cx="400" cy="400" r="330" stroke="url(#mandalaGoldGrad)" stroke-width="1" stroke-dasharray="6 6" opacity="0.5"/>
+        <circle cx="400" cy="400" r="300" stroke="url(#mandalaCyanGrad)" stroke-width="1.2" opacity="0.38"/>
+        <circle cx="400" cy="400" r="260" stroke="url(#mandalaGoldGrad)" stroke-width="1.5" opacity="0.45"/>
+        <circle cx="400" cy="400" r="220" stroke="url(#mandalaCyanGrad)" stroke-width="1.2" stroke-dasharray="3 6" opacity="0.35"/>
+        <circle cx="400" cy="400" r="180" stroke="url(#mandalaGoldGrad)" stroke-width="1.2" opacity="0.5"/>
+        <circle cx="400" cy="400" r="140" stroke="url(#mandalaCyanGrad)" stroke-width="1.2" opacity="0.38"/>
+        <circle cx="400" cy="400" r="100" stroke="url(#mandalaGoldGrad)" stroke-width="1.5" stroke-dasharray="2 4" opacity="0.55"/>
+        <circle cx="400" cy="400" r="60" stroke="url(#mandalaCyanGrad)" stroke-width="1.2" opacity="0.45"/>
+        <circle cx="400" cy="400" r="20" fill="url(#mandalaGoldGrad)" opacity="0.65"/>
+
+        <!-- 12-Ray Petals & Radiating Spokes -->
+        <g opacity="0.45">
+          <line x1="400" y1="10" x2="400" y2="790" stroke="url(#mandalaCyanGrad)" stroke-width="1"/>
+          <line x1="10" y1="400" x2="790" y2="400" stroke="url(#mandalaCyanGrad)" stroke-width="1"/>
+          <line x1="124" y1="124" x2="676" y2="676" stroke="url(#mandalaCyanGrad)" stroke-width="1"/>
+          <line x1="124" y1="676" x2="676" y2="124" stroke="url(#mandalaCyanGrad)" stroke-width="1"/>
+          <line x1="53" y1="263" x2="747" y2="537" stroke="url(#mandalaGoldGrad)" stroke-width="0.8" stroke-dasharray="4 6"/>
+          <line x1="53" y1="537" x2="747" y2="263" stroke="url(#mandalaGoldGrad)" stroke-width="0.8" stroke-dasharray="4 6"/>
+          <line x1="263" y1="53" x2="537" y2="747" stroke="url(#mandalaGoldGrad)" stroke-width="0.8" stroke-dasharray="4 6"/>
+          <line x1="263" y1="747" x2="537" y2="53" stroke="url(#mandalaGoldGrad)" stroke-width="0.8" stroke-dasharray="4 6"/>
+        </g>
+
+        <!-- Flower of Life / Sacred Interlocking Circles -->
+        <g stroke="url(#mandalaCyanGrad)" stroke-width="1.2" opacity="0.35">
+          <circle cx="400" cy="220" r="180"/>
+          <circle cx="400" cy="580" r="180"/>
+          <circle cx="220" cy="400" r="180"/>
+          <circle cx="580" cy="400" r="180"/>
+          <circle cx="273" cy="273" r="180"/>
+          <circle cx="527" cy="273" r="180"/>
+          <circle cx="273" cy="527" r="180"/>
+          <circle cx="527" cy="527" r="180"/>
+        </g>
+
+        <!-- Sacred Hexagram & Petal Polygons -->
+        <g fill="none" stroke="url(#mandalaGoldGrad)" stroke-width="1" opacity="0.45">
+          <polygon points="400,100 487,313 700,400 487,487 400,700 313,487 100,400 313,313"/>
+          <polygon points="400,150 460,340 650,400 460,460 400,650 340,460 150,400 340,340" stroke-dasharray="4 4"/>
+        </g>
+
+        <!-- Gradients -->
+        <defs>
+          <linearGradient id="mandalaCyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#bae6fd" stop-opacity="0.85"/>
+            <stop offset="50%" stop-color="#38bdf8" stop-opacity="0.5"/>
+            <stop offset="100%" stop-color="#818cf8" stop-opacity="0.2"/>
+          </linearGradient>
+          <linearGradient id="mandalaGoldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#fde68a" stop-opacity="0.85"/>
+            <stop offset="100%" stop-color="#fbbf24" stop-opacity="0.35"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
   </div>
 
   <!-- Top Glass Navigation Bar -->
@@ -18,9 +143,50 @@
       <span class="nav-btn-text">Zurück</span>
     </button>
 
-    <div class="header-titles">
-      <h1 class="header-title">Zen Glückskarte</h1>
-      <p class="header-subtitle">Tägliche Inspiration für deinen Geist</p>
+    <div 
+      class="header-titles"
+      (pointermove)="onHeadingPointerMove($event)"
+      (pointerleave)="onHeadingPointerLeave()"
+      (pointerup)="onHeadingPointerLeave()"
+    >
+      <div class="header-title-wrap">
+        <h1 class="header-title bubble-letters-heading" aria-label="Zen Glückskarte">
+          @for (word of titleWords; track $index) {
+            <span class="bubble-word">
+              @for (item of word.letters; track item.globalIndex) {
+                <span 
+                  class="bubble-letter-carrier" 
+                  [style.--bubble-index]="item.globalIndex"
+                >
+                  <span class="bubble-letter">{{ item.char }}</span>
+                </span>
+              }
+            </span>
+          }
+        </h1>
+
+        <!-- Rotating Zen Flower Companion (Clockwise) -->
+        <div class="header-flower-companion" aria-hidden="true" title="Zen Blume">
+          <svg class="header-flower-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="44" stroke="url(#headerFlowerSkyGrad)" stroke-width="1.8" stroke-dasharray="3 3" opacity="0.75"/>
+            <circle cx="50" cy="50" r="26" stroke="url(#headerFlowerSkyGrad)" stroke-width="1.8" opacity="0.9"/>
+            <!-- Petals -->
+            <path d="M50 20C43 20 38 27 38 34C38 45 50 50 50 50C50 50 62 45 62 34C62 27 57 20 50 20Z" fill="url(#headerFlowerSkyGrad)" opacity="0.95"/>
+            <path d="M80 50C80 43 73 38 66 38C55 38 50 50 50 50C50 50 55 62 66 62C73 62 80 57 80 50Z" fill="url(#headerFlowerSkyGrad)" opacity="0.95"/>
+            <path d="M50 80C57 80 62 73 62 66C62 55 50 50 50 50C50 50 38 55 38 66C38 73 43 80 50 80Z" fill="url(#headerFlowerSkyGrad)" opacity="0.95"/>
+            <path d="M20 50C20 57 27 62 34 62C45 62 50 50 50 50C50 50 45 38 34 38C27 38 20 43 20 50Z" fill="url(#headerFlowerSkyGrad)" opacity="0.95"/>
+            <circle cx="50" cy="50" r="7" fill="#fde047"/>
+            <circle cx="50" cy="50" r="3" fill="#ffffff" opacity="0.9"/>
+            <defs>
+              <linearGradient id="headerFlowerSkyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#bae6fd"/>
+                <stop offset="50%" stop-color="#38bdf8"/>
+                <stop offset="100%" stop-color="#60a5fa"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+      </div>
     </div>
 
     <button 
@@ -63,19 +229,23 @@
       }
     </div>
 
-    <!-- Main Stage Grid: Center Card/Fan on Left, Unlocked Chronicle on Right -->
+    <!-- Main Stage Grid: Left Side (Card) & Right Side (Progress Dock + Chronicle List) -->
     <div class="stage-layout-grid">
-      <div class="stage-primary-column">
+      <!-- Left Column: 4 Fan Cards OR Revealed Big Lucky Card -->
+      <div 
+        class="stage-primary-column"
+        [class.stage-primary-column--fan]="!isFlipped()"
+        [class.stage-primary-column--revealed]="isFlipped()"
+      >
         <!-- ======================================================== -->
         <!-- CASE 1: 4 FACE-DOWN FAN CARDS (When not yet drawn today) -->
         <!-- ======================================================== -->
         @if (!isFlipped()) {
           <div class="fan-selection-wrapper">
             <div class="fan-intro">
-              <span class="fan-zen-badge">Intuitive Wahl</span>
               <h2 class="fan-headline">Wähle deine heutige Glückskarte</h2>
               <p class="fan-subheadline">
-                Vier Tore, eine Bestimmung. Welcher Impuls ruft dich heute?
+                Vier Karten, eine Bestimmung. Welcher Impuls ruft dich heute?
               </p>
             </div>
 
@@ -125,7 +295,7 @@
           </div>
         } @else {
           <!-- ======================================================== -->
-          <!-- CASE 2: REVEALED SINGLE CARD (Immediate on revisit)      -->
+          <!-- CASE 2: REVEALED SINGLE CARD                             -->
           <!-- ======================================================== -->
           <div class="revealed-stage-wrapper">
             <app-lucky-card
@@ -133,29 +303,36 @@
               [isFlipped]="true"
               [canDrawToday]="false"
               [cycleCount]="progress().cycleCount"
+              [originCardIndex]="originCardIndex()"
+              (animationFinished)="onCardAnimationFinished()"
             ></app-lucky-card>
           </div>
         }
-
-        <!-- Cycle & Daily Progress Dock -->
-        <app-lucky-progress
-          [seenCount]="progress().seenCount"
-          [totalCount]="progress().totalCount"
-          [cycleCount]="progress().cycleCount"
-          [percentage]="progress().percentage"
-          [canDrawToday]="canDrawToday() && !isFlipped()"
-          [countdownFormatted]="countdown()"
-        ></app-lucky-progress>
       </div>
 
-      <!-- Right Column: Unlocked Chronicle List (Vertically Centered on Right) -->
-      <aside class="stage-sidebar-column" aria-label="Chronik freigeschalteter Sprüche">
-        <app-unlocked-quotes-list
-          [quotes]="unlockedQuotes()"
-          [activeQuoteId]="activeQuoteId()"
-          (selectQuote)="onSelectUnlockedQuote($event)"
-        ></app-unlocked-quotes-list>
-      </aside>
+      <!-- Right Column: Progress Dock Centered ABOVE Unlocked Chronicle (Only shown once a card is selected) -->
+      @if (isFlipped()) {
+        <aside class="stage-sidebar-column" aria-label="Fortschritt und Chronik freigeschalteter Sprüche">
+          <!-- lucky-progress-dock: mittig über unlocked-panel -->
+          <app-lucky-progress
+            class="sidebar-progress-component"
+            [seenCount]="progress().seenCount"
+            [totalCount]="progress().totalCount"
+            [cycleCount]="progress().cycleCount"
+            [percentage]="progress().percentage"
+            [canDrawToday]="canDrawToday() && !isFlipped()"
+            [countdownFormatted]="countdown()"
+          ></app-lucky-progress>
+
+          <!-- Chronik freigeschalteter Sprüche -->
+          <app-unlocked-quotes-list
+            class="sidebar-chronicle-component"
+            [quotes]="unlockedQuotes()"
+            [activeQuoteId]="activeQuoteId()"
+            (selectQuote)="onSelectUnlockedQuote($event)"
+          ></app-unlocked-quotes-list>
+        </aside>
+      }
     </div>
   </section>
 
