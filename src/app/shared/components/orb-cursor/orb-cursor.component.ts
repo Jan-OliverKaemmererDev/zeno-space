@@ -66,6 +66,9 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
   /** Signal indicating whether the cursor is in the warm sanctuary section. */
   readonly isSanctuary = signal<boolean>(false);
 
+  /** Signal indicating whether the cursor is in dark blue night mode. */
+  readonly isNight = signal<boolean>(false);
+
   /** 8 fine stardust particles rotating in a single close orbit around cursor on button hover. */
   readonly orbitParticleIndices = Array.from({ length: 8 }, (_, i) => i);
 
@@ -331,11 +334,15 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
    * uniform click shrinkage, 2s hold subtle tremble ("Schlottern"), spring wobble, and spark emission.
    */
   private updatePhysics(dt: number): void {
-    // Sync sanctuary state from DOM body
+    // Sync sanctuary and night theme states from DOM body
     if (typeof document !== 'undefined') {
       const isSanc = document.body.classList.contains('in-sanctuary');
       if (this.isSanctuary() !== isSanc) {
         this.isSanctuary.set(isSanc);
+      }
+      const isNit = document.body.classList.contains('in-night');
+      if (this.isNight() !== isNit) {
+        this.isNight.set(isNit);
       }
     }
 
@@ -453,10 +460,16 @@ export class OrbCursorComponent implements OnInit, OnDestroy {
    */
   private spawnSpark(): void {
     const isSanctuary = this.isSanctuary();
+    const isNight = this.isNight();
     const isPrimary = Math.random() < 0.45;
-    const color = isSanctuary
-      ? (isPrimary ? '#fcd34d' : '#ffffff') // Warm yellow/white
-      : (isPrimary ? '#7dd3fc' : '#ffffff'); // Cold blue/white
+    let color: string;
+    if (isSanctuary) {
+      color = isPrimary ? '#fcd34d' : '#ffffff'; // Warm yellow/white
+    } else if (isNight) {
+      color = isPrimary ? '#60a5fa' : '#dbeafe'; // Deep sapphire / icy starlight
+    } else {
+      color = isPrimary ? '#7dd3fc' : '#ffffff'; // Cold blue/white
+    }
     const size = Math.random() < 0.5 ? 2.0 : 1.5;
     const angle = Math.random() * Math.PI * 2;
     const startDist = 7.0 + Math.random() * 2.0;

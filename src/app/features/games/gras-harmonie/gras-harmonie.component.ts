@@ -35,6 +35,11 @@ interface WindParticle {
   vy: number;
   vz: number;
   baseY: number;
+  baseX: number;              // Rest anchor X for firefly 3D wandering
+  baseZ: number;              // Rest anchor Z for firefly 3D wandering
+  wanderPhase: number;        // Individual hovering Lissajous phase
+  pulsePhase: number;         // Firefly bioluminescence flicker phase
+  pulseSpeed: number;         // Individual breathing frequency
   swirlPhase: number;
   isAirborne: boolean;
   // Dedicated tornado whirlwind properties
@@ -46,6 +51,8 @@ interface WindParticle {
   colorR: number;
   colorG: number;
   colorB: number;
+  alpha: number;              // Opacity / visibility (0.0 to 1.0)
+  isSettling: boolean;        // True when mouse released: particle drifts gently to ground
 }
 
 /**
@@ -96,6 +103,16 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
   private grassMaterial!: THREE.ShaderMaterial;
   private terrainMesh!: THREE.Mesh;
 
+  // Atmosphere theme smooth transition state
+  private targetTheme = THEMES[this.timeOfDay()];
+  private targetGoldenWeight = this.timeOfDay() === 'golden' ? 1.0 : 0.0;
+  private targetNightWeight = this.timeOfDay() === 'night' ? 1.0 : 0.0;
+  private currentGoldenWeight = this.timeOfDay() === 'golden' ? 1.0 : 0.0;
+  private currentNightWeight = this.timeOfDay() === 'night' ? 1.0 : 0.0;
+  private targetFogDensity = this.timeOfDay() === 'night' ? 0.016 : 0.008;
+  private currentFogDensity = this.timeOfDay() === 'night' ? 0.016 : 0.008;
+  private isThemeTransitioning = false;
+
   // Interaction Raycaster & Wind Physics
   private raycaster = new THREE.Raycaster();
   private groundRayPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -110,8 +127,9 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
   // Concurrent Directional Waves (Ring buffer for 16 waves rolling across the entire prairie)
   // Each wave propagates forward independently across the hills to the horizon,
   // unaffected by subsequent strokes or direction changes.
-  private readonly maxDirWaves = 16;
-  private dirWaves = Array.from({ length: 16 }, () => ({
+  // Concurrent Directional & Circular Waves (Ring buffer for 24 waves rolling across the entire prairie)
+  private readonly maxDirWaves = 24;
+  private dirWaves = Array.from({ length: 24 }, () => ({
     originX: 0,
     originZ: 0,
     dirX: 0,
@@ -123,11 +141,11 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
   }));
   private nextDirWaveIndex = 0;
   private dirWaveUniformsA = Array.from(
-    { length: 16 },
+    { length: 24 },
     () => new THREE.Vector4(0, 0, 0, 1)
   );
   private dirWaveUniformsB = Array.from(
-    { length: 16 },
+    { length: 24 },
     () => new THREE.Vector4(99, 0, 18.0, 95.0)
   );
 
@@ -152,14 +170,38 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
     new THREE.Vector4(0, 0, 99.0, 0.0),
   ];
 
-  // Wind Particle System: 300 ambient meadow specks + 750 swirling tornado vortex particles
-  private readonly ambientParticleCount = 300;
-  private readonly tornadoParticleCount = 750;
-  private readonly particleCount = 1050;
+  // Concurrent Monumental Windstoß Gust Waves (Ring buffer for 3 panoramic waves rolling across the entire field)
+  private readonly maxGustWaves = 3;
+  private gustWaves = Array.from({ length: 3 }, () => ({
+    time: 99.0,
+    strength: 0.0,
+    speed: 28.0,
+    width: 22.0,
+    dirX: 0.12,
+    dirZ: -0.99,
+    originX: 0.0,
+    originZ: 24.0,
+    maxDist: 125.0,
+  }));
+  private nextGustWaveIndex = 0;
+  private gustWaveUniformsA = Array.from(
+    { length: 3 },
+    () => new THREE.Vector4(99.0, 0.0, 28.0, 22.0)
+  );
+  private gustWaveUniformsB = Array.from(
+    { length: 3 },
+    () => new THREE.Vector4(0.12, -0.99, 0.0, 24.0)
+  );
+
+  // Wind Particle System: 180 ambient meadow specks + 140 swirling tornado vortex particles
+  private readonly ambientParticleCount = 180;
+  private readonly tornadoParticleCount = 140;
+  private readonly particleCount = 320;
   private particles: WindParticle[] = [];
   private particlePoints!: THREE.Points;
   private particlePositions!: Float32Array;
   private particleColors!: Float32Array;
+  private tornadoSpawnTimer = 0.0;
 
   // Camera vantage point: elevated view overlooking the rolling prairie hillside
   private baseCamPos = new THREE.Vector3(0, 10.8, 19.5);
@@ -199,6 +241,7 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
     this.buildTerrainAndGrass();
     this.buildMinimalistParticles();
     this.onResize();
+    this.syncCursorAtmosphere(this.timeOfDay());
 
     window.addEventListener('resize', this.onResize);
 
@@ -210,6 +253,10 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.isDestroyed = true;
+    if (typeof document !== 'undefined') {
+      document.body.classList.remove('in-sanctuary');
+      document.body.classList.remove('in-night');
+    }
     if (this.animFrameId !== null) {
       cancelAnimationFrame(this.animFrameId);
     }
@@ -310,7 +357,9 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
       uniforms: {
         uSkyTexture: { value: skyTexture },
         uTime: { value: 0.0 },
-        uTimeOfDay: { value: 0.0 },
+        uTimeOfDay: { value: this.timeOfDay() === 'day' ? 0.0 : this.timeOfDay() === 'golden' ? 1.0 : 2.0 },
+        uGoldenWeight: { value: this.currentGoldenWeight },
+        uNightWeight: { value: this.currentNightWeight },
         uTint: { value: new THREE.Color(1.0, 1.0, 1.0) },
         uAspect: { value: currentAspect },
         uSkyColor: { value: theme.skyColor.clone() },
@@ -356,7 +405,7 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
 
     const groundMat = new THREE.MeshBasicMaterial({
       map: groundTex,
-      color: theme.grassMid.clone().multiplyScalar(0.92),
+      color: theme.groundColor.clone(),
     });
     this.terrainMesh = new THREE.Mesh(groundGeo, groundMat);
     this.scene.add(this.terrainMesh);
@@ -392,13 +441,15 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
       uShockwaves: { value: this.shockwaveUniforms },
       uTornadoPos: { value: new THREE.Vector2(0, 0) },
       uTornadoStrength: { value: 0.0 },
-      uBaseColor: { value: theme.grassBase },
-      uMidColor: { value: theme.grassMid },
-      uTipColor: { value: theme.grassTip },
-      uSunDirection: { value: theme.sunDirection },
-      uSunColor: { value: theme.sunColor },
-      uSkyColor: { value: theme.skyColor },
-      uTimeOfDay: { value: 0.0 },
+      uGustWaves: { value: this.gustWaveUniformsA },
+      uGustDirs: { value: this.gustWaveUniformsB },
+      uBaseColor: { value: theme.grassBase.clone() },
+      uMidColor: { value: theme.grassMid.clone() },
+      uTipColor: { value: theme.grassTip.clone() },
+      uSunDirection: { value: theme.sunDirection.clone() },
+      uSunColor: { value: theme.sunColor.clone() },
+      uSkyColor: { value: theme.skyColor.clone() },
+      uTimeOfDay: { value: this.timeOfDay() === 'day' ? 0.0 : this.timeOfDay() === 'golden' ? 1.0 : 2.0 },
     };
 
     this.grassMaterial = new THREE.ShaderMaterial({
@@ -481,33 +532,33 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
 
   /**
    * Builds the dual wind particle system:
-   * 1. 200 ambient meadow specks (dandelion seeds, sunlight pollen, petals)
-   * 2. 750 dedicated tornado vortex particles sucked skyward in a swirling column
+   * 1. 180 delicate firefly particles (Glühwürmchen) that emerge and glow ONLY at night
+   * 2. 140 delicate tornado particles that lift smoothly from the ground into the sky
    */
   private buildMinimalistParticles(): void {
     this.particles = [];
     this.particlePositions = new Float32Array(this.particleCount * 3);
     this.particleColors = new Float32Array(this.particleCount * 3);
 
-    // 1. Ambient meadow particles (300)
+    // 1. Ambient meadow firefly particles (180, active and visible ONLY at night)
     for (let i = 0; i < this.ambientParticleCount; i++) {
       const z = 18.0 - Math.random() * 52.0;
       const halfSpan = 28.0 + (18.0 - z) * 1.8;
       const x = (Math.random() - 0.5) * (halfSpan * 2.0);
       const groundY = this.getTerrainHeight(x, z);
-      const y = groundY + 0.35 + Math.random() * 0.8;
+      const y = groundY + 0.35 + Math.random() * 0.75;
 
       const colRand = Math.random();
-      let cr = 1.0, cg = 1.0, cb = 1.0;
-      if (colRand < 0.5) {
-        // Golden sunlight pollen
-        cr = 1.0; cg = 0.94; cb = 0.45;
-      } else if (colRand < 0.8) {
-        // Fresh clover lime
-        cr = 0.65; cg = 0.95; cb = 0.50;
+      let cr = 0.82, cg = 0.98, cb = 0.28;
+      if (colRand < 0.45) {
+        // Warm neon chartreuse firefly glow
+        cr = 0.82; cg = 0.98; cb = 0.28;
+      } else if (colRand < 0.75) {
+        // Warm golden fairy ember glow
+        cr = 0.98; cg = 0.92; cb = 0.35;
       } else {
-        // Delicate blossom petal
-        cr = 0.98; cg = 0.70; cb = 0.78;
+        // Luminous spring green emerald firefly
+        cr = 0.50; cg = 1.00; cb = 0.48;
       }
 
       this.particles.push({
@@ -518,6 +569,11 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
         vy: 0,
         vz: 0,
         baseY: y,
+        baseX: x,
+        baseZ: z,
+        wanderPhase: Math.random() * Math.PI * 2,
+        pulsePhase: Math.random() * Math.PI * 2,
+        pulseSpeed: 1.6 + Math.random() * 2.2,
         swirlPhase: Math.random() * Math.PI * 2,
         isAirborne: false,
         isTornadoVortex: false,
@@ -528,59 +584,68 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
         colorR: cr,
         colorG: cg,
         colorB: cb,
+        alpha: 0.0, // Start invisible: appears only at night!
+        isSettling: false,
       });
 
       this.particlePositions[i * 3] = x;
       this.particlePositions[i * 3 + 1] = y;
       this.particlePositions[i * 3 + 2] = z;
 
-      this.particleColors[i * 3] = cr * 0.85;
-      this.particleColors[i * 3 + 1] = cg * 0.85;
-      this.particleColors[i * 3 + 2] = cb * 0.85;
+      // Start dark (invisible during day and golden hour)
+      this.particleColors[i * 3] = 0;
+      this.particleColors[i * 3 + 1] = 0;
+      this.particleColors[i * 3 + 2] = 0;
     }
 
-    // 2. Dedicated Tornado Whirlwind particles (750)
+    // 2. Dedicated Tornado Whirlwind particles (140)
     for (let i = 0; i < this.tornadoParticleCount; i++) {
       const idx = this.ambientParticleCount + i;
       const colRand = Math.random();
       let cr = 1.0, cg = 1.0, cb = 1.0;
       if (colRand < 0.45) {
         // Luminous sunlit gold dandelion seeds
-        cr = 1.0; cg = 0.92; cb = 0.40;
+        cr = 1.0; cg = 0.94; cb = 0.45;
       } else if (colRand < 0.75) {
         // Emerald & chartreuse meadow leaf flakes
-        cr = 0.52; cg = 0.96; cb = 0.45;
+        cr = 0.58; cg = 0.98; cb = 0.48;
       } else if (colRand < 0.88) {
         // Ethereal white wind wisps
         cr = 1.0; cg = 1.0; cb = 1.0;
       } else {
         // Coral / pink sakura petal flakes
-        cr = 0.98; cg = 0.64; cb = 0.72;
+        cr = 0.98; cg = 0.70; cb = 0.78;
       }
 
-      const initialHeight = Math.random() * 18.0;
       const initialAngle = Math.random() * Math.PI * 2;
-      const radiusOffset = (Math.random() - 0.5) * 0.7;
-      const speedMult = 0.85 + Math.random() * 0.45;
+      const radiusOffset = (Math.random() - 0.5) * 0.45;
+      const speedMult = 0.85 + Math.random() * 0.35;
 
       this.particles.push({
         x: 0,
-        y: -999, // dormant below ground until windhose appears
+        y: -999, // dormant below ground until tornado begins
         z: 0,
         vx: 0,
         vy: 0,
         vz: 0,
         baseY: 0,
-        swirlPhase: 0,
+        baseX: 0,
+        baseZ: 0,
+        wanderPhase: 0,
+        pulsePhase: 0,
+        pulseSpeed: 1.0,
+        swirlPhase: Math.random() * Math.PI * 2,
         isAirborne: false,
         isTornadoVortex: true,
-        funnelHeight: initialHeight,
+        funnelHeight: 0,
         swirlAngle: initialAngle,
         radiusOffset,
         speedMultiplier: speedMult,
         colorR: cr,
         colorG: cg,
         colorB: cb,
+        alpha: 0.0,
+        isSettling: false,
       });
 
       this.particlePositions[idx * 3] = 0;
@@ -603,9 +668,9 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
     const pCtx = pCanvas.getContext('2d')!;
     const radGrad = pCtx.createRadialGradient(32, 32, 2, 32, 32, 30);
     radGrad.addColorStop(0.0, 'rgba(255, 255, 255, 1.0)');
-    radGrad.addColorStop(0.25, 'rgba(255, 255, 255, 0.95)');
-    radGrad.addColorStop(0.60, 'rgba(255, 255, 255, 0.45)');
-    radGrad.addColorStop(0.85, 'rgba(255, 255, 255, 0.12)');
+    radGrad.addColorStop(0.20, 'rgba(255, 255, 255, 0.95)');
+    radGrad.addColorStop(0.55, 'rgba(255, 255, 255, 0.50)');
+    radGrad.addColorStop(0.85, 'rgba(255, 255, 255, 0.15)');
     radGrad.addColorStop(1.0, 'transparent');
     pCtx.fillStyle = radGrad;
     pCtx.fillRect(0, 0, 64, 64);
@@ -613,13 +678,13 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
     const pointTexture = new THREE.CanvasTexture(pCanvas);
 
     const mat = new THREE.PointsMaterial({
-      size: 0.46,
+      size: 0.15, // Feiner und kleiner (zartes Glühwürmchen- und Wirbelsturm-Leuchten)
       map: pointTexture,
       vertexColors: true,
       transparent: true,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
-      opacity: 0.92,
+      opacity: 0.95,
     });
 
     this.particlePoints = new THREE.Points(geo, mat);
@@ -642,6 +707,11 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
       this.skyMaterial.uniforms['uTime'].value = elapsed;
     }
 
+    // Smooth atmosphere & time-of-day transition
+    if (this.isThemeTransitioning) {
+      this.updateAtmosphereTransition(delta);
+    }
+
     // 2. Smooth Pointer and Tornado Interpolation
     const lerpPos = 1.0 - Math.exp(-22.0 * delta);
     this.smoothMouseGround.lerp(this.targetMouseGround, lerpPos);
@@ -651,13 +721,46 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
       const w = this.dirWaves[i];
       if (w.strength > 0.005) {
         w.time += delta;
-        // Turn off only when wave has crossed the entire landscape beyond horizon
-        if (w.time * w.speed > w.maxDist + 5.0) {
+        // Turn off only when wave and its trailing recovery tail have crossed beyond horizon
+        if (w.time * w.speed > w.maxDist + 22.0) {
           w.strength = 0.0;
         }
       }
       this.dirWaveUniformsA[i].set(w.originX, w.originZ, w.dirX, w.dirZ);
       this.dirWaveUniformsB[i].set(w.time, w.strength, w.speed, w.maxDist);
+    }
+
+    // Update concurrent monumental Windstoß waves rolling across the entire field
+    let maxActiveGustStrength = 0.0;
+    for (let i = 0; i < this.maxGustWaves; i++) {
+      const g = this.gustWaves[i];
+      if (g.strength > 0.005) {
+        g.time += delta;
+        const currentDist = g.time * g.speed;
+        if (currentDist > g.maxDist + 5.0) {
+          g.strength = 0.0;
+        } else {
+          maxActiveGustStrength = Math.max(maxActiveGustStrength, g.strength);
+        }
+      }
+      this.gustWaveUniformsA[i].set(g.time, g.strength, g.speed, g.width);
+      this.gustWaveUniformsB[i].set(g.dirX, g.dirZ, g.originX, g.originZ);
+    }
+
+    // Smoothly restore wind display & audio intensity as the wave rolls into the distance
+    if (maxActiveGustStrength > 0.01 && this.tornadoStrength < 0.2) {
+      const primaryGust = this.gustWaves.find((w) => w.strength > 0.01);
+      if (primaryGust) {
+        const prog = Math.min(1.0, (primaryGust.time * primaryGust.speed) / primaryGust.maxDist);
+        if (prog > 0.6) {
+          const fade = (1.0 - prog) / 0.4;
+          const baselineAudio = this.getBaselineAudioIntensity();
+          this.audio.updateWindIntensity(baselineAudio + fade * 3.2);
+          if (prog > 0.88) {
+            this.windSpeedDisplay.set(this.getBaselineWindDisplay());
+          }
+        }
+      }
     }
 
     // Long press Windhose (Mini-Tornado vortex)
@@ -711,19 +814,23 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
 
   /**
    * Updates particle positions:
-   * - 200 ambient prairie particles float gently and stir with wind waves
-   * - 750 tornado whirlwind particles get sucked into an inverted conical spiral
-   *   funnel accelerating towards the sky like a real anime whirlwind!
+   * - 180 ambient prairie particles float gently and stir with wind waves
+   * - 140 delicate tornado particles that lift smoothly and slowly from the ground,
+   *   accelerating quadratically as they rise into the sky, and gently sinking down
+   *   to the ground like dandelion seeds before vanishing when pointer is released.
    */
   private updateWindParticles(delta: number, elapsed: number): void {
     if (!this.particlePoints) return;
 
-    const tornadoActive = this.tornadoStrength > 0.02;
+    const tornadoActive = this.isPointerDown && this.pointerHoldTimer > 0.18;
     const targetX = this.smoothMouseGround.x;
     const targetZ = this.smoothMouseGround.z;
     const centerGroundY = this.getTerrainHeight(targetX, targetZ);
 
-    // 1. Update Ambient Particles (0 .. 199)
+    // 1. Update Ambient Firefly Particles (0 .. ambientParticleCount - 1)
+    // ONLY visible at night!
+    const fireflyVisibility = this.currentNightWeight;
+
     for (let i = 0; i < this.ambientParticleCount; i++) {
       const p = this.particles[i];
 
@@ -763,11 +870,26 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
           p.y = groundY;
           p.vy = 0;
           p.isAirborne = false;
+          p.baseX = p.x;
+          p.baseY = groundY;
+          p.baseZ = p.z;
         }
       } else {
-        p.y = p.baseY + Math.sin(elapsed * 1.8 + i) * 0.08;
+        // Organic 3D wandering & gentle hover like living fireflies among the grass
+        const hoverY =
+          p.baseY +
+          Math.sin(elapsed * 1.3 + p.wanderPhase) * 0.22 +
+          Math.cos(elapsed * 0.85 + i) * 0.12;
+        const wanderX =
+          p.baseX + Math.sin(elapsed * 0.75 + p.wanderPhase) * 0.40;
+        const wanderZ =
+          p.baseZ + Math.cos(elapsed * 0.85 + p.wanderPhase) * 0.40;
 
-        // Wave crest lift: as directional waves roll past across the entire field, lift seeds
+        p.x = wanderX;
+        p.y = hoverY;
+        p.z = wanderZ;
+
+        // Wave crest lift: as directional waves roll past, lift fireflies
         for (let wIdx = 0; wIdx < this.maxDirWaves; wIdx++) {
           const w = this.dirWaves[wIdx];
           if (w.strength > 0.08) {
@@ -778,17 +900,45 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
               const partDist = Math.sqrt(toPartX * toPartX + toPartZ * toPartZ);
               if (partDist > 0.2) {
                 const forwardProj = (toPartX * w.dirX + toPartZ * w.dirZ) / partDist;
-                if (forwardProj > 0.15) {
-                  const deltaR = Math.abs(partDist - waveRadius);
-                  if (deltaR < 3.0) {
-                    const waveFactor = (1.0 - deltaR / 3.0) * w.strength * forwardProj;
+                if (forwardProj > -0.35) {
+                  const distDiff = partDist - waveRadius;
+                  // Stir particles both ahead of the crest and in the relaxing wake
+                  if (distDiff > -6.0 && distDiff < 2.8) {
+                    const waveFactor =
+                      distDiff >= 0
+                        ? (1.0 - distDiff / 2.8) * w.strength * Math.max(forwardProj + 0.35, 0.2)
+                        : Math.pow(1.0 + distDiff / 6.0, 1.8) * w.strength * Math.max(forwardProj + 0.35, 0.2);
+                    const pushX = (w.dirX + toPartX / partDist) * 0.5;
+                    const pushZ = (w.dirZ + toPartZ / partDist) * 0.5;
                     p.vy += (1.4 + Math.random() * 2.0) * waveFactor;
-                    p.vx += (w.dirX + toPartX / partDist) * 2.5 * waveFactor;
-                    p.vz += (w.dirZ + toPartZ / partDist) * 2.5 * waveFactor;
+                    p.vx += pushX * 3.5 * waveFactor;
+                    p.vz += pushZ * 3.5 * waveFactor;
                     p.isAirborne = true;
                     break;
                   }
                 }
+              }
+            }
+          }
+        }
+
+        // Monumental Windstoß Wave lift: as the grand panoramic wave sweeps across, lift particles
+        for (let gIdx = 0; gIdx < this.maxGustWaves; gIdx++) {
+          const g = this.gustWaves[gIdx];
+          if (g.strength > 0.05) {
+            const waveFrontDist = g.time * g.speed;
+            if (waveFrontDist > 0.5 && waveFrontDist < g.maxDist) {
+              const toPartX = p.x - g.originX;
+              const toPartZ = p.z - g.originZ;
+              const travelDist = toPartX * g.dirX + toPartZ * g.dirZ;
+              const deltaR = Math.abs(travelDist - waveFrontDist);
+              if (deltaR < g.width * 0.6) {
+                const waveFactor = (1.0 - deltaR / (g.width * 0.6)) * g.strength;
+                p.vy += (2.2 + Math.random() * 2.5) * waveFactor;
+                p.vx += (g.dirX * 3.8 + (Math.random() - 0.5) * 1.5) * waveFactor;
+                p.vz += (g.dirZ * 3.8 + (Math.random() - 0.5) * 1.5) * waveFactor;
+                p.isAirborne = true;
+                break;
               }
             }
           }
@@ -799,6 +949,8 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
       if (p.x > 35 || p.x < -35 || p.z > 18 || p.z < -42) {
         p.x = (Math.random() - 0.5) * 50.0;
         p.z = 14.0 - Math.random() * 40.0;
+        p.baseX = p.x;
+        p.baseZ = p.z;
         p.baseY = this.getTerrainHeight(p.x, p.z) + 0.35 + Math.random() * 0.6;
         p.y = p.baseY;
         p.vx = 0;
@@ -810,95 +962,182 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
       this.particlePositions[i * 3] = p.x;
       this.particlePositions[i * 3 + 1] = p.y;
       this.particlePositions[i * 3 + 2] = p.z;
+
+      // Firefly Bioluminescent Pulse: ONLY visible at night!
+      if (fireflyVisibility > 0.001) {
+        const pulse = Math.pow(
+          Math.sin(elapsed * p.pulseSpeed + p.pulsePhase) * 0.5 + 0.5,
+          2.4
+        );
+        const glow = (0.08 + pulse * 0.92) * fireflyVisibility;
+        p.alpha = glow;
+
+        // Finer & smaller: subtle delicate ember glow (fein und klein wie echte Glühwürmchen)
+        this.particleColors[i * 3] = p.colorR * p.alpha * 0.65;
+        this.particleColors[i * 3 + 1] = p.colorG * p.alpha * 0.65;
+        this.particleColors[i * 3 + 2] = p.colorB * p.alpha * 0.65;
+      } else {
+        // Tag & Goldene Stunde: Vollständig unsichtbar
+        p.alpha = 0.0;
+        this.particleColors[i * 3] = 0.0;
+        this.particleColors[i * 3 + 1] = 0.0;
+        this.particleColors[i * 3 + 2] = 0.0;
+      }
     }
 
-    // 2. Update Dedicated Tornado Funnel Particles (200 .. 949)
+    // 2. Staggered Liftoff from Ground for Tornado Particles
+    if (tornadoActive) {
+      this.tornadoSpawnTimer += delta;
+      const spawnInterval = 0.024; // ~42 particles launched per second
+      while (this.tornadoSpawnTimer >= spawnInterval) {
+        this.tornadoSpawnTimer -= spawnInterval;
+
+        // Find dormant particle to launch from ground
+        let candidate: WindParticle | undefined;
+        for (let i = this.ambientParticleCount; i < this.particleCount; i++) {
+          const pt = this.particles[i];
+          if (!pt.isAirborne && !pt.isSettling) {
+            candidate = pt;
+            break;
+          }
+        }
+        // If all are airborne/settling, recycle a low-alpha settling particle
+        if (!candidate) {
+          for (let i = this.ambientParticleCount; i < this.particleCount; i++) {
+            const pt = this.particles[i];
+            if (pt.isSettling && pt.alpha < 0.25) {
+              candidate = pt;
+              break;
+            }
+          }
+        }
+
+        if (candidate) {
+          candidate.isAirborne = true;
+          candidate.isSettling = false;
+          candidate.funnelHeight = 0.02 + Math.random() * 0.16; // Starts slowly at the ground
+          candidate.swirlAngle = Math.random() * Math.PI * 2;
+          candidate.radiusOffset = (Math.random() - 0.5) * 0.45;
+          candidate.speedMultiplier = 0.85 + Math.random() * 0.35;
+          candidate.alpha = 0.0;
+        }
+      }
+    }
+
+    // 3. Update Dedicated Tornado Funnel Particles
     for (let i = this.ambientParticleCount; i < this.particleCount; i++) {
       const p = this.particles[i];
 
-      if (tornadoActive) {
-        // Fast cyclonic spin around the tornado axis
-        const spinSpeed =
-          (18.0 + 10.0 * (1.0 - p.funnelHeight / 18.0)) *
-          this.tornadoStrength *
-          p.speedMultiplier;
-        p.swirlAngle += spinSpeed * delta;
+      if (tornadoActive && p.isAirborne && !p.isSettling) {
+        // Accelerating ascent:
+        // Slow liftoff from the ground (normH ≈ 0), accelerating up into the sky
+        const normH = Math.min(1.0, Math.max(0.0, p.funnelHeight / 17.5));
 
-        // Strong upward suction towards the sky!
+        // Upward speed: starts at ~1.2 m/s at the ground and accelerates up to ~15 m/s in the sky
         const climbSpeed =
-          (10.5 + 3.2 * Math.sin(p.swirlAngle * 2.0)) *
+          (1.2 + Math.pow(normH, 1.8) * 13.8) *
           this.tornadoStrength *
           p.speedMultiplier;
         p.funnelHeight += climbSpeed * delta;
 
-        // Inverted conical funnel radius (narrow base expanding gracefully into sky)
-        const funnelRadius =
-          0.75 + (p.funnelHeight / 17.5) * 3.8 + p.radiusOffset;
+        // Rotational spin: starts at ~5.5 rad/s at the ground and accelerates up to ~25 rad/s
+        const spinSpeed =
+          (5.5 + Math.pow(normH, 1.4) * 19.5) *
+          this.tornadoStrength *
+          p.speedMultiplier;
+        p.swirlAngle += spinSpeed * delta;
 
-        // Organic helical axis sway (wie ein lebendiger Wirbelsturm im Wind)
-        const axisSway = (p.funnelHeight / 17.5) * 0.85;
+        // Inverted conical funnel radius (narrow tight base expanding into sky)
+        const funnelRadius =
+          0.45 + Math.pow(normH, 1.25) * 3.4 + p.radiusOffset;
+
+        // Helical axis sway
+        const axisSway = normH * 0.75;
         const axisX =
           targetX +
-          Math.sin(elapsed * 3.4 + p.funnelHeight * 0.30) * axisSway;
+          Math.sin(elapsed * 3.2 + p.funnelHeight * 0.35) * axisSway;
         const axisZ =
           targetZ +
-          Math.cos(elapsed * 2.8 + p.funnelHeight * 0.30) * axisSway;
+          Math.cos(elapsed * 2.7 + p.funnelHeight * 0.35) * axisSway;
 
         // Calculate 3D position
         p.x = axisX + Math.cos(p.swirlAngle) * funnelRadius;
         p.z = axisZ + Math.sin(p.swirlAngle) * funnelRadius;
         p.y = centerGroundY + p.funnelHeight;
 
-        // Continuous stream loop: when particle reaches top of funnel in the sky,
-        // recycle it immediately back to the vortex base on the ground
-        if (p.funnelHeight > 17.5) {
-          p.funnelHeight = 0.05 + Math.random() * 0.7;
-          p.swirlAngle = Math.random() * Math.PI * 2;
-          p.radiusOffset = (Math.random() - 0.5) * 0.7;
-        }
+        // Soft fading in at ground lift and out near sky limit
+        const fadeIn = Math.min(1.0, p.funnelHeight / 0.85);
+        const fadeOut = Math.max(0.0, (17.5 - p.funnelHeight) / 2.5);
+        p.alpha = Math.min(fadeIn, fadeOut) * this.tornadoStrength;
 
-        // Soft fading at ground entrance & high sky exit
-        const fadeIn = Math.min(1.0, p.funnelHeight / 0.75);
-        const fadeOut = Math.max(0.0, (17.5 - p.funnelHeight) / 3.2);
-        const alpha = Math.min(fadeIn, fadeOut) * this.tornadoStrength;
+        // Continuous stream loop: recycle at the top back to the ground
+        if (p.funnelHeight >= 17.5) {
+          p.funnelHeight = 0.02 + Math.random() * 0.16;
+          p.swirlAngle = Math.random() * Math.PI * 2;
+          p.radiusOffset = (Math.random() - 0.5) * 0.45;
+          p.alpha = 0.0;
+        }
 
         this.particlePositions[i * 3] = p.x;
         this.particlePositions[i * 3 + 1] = p.y;
         this.particlePositions[i * 3 + 2] = p.z;
 
-        this.particleColors[i * 3] = p.colorR * alpha;
-        this.particleColors[i * 3 + 1] = p.colorG * alpha;
-        this.particleColors[i * 3 + 2] = p.colorB * alpha;
+        this.particleColors[i * 3] = p.colorR * p.alpha;
+        this.particleColors[i * 3 + 1] = p.colorG * p.alpha;
+        this.particleColors[i * 3 + 2] = p.colorB * p.alpha;
+      } else if (p.isSettling) {
+        // Pointer released: particles sink gently to the ground like dandelion seeds and disappear
+        p.vy = Math.max(-0.95, p.vy - 1.1 * delta);
+        p.vx *= 0.96;
+        p.vz *= 0.96;
+
+        p.swirlPhase += delta * 2.2;
+        const flutter = Math.sin(p.swirlPhase + p.y * 2.2) * 0.22 * delta;
+        p.x += (p.vx + flutter) * delta;
+        p.y += p.vy * delta;
+        p.z += (p.vz + flutter) * delta;
+
+        // Graceful alpha fadeout while sinking
+        p.alpha = Math.max(0.0, p.alpha - 0.38 * delta);
+
+        const groundY = this.getTerrainHeight(p.x, p.z) + 0.12;
+        if (p.y <= groundY) {
+          p.y = groundY;
+          p.vy = 0;
+          p.vx *= 0.75;
+          p.vz *= 0.75;
+          // Quicker fade once touching the ground
+          p.alpha = Math.max(0.0, p.alpha - 1.6 * delta);
+        }
+
+        if (p.alpha <= 0.01) {
+          p.y = -999;
+          p.isAirborne = false;
+          p.isSettling = false;
+          p.alpha = 0.0;
+        }
+
+        this.particlePositions[i * 3] = p.x;
+        this.particlePositions[i * 3 + 1] = p.y;
+        this.particlePositions[i * 3 + 2] = p.z;
+
+        this.particleColors[i * 3] = p.colorR * p.alpha;
+        this.particleColors[i * 3 + 1] = p.colorG * p.alpha;
+        this.particleColors[i * 3 + 2] = p.colorB * p.alpha;
       } else {
-        // Tornado stopped: particles currently in the air scatter gently on the wind
-        if (p.y > -900) {
-          if (!p.isAirborne) {
-            p.isAirborne = true;
-            p.vx = -Math.sin(p.swirlAngle) * 3.2 + 0.6;
-            p.vz = Math.cos(p.swirlAngle) * 3.2 + 0.4;
-            p.vy = -1.2 - Math.random() * 0.6;
-          }
-
-          p.x += p.vx * delta;
-          p.y += p.vy * delta;
-          p.z += p.vz * delta;
-          p.vx *= 0.95;
-          p.vz *= 0.95;
-
-          const gY = this.getTerrainHeight(p.x, p.z) + 0.15;
-          if (p.y <= gY) {
-            p.y = -999;
-            p.isAirborne = false;
-          }
-
-          this.particlePositions[i * 3] = p.x;
-          this.particlePositions[i * 3 + 1] = p.y;
-          this.particlePositions[i * 3 + 2] = p.z;
-
-          // Fade out as it settles
-          this.particleColors[i * 3] *= 0.95;
-          this.particleColors[i * 3 + 1] *= 0.95;
-          this.particleColors[i * 3 + 2] *= 0.95;
+        // Dormant or newly deactivated: start settling if in the air
+        if (p.isAirborne && !tornadoActive) {
+          p.isSettling = true;
+          const swirlTangX = -Math.sin(p.swirlAngle) * 0.9;
+          const swirlTangZ = Math.cos(p.swirlAngle) * 0.9;
+          p.vx = swirlTangX + (Math.random() - 0.5) * 0.3;
+          p.vz = swirlTangZ + (Math.random() - 0.5) * 0.3;
+          p.vy = -0.25 - Math.random() * 0.35;
+        } else {
+          this.particlePositions[i * 3 + 1] = -999;
+          this.particleColors[i * 3] = 0;
+          this.particleColors[i * 3 + 1] = 0;
+          this.particleColors[i * 3 + 2] = 0;
         }
       }
     }
@@ -917,6 +1156,7 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
     } catch {}
     this.isPointerDown = true;
     this.pointerHoldTimer = 0.0;
+    this.tornadoSpawnTimer = 0.0;
     this.updatePointerCoords(event);
     this.smoothMouseGround.copy(this.targetMouseGround);
     this.prevMouseGround.copy(this.targetMouseGround);
@@ -941,16 +1181,18 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
       const dotDir = dirX * this.lastSpawnDir.x + dirZ * this.lastSpawnDir.y;
       const timeSinceSpawn = now - this.lastSpawnTime;
 
-      // Spawn conditions:
-      // 1. Initial movement or stroke restart (> 280ms since last wave)
-      // 2. Direction change: turned by more than ~28 degrees (dotDir < 0.88)
-      // 3. Traveled distance along current stroke (>= 1.1m)
-      const isNewStroke = timeSinceSpawn > 280;
-      const isTurned = dotDir < 0.88 && distFromLastSpawn >= 0.45;
-      const isContinuousAdvance = distFromLastSpawn >= 1.1;
+      // Responsive spawn triggers:
+      // 1. Initial movement or restart after pause (> 160ms)
+      // 2. Turning / circling smoothly along curve (turned by > ~18 deg: dotDir < 0.95 && distFromLastSpawn >= 0.28)
+      // 3. Continuous straight advance along current stroke (distFromLastSpawn >= 0.75)
+      const isNewStroke = timeSinceSpawn > 160;
+      const isTurned = dotDir < 0.95 && distFromLastSpawn >= 0.28;
+      const isContinuousAdvance = distFromLastSpawn >= 0.75;
 
       if (isNewStroke || isTurned || isContinuousAdvance) {
-        const intensity = Math.min(dist * 10.0, 1.0);
+        const speed = dist / Math.max((now - this.lastSpawnTime) / 1000, 0.016);
+        const intensity = Math.min(Math.max(speed * 0.1, 0.25), 0.85);
+
         this.spawnDirectionalWave(
           this.targetMouseGround.x,
           this.targetMouseGround.z,
@@ -962,15 +1204,15 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
         this.lastSpawnDir.set(dirX, dirZ);
         this.lastSpawnTime = now;
       }
-
-      this.prevMouseGround.copy(this.targetMouseGround);
     }
+
+    this.prevMouseGround.copy(this.targetMouseGround);
   }
 
   /**
    * Spawns an independent directional wave expanding forward, left and right.
-   * Runs in an 8-wave ring buffer so previous waves keep rolling across the field
-   * completely uninterrupted even if the player abruptly changes direction.
+   * Runs in a 24-wave ring buffer so previous waves keep rolling across the field
+   * completely uninterrupted even if the player abruptly changes direction or circles.
    */
   private spawnDirectionalWave(
     originX: number,
@@ -985,13 +1227,13 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
     wave.dirX = dirX;
     wave.dirZ = dirZ;
     wave.time = 0.0;
-    wave.strength = Math.min(Math.max(intensity * 0.55, 0.18), 0.75);
-    wave.speed = 18.0 + Math.min(intensity * 3.0, 4.0);
+    wave.strength = Math.min(Math.max(intensity * 0.55, 0.2), 0.8);
+    wave.speed = 18.0 + Math.min(intensity * 3.0, 4.0); // Schnelle, direkte Ausbreitung wie vor 40 Min!
     wave.maxDist = 95.0;
 
     this.nextDirWaveIndex = (this.nextDirWaveIndex + 1) % this.maxDirWaves;
 
-    // Stir particles ahead in the forward fan only (never behind the wave)
+    // Stir particles ahead in the forward fan
     this.stirParticlesInForwardFan(originX, originZ, dirX, dirZ, wave.strength);
 
     // Audio feedback
@@ -1006,8 +1248,7 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Stirs pollen / dandelion seeds strictly in the forward expansion cone of a wave.
-   * Particles behind the wave origin are NEVER touched.
+   * Stirs pollen / dandelion seeds in the forward and lateral fan of a wave.
    */
   private stirParticlesInForwardFan(
     originX: number,
@@ -1025,19 +1266,15 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
       const dist = Math.sqrt(dx * dx + dz * dz);
 
       if (dist > 0.1 && dist < 5.8) {
-        // STRICT: only ahead of the wave origin
-        const forwardProj = dx * dirX + dz * dirZ;
-        if (forwardProj > 0.1) {
-          const cosTheta = forwardProj / dist;
-          if (cosTheta > 0.12) {
-            const fanForce = (1.0 - dist / 5.8) * strength * cosTheta;
-            p.vy += (1.6 + Math.random() * 2.4) * fanForce;
-            const pushX = (dirX + dx / dist) * 0.5;
-            const pushZ = (dirZ + dz / dist) * 0.5;
-            p.vx += pushX * 4.5 * fanForce;
-            p.vz += pushZ * 4.5 * fanForce;
-            p.isAirborne = true;
-          }
+        const forwardProj = (dx * dirX + dz * dirZ) / dist;
+        if (forwardProj > -0.3) {
+          const fanForce = (1.0 - dist / 5.8) * strength * Math.max(forwardProj + 0.3, 0.2);
+          p.vy += (1.6 + Math.random() * 2.4) * fanForce;
+          const pushX = (dirX + dx / dist) * 0.5;
+          const pushZ = (dirZ + dz / dist) * 0.5;
+          p.vx += pushX * 4.5 * fanForce;
+          p.vz += pushZ * 4.5 * fanForce;
+          p.isAirborne = true;
         }
       }
     }
@@ -1051,6 +1288,7 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
     }
     this.isPointerDown = false;
     this.pointerHoldTimer = 0.0;
+    this.startTornadoParticlesSettling();
     if (this.tornadoStrength > 0.2) {
       this.windSpeedDisplay.set('Sanfte Brise (14 km/h)');
       this.audio.updateWindIntensity(0.2);
@@ -1065,8 +1303,28 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
     this.isPointerDown = false;
     this.pointerHoldTimer = 0.0;
     this.tornadoStrength = 0.0;
+    this.startTornadoParticlesSettling();
     this.windSpeedDisplay.set('Sanfte Brise (14 km/h)');
     this.audio.updateWindIntensity(0.1);
+  }
+
+  /**
+   * When mouse button is released, transitions all airborne tornado particles
+   * into settling mode so they sink gently to the ground like dandelion seeds.
+   */
+  private startTornadoParticlesSettling(): void {
+    for (let i = this.ambientParticleCount; i < this.particleCount; i++) {
+      const p = this.particles[i];
+      if (p.isAirborne && p.y > -900 && !p.isSettling) {
+        p.isSettling = true;
+        // Tangential momentum gives soft outward drift
+        const swirlTangX = -Math.sin(p.swirlAngle) * 0.9;
+        const swirlTangZ = Math.cos(p.swirlAngle) * 0.9;
+        p.vx = swirlTangX + (Math.random() - 0.5) * 0.3;
+        p.vz = swirlTangZ + (Math.random() - 0.5) * 0.3;
+        p.vy = -0.25 - Math.random() * 0.35;
+      }
+    }
   }
 
   /**
@@ -1123,34 +1381,46 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Triggers a sweeping wind gust across the entire field.
+   * Triggers a monumental sweeping wind gust wave across the entire grass field.
+   * Smoothly rolls from foreground over the rolling hills all the way to the horizon.
    */
   triggerWindGust(): void {
     if (!this.grassMaterial) return;
 
-    const originalStrength = this.grassMaterial.uniforms['uWindStrength'].value;
-    this.grassMaterial.uniforms['uWindStrength'].value = originalStrength * 2.4;
-    this.windSpeedDisplay.set('Sommer-Böe (42 km/h)');
-    this.audio.updateWindIntensity(4.0);
-    this.audio.triggerPulseChord();
+    const wave = this.gustWaves[this.nextGustWaveIndex];
+    wave.time = 0.0;
+    wave.strength = 1.35;
+    wave.speed = 28.0;
+    wave.width = 22.0;
 
-    // Stir random ambient particles across the field
+    // Organic direction variation matching the natural ambient prairie breeze
+    const angleOffset = (Math.random() - 0.5) * 0.2;
+    const baseDir = new THREE.Vector2(0.12, -0.99)
+      .rotateAround(new THREE.Vector2(0, 0), angleOffset)
+      .normalize();
+    wave.dirX = baseDir.x;
+    wave.dirZ = baseDir.y;
+    wave.originX = (Math.random() - 0.5) * 10.0;
+    wave.originZ = 24.0;
+    wave.maxDist = 125.0;
+
+    this.nextGustWaveIndex = (this.nextGustWaveIndex + 1) % this.maxGustWaves;
+
+    this.windSpeedDisplay.set('Mächtige Sommer-Böe (54 km/h)');
+    this.audio.triggerPulseChord();
+    this.audio.triggerGrassChime(0, 0.95);
+    this.audio.updateWindIntensity(3.8);
+
+    // Lift immediate foreground particles right at wave launch
     for (let i = 0; i < this.ambientParticleCount; i++) {
       const p = this.particles[i];
-      if (Math.random() < 0.45) {
-        p.vy += 1.8 + Math.random() * 2.0;
-        p.vx += 2.5 + Math.random() * 2.0;
+      if (p.z > 8.0 && Math.random() < 0.6) {
+        p.vy += 2.0 + Math.random() * 2.2;
+        p.vx += (wave.dirX * 3.2 + (Math.random() - 0.5)) * 1.5;
+        p.vz += (wave.dirZ * 3.2 + (Math.random() - 0.5)) * 1.5;
         p.isAirborne = true;
       }
     }
-
-    setTimeout(() => {
-      if (this.grassMaterial) {
-        this.grassMaterial.uniforms['uWindStrength'].value = originalStrength;
-        this.windSpeedDisplay.set('Sanfte Brise (14 km/h)');
-        this.audio.updateWindIntensity(0.2);
-      }
-    }, 1400);
   }
 
   // -------------------------------------------------------------
@@ -1159,47 +1429,135 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
 
   setTimeOfDay(time: TimeOfDay): void {
     this.timeOfDay.set(time);
-    const theme = THEMES[time];
-
-    // Update sky backdrop shader
-    if (this.skyMaterial) {
-      this.skyMaterial.uniforms['uTimeOfDay'].value =
-        time === 'day' ? 0.0 : time === 'golden' ? 1.0 : 2.0;
-      this.skyMaterial.uniforms['uSkyColor'].value.copy(theme.skyColor);
-    }
-
-    // Update grass shader uniforms
-    if (this.grassMaterial) {
-      this.grassMaterial.uniforms['uBaseColor'].value.copy(theme.grassBase);
-      this.grassMaterial.uniforms['uMidColor'].value.copy(theme.grassMid);
-      this.grassMaterial.uniforms['uTipColor'].value.copy(theme.grassTip);
-      this.grassMaterial.uniforms['uSunColor'].value.copy(theme.sunColor);
-      this.grassMaterial.uniforms['uSkyColor'].value.copy(theme.skyColor);
-      this.grassMaterial.uniforms['uSunDirection'].value.copy(theme.sunDirection);
-      this.grassMaterial.uniforms['uTimeOfDay'].value =
-        time === 'day' ? 0.0 : time === 'golden' ? 1.0 : 2.0;
-    }
-
-    // Update ground mesh color
-    if (this.terrainMesh) {
-      (this.terrainMesh.material as THREE.MeshBasicMaterial).color.copy(
-        theme.grassMid.clone().multiplyScalar(0.92)
-      );
-    }
-
-    // Update scene fog & background
-    if (this.scene) {
-      this.scene.background = new THREE.Color(theme.skyColor);
-      this.scene.fog = new THREE.FogExp2(
-        theme.skyColor.getHex(),
-        time === 'night' ? 0.016 : 0.008
-      );
-    }
-    if (this.renderer) {
-      this.renderer.setClearColor(theme.skyColor, 1);
-    }
+    this.syncCursorAtmosphere(time);
+    this.targetTheme = THEMES[time];
+    this.targetGoldenWeight = time === 'golden' ? 1.0 : 0.0;
+    this.targetNightWeight = time === 'night' ? 1.0 : 0.0;
+    this.targetFogDensity = time === 'night' ? 0.016 : 0.008;
+    this.isThemeTransitioning = true;
 
     this.audio.triggerGrassChime(0, 0.15);
+  }
+
+  /**
+   * Syncs the custom glass orb-cursor color state with the prairie time of day:
+   * - 'golden': activates 'in-sanctuary' (warm glowing amber/gold like in cozy-sanctuary-section)
+   * - 'night': activates 'in-night' (luminous deep sapphire midnight blue)
+   * - 'day': standard luminous cyan/sky blue
+   */
+  private syncCursorAtmosphere(time: TimeOfDay): void {
+    if (typeof document === 'undefined') return;
+    if (time === 'golden') {
+      document.body.classList.remove('in-night');
+      document.body.classList.add('in-sanctuary');
+    } else if (time === 'night') {
+      document.body.classList.remove('in-sanctuary');
+      document.body.classList.add('in-night');
+    } else {
+      document.body.classList.remove('in-sanctuary');
+      document.body.classList.remove('in-night');
+    }
+  }
+
+  /**
+   * Smoothly interpolates lighting, grass color hues, sky tint, and fog
+   * when transitioning between Mittag (Day), Goldene Stunde (Sunset), and Zen-Nacht (Night).
+   */
+  private updateAtmosphereTransition(delta: number): void {
+    const lerpSpeed = Math.min(1.0, 5.0 * delta); // Smooth transition completed in ~0.6-0.8s
+
+    // 1. Interpolate weights & fog density
+    this.currentGoldenWeight += (this.targetGoldenWeight - this.currentGoldenWeight) * lerpSpeed;
+    this.currentNightWeight += (this.targetNightWeight - this.currentNightWeight) * lerpSpeed;
+    this.currentFogDensity += (this.targetFogDensity - this.currentFogDensity) * lerpSpeed;
+
+    // 2. Sky Material Uniforms
+    if (this.skyMaterial) {
+      this.skyMaterial.uniforms['uGoldenWeight'].value = this.currentGoldenWeight;
+      this.skyMaterial.uniforms['uNightWeight'].value = this.currentNightWeight;
+      this.skyMaterial.uniforms['uSkyColor'].value.lerp(this.targetTheme.skyColor, lerpSpeed);
+      this.skyMaterial.uniforms['uTimeOfDay'].value =
+        this.timeOfDay() === 'day' ? 0.0 : this.timeOfDay() === 'golden' ? 1.0 : 2.0;
+    }
+
+    // 3. Grass Material Uniforms
+    if (this.grassMaterial) {
+      this.grassMaterial.uniforms['uBaseColor'].value.lerp(this.targetTheme.grassBase, lerpSpeed);
+      this.grassMaterial.uniforms['uMidColor'].value.lerp(this.targetTheme.grassMid, lerpSpeed);
+      this.grassMaterial.uniforms['uTipColor'].value.lerp(this.targetTheme.grassTip, lerpSpeed);
+      this.grassMaterial.uniforms['uSunColor'].value.lerp(this.targetTheme.sunColor, lerpSpeed);
+      this.grassMaterial.uniforms['uSkyColor'].value.lerp(this.targetTheme.skyColor, lerpSpeed);
+      this.grassMaterial.uniforms['uSunDirection'].value.lerp(this.targetTheme.sunDirection, lerpSpeed);
+      this.grassMaterial.uniforms['uTimeOfDay'].value =
+        this.timeOfDay() === 'day' ? 0.0 : this.timeOfDay() === 'golden' ? 1.0 : 2.0;
+    }
+
+    // 4. Ground Mesh Color
+    if (this.terrainMesh) {
+      (this.terrainMesh.material as THREE.MeshBasicMaterial).color.lerp(
+        this.targetTheme.groundColor,
+        lerpSpeed
+      );
+    }
+
+    // 5. Scene Fog & Background
+    if (this.scene) {
+      if (this.scene.background instanceof THREE.Color) {
+        this.scene.background.lerp(this.targetTheme.skyColor, lerpSpeed);
+      } else {
+        this.scene.background = this.targetTheme.skyColor.clone();
+      }
+      if (this.scene.fog instanceof THREE.FogExp2) {
+        this.scene.fog.color.lerp(this.targetTheme.skyColor, lerpSpeed);
+        this.scene.fog.density = this.currentFogDensity;
+      }
+    }
+    if (this.renderer) {
+      const bg = (this.scene?.background as THREE.Color) || this.targetTheme.skyColor;
+      this.renderer.setClearColor(bg, 1);
+    }
+
+    // Check completion threshold
+    const diffGolden = Math.abs(this.targetGoldenWeight - this.currentGoldenWeight);
+    const diffNight = Math.abs(this.targetNightWeight - this.currentNightWeight);
+    if (diffGolden < 0.005 && diffNight < 0.005) {
+      // Snap to exact target values to cleanly finish transition
+      this.currentGoldenWeight = this.targetGoldenWeight;
+      this.currentNightWeight = this.targetNightWeight;
+      this.currentFogDensity = this.targetFogDensity;
+
+      if (this.skyMaterial) {
+        this.skyMaterial.uniforms['uGoldenWeight'].value = this.currentGoldenWeight;
+        this.skyMaterial.uniforms['uNightWeight'].value = this.currentNightWeight;
+        this.skyMaterial.uniforms['uSkyColor'].value.copy(this.targetTheme.skyColor);
+      }
+      if (this.grassMaterial) {
+        this.grassMaterial.uniforms['uBaseColor'].value.copy(this.targetTheme.grassBase);
+        this.grassMaterial.uniforms['uMidColor'].value.copy(this.targetTheme.grassMid);
+        this.grassMaterial.uniforms['uTipColor'].value.copy(this.targetTheme.grassTip);
+        this.grassMaterial.uniforms['uSunColor'].value.copy(this.targetTheme.sunColor);
+        this.grassMaterial.uniforms['uSkyColor'].value.copy(this.targetTheme.skyColor);
+        this.grassMaterial.uniforms['uSunDirection'].value.copy(this.targetTheme.sunDirection);
+      }
+      if (this.terrainMesh) {
+        (this.terrainMesh.material as THREE.MeshBasicMaterial).color.copy(
+          this.targetTheme.groundColor
+        );
+      }
+      if (this.scene) {
+        if (this.scene.background instanceof THREE.Color) {
+          this.scene.background.copy(this.targetTheme.skyColor);
+        }
+        if (this.scene.fog instanceof THREE.FogExp2) {
+          this.scene.fog.color.copy(this.targetTheme.skyColor);
+          this.scene.fog.density = this.targetFogDensity;
+        }
+      }
+      if (this.renderer) {
+        this.renderer.setClearColor(this.targetTheme.skyColor, 1);
+      }
+      this.isThemeTransitioning = false;
+    }
   }
 
   setWindPreset(preset: 'gentle' | 'fresh' | 'gust'): void {
@@ -1211,6 +1569,22 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
     if (preset === 'gust') strength = 2.1;
 
     this.grassMaterial.uniforms['uWindStrength'].value = strength;
+    this.windSpeedDisplay.set(this.getBaselineWindDisplay());
+    this.audio.updateWindIntensity(this.getBaselineAudioIntensity());
+  }
+
+  private getBaselineWindDisplay(): string {
+    const p = this.windPreset();
+    if (p === 'gentle') return 'Sanfte Brise (9 km/h)';
+    if (p === 'gust') return 'Frischer Wind (28 km/h)';
+    return 'Frische Brise (16 km/h)';
+  }
+
+  private getBaselineAudioIntensity(): number {
+    const p = this.windPreset();
+    if (p === 'gentle') return 0.1;
+    if (p === 'gust') return 0.45;
+    return 0.2;
   }
 
   toggleSound(): void {

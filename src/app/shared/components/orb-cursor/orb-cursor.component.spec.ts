@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeEach } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { OrbCursorComponent } from './orb-cursor.component';
 
@@ -38,6 +39,13 @@ describe('OrbCursorComponent', () => {
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('.orb-cursor-host')?.classList.contains('in-sanctuary')).toBe(true);
+  });
+
+  it('should apply in-night class when isNight signal is true', () => {
+    component.isNight.set(true);
+    fixture.detectChanges();
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.querySelector('.orb-cursor-host')?.classList.contains('in-night')).toBe(true);
   });
 
   it('should apply is-hovering class when isHovering signal is true', () => {

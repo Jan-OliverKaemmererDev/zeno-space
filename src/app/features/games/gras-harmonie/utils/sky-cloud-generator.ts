@@ -17,12 +17,13 @@ export interface AtmosphereTheme {
   grassBase: THREE.Color;
   grassMid: THREE.Color;
   grassTip: THREE.Color;
+  groundColor: THREE.Color;
   sunColor: THREE.Color;
   skyColor: THREE.Color;
   sunDirection: THREE.Vector3;
 }
 
-export const THEMES: Record<TimeOfDay, AtmosphereTheme> = {
+const THEME_DATA = {
   day: {
     skyZenith: '#0e5ebd', // Radiant anime royal blue
     skyHorizon: '#3ba4f4',
@@ -35,12 +36,13 @@ export const THEMES: Record<TimeOfDay, AtmosphereTheme> = {
     cloudHighlight: '#ffffff',  // Pure crisp white sunlit crest
     cloudRimLight: '#fffdf6',
     sunGlow: 'rgba(255, 252, 235, 0.58)',
-    grassBase: new THREE.Color(0x227827), // Vibrant lush emerald green root (no blackening)
-    grassMid: new THREE.Color(0x38b82a),
-    grassTip: new THREE.Color(0xaaf038),
-    sunColor: new THREE.Color(0xfff6dd),
-    skyColor: new THREE.Color(0x56aef0),
-    sunDirection: new THREE.Vector3(0.5, 0.8, 0.35).normalize(),
+    grassBase: 0x227827, // Vibrant lush emerald green root (no blackening)
+    grassMid: 0x38b82a,
+    grassTip: 0xaaf038,
+    groundColor: 0xffffff, // Bright natural sunlit moss turf (unattenuated)
+    sunColor: 0xfff6dd,
+    skyColor: 0x56aef0,
+    sunDirection: [0.5, 0.8, 0.35] as const,
   },
   golden: {
     skyZenith: '#223058',
@@ -54,12 +56,13 @@ export const THEMES: Record<TimeOfDay, AtmosphereTheme> = {
     cloudHighlight: '#ffeed6',  // Golden sunlit crest
     cloudRimLight: '#fff6e8',
     sunGlow: 'rgba(255, 170, 75, 0.58)',
-    grassBase: new THREE.Color(0x42661f), // Warm golden-olive root
-    grassMid: new THREE.Color(0x6b9e28),
-    grassTip: new THREE.Color(0xf6bf3b),
-    sunColor: new THREE.Color(0xffad54),
-    skyColor: new THREE.Color(0xdb684c),
-    sunDirection: new THREE.Vector3(-0.6, 0.45, 0.3).normalize(),
+    grassBase: 0x42661f, // Warm golden-olive root
+    grassMid: 0x6b9e28,
+    grassTip: 0xf6bf3b,
+    groundColor: 0x162008, // Significantly darker warm olive-bronze shaded earth
+    sunColor: 0xffad54,
+    skyColor: 0xdb684c,
+    sunDirection: [-0.6, 0.45, 0.3] as const,
   },
   night: {
     skyZenith: '#020612',
@@ -73,12 +76,49 @@ export const THEMES: Record<TimeOfDay, AtmosphereTheme> = {
     cloudHighlight: '#5a759c',
     cloudRimLight: '#94b2da',
     sunGlow: 'rgba(199, 210, 254, 0.32)',
-    grassBase: new THREE.Color(0x114637), // Luminous teal-emerald night root
-    grassMid: new THREE.Color(0x186b53),
-    grassTip: new THREE.Color(0x34d399),
-    sunColor: new THREE.Color(0xa5b4fc),
-    skyColor: new THREE.Color(0x0d1a33),
-    sunDirection: new THREE.Vector3(0.2, 0.7, 0.4).normalize(),
+    grassBase: 0x114637, // Luminous teal-emerald night root
+    grassMid: 0x186b53,
+    grassTip: 0x34d399,
+    groundColor: 0x071b14, // Deep moonlit shadowed nocturnal turf
+    sunColor: 0xa5b4fc,
+    skyColor: 0x0d1a33,
+    sunDirection: [0.2, 0.7, 0.4] as const,
+  },
+};
+
+export function createAtmosphereTheme(time: TimeOfDay): AtmosphereTheme {
+  const d = THEME_DATA[time];
+  return {
+    skyZenith: d.skyZenith,
+    skyHorizon: d.skyHorizon,
+    skyHaze: d.skyHaze,
+    mountainFar: d.mountainFar,
+    mountainNear: d.mountainNear,
+    cloudShadowDeep: d.cloudShadowDeep,
+    cloudShadowMid: d.cloudShadowMid,
+    cloudBody: d.cloudBody,
+    cloudHighlight: d.cloudHighlight,
+    cloudRimLight: d.cloudRimLight,
+    sunGlow: d.sunGlow,
+    grassBase: new THREE.Color(d.grassBase),
+    grassMid: new THREE.Color(d.grassMid),
+    grassTip: new THREE.Color(d.grassTip),
+    groundColor: new THREE.Color(d.groundColor),
+    sunColor: new THREE.Color(d.sunColor),
+    skyColor: new THREE.Color(d.skyColor),
+    sunDirection: new THREE.Vector3(...d.sunDirection).normalize(),
+  };
+}
+
+export const THEMES: Record<TimeOfDay, AtmosphereTheme> = {
+  get day() {
+    return createAtmosphereTheme('day');
+  },
+  get golden() {
+    return createAtmosphereTheme('golden');
+  },
+  get night() {
+    return createAtmosphereTheme('night');
   },
 };
 

@@ -23,11 +23,11 @@ uniform vec2 uWindDir;
 uniform float uWindStrength;
 uniform vec3 uMousePos;
 
-// Concurrent Directional Bow Waves (16 concurrent waves rolling to horizon)
-// uDirWaveA: xy = origin.xz, zw = dir.xz (normalized travel direction)
+// Concurrent Directional & Circular Waves (24 concurrent waves rolling across the hills)
+// uDirWaveA: xy = origin.xz, zw = dir.xz (if dir == 0: omnidirectional 360-degree wave)
 // uDirWaveB: x = time, y = strength, z = speed, w = maxDist
-uniform vec4 uDirWaveA[16];
-uniform vec4 uDirWaveB[16];
+uniform vec4 uDirWaveA[24];
+uniform vec4 uDirWaveB[24];
 
 // Multiple concurrent shockwaves (xy = pos.xz, z = time, w = strength)
 uniform vec4 uShockwaves[5];
@@ -35,6 +35,14 @@ uniform vec4 uShockwaves[5];
 // Windhose / Whirlwind (xy = pos.xz, strength)
 uniform vec2 uTornadoPos;
 uniform float uTornadoStrength;
+
+// Concurrent Monumental Windstoß Gust Waves (3 waves rolling across the entire prairie)
+// uGustWaves: x = time, y = strength, z = speed, w = width
+// uGustDirs: xy = dir.xz (normalized travel direction), zw = origin.xz (starting position)
+uniform vec4 uGustWaves[3];
+uniform vec4 uGustDirs[3];
+
+
 
 // Fast procedural noise
 float hash21(vec2 p) {
@@ -90,13 +98,17 @@ void main() {
   ambientDisp += uWindDir * (flutter * 0.5);
 
   // -------------------------------------------------------------
+  // -------------------------------------------------------------
   // 2. Concurrent Directional Bow Waves (Wellen laufen ungestört durch)
-  //    - Hinter der Maus/Welle: absolut NULL Bewegung!
-  //    - Vor der Maus/Welle: Welle breitet sich nach vorne, links & rechts aus
-  //    - Richtung wechselbar: alte Wellen laufen vollständig durch!
+  //    - Nahtloser, breiter Fächer (über ca. 240°):
+  //      Bei Kreisbewegungen überlappen sich die Wellen nahtlos und fließen
+  //      kontinuierlich in alle Richtungen, ohne abrupt abzubrechen.
+  //    - Organisches asymmetrisches Wellenprofil:
+  //      Rasches, dynamisches Absenken an der Wellenfront;
+  //      weiches, elastisches und natürliches Wiederaufrichten des Grases!
   // -------------------------------------------------------------
   vec2 dirWaveDisp = vec2(0.0);
-  for (int i = 0; i < 16; i++) {
+  for (int i = 0; i < 24; i++) {
     float strength = uDirWaveB[i].y;
     if (strength > 0.005) {
       vec2 origin = uDirWaveA[i].xy;
@@ -108,37 +120,50 @@ void main() {
       vec2 toBlade = instanceOrigin.xz - origin;
       float dist = length(toBlade);
 
-      // 1. STRICT: Hinter der Welle/Maus darf sich das Gras NICHT bewegen!
-      float forwardProj = dot(toBlade, dir);
-      if (forwardProj > 0.05 && dist > 0.05) {
-        float cosTheta = forwardProj / dist; // 1.0 = direkt geradeaus, 0.0 = 90° quer
+      if (dist > 0.05) {
+        float forwardProj = dot(toBlade, dir);
+        float cosTheta = forwardProj / dist; // 1.0 = direkt geradeaus, 0.0 = 90° quer, -0.45 = 117°
 
-        // 2. Fächer nach vorne, links und rechts (breitet sich majestätisch über die Hügel aus)
-        float fanMask = smoothstep(0.05, 0.36, cosTheta);
+        // Breiter, harmonischer Fächer (über ca. 240°):
+        // Fließt bei Kreisbewegungen und Kurven nahtlos und weich in alle Richtungen,
+        // ohne dass die Welle abrupt abbricht!
+        float fanMask = smoothstep(-0.45, 0.25, cosTheta);
 
-        // 3. Wellenfront wandert mit 'speed' durch das Gras nach vorne über das GESAMTE Feld
-        float currentRadius = time * speed;
-        float delta = dist - currentRadius;
-        float waveThickness = 3.6 + currentRadius * 0.024;
+        if (fanMask > 0.001) {
+          // Wellenfront wandert mit 'speed' durch das Gras über das gesamte Feld
+          float currentRadius = time * speed;
+          float delta = dist - currentRadius;
 
-        // Glatte Wellenform des vorwärtsrollenden Kamms (butterweich ohne Ruckler)
-        if (abs(delta) < waveThickness && currentRadius < maxDist) {
-          float normDist = clamp((1.0 - delta / waveThickness) * 0.5, 0.0, 1.0);
-          float halfSine = sin(normDist * 3.14159265);
-          float waveProfile = halfSine * halfSine;
+          // Asymmetrisches, geschmeidiges Wellenprofil:
+          // - Vor dem Kamm (delta >= 0): Rasches, knackiges Absenken beim Eintreffen der Welle (3.4m)
+          // - Hinter dem Kamm (delta < 0): Sanftes, elastisches und natürliches Wiederaufrichten (8.0m)
+          //   (kein abruptes Zurückschnappen, aber auch kein träges Hängenbleiben)
+          float frontThick = 3.4 + currentRadius * 0.02;
+          float backThick = 8.0 + currentRadius * 0.04;
 
-          // Läuft über das komplette Feld und blendet erst an den fernen Horizont-Hügeln sanft aus!
-          float distFade = smoothstep(maxDist, maxDist * 0.85, currentRadius);
-          // Sanftes, organisches Anwachsen beim Start
-          float startFade = smoothstep(0.12, 1.3, currentRadius);
+          float waveProfile = 0.0;
+          if (delta >= 0.0 && delta < frontThick) {
+            float normFront = delta / frontThick;
+            float halfCos = 0.5 + 0.5 * cos(normFront * 3.14159265);
+            waveProfile = halfCos * halfCos;
+          } else if (delta < 0.0 && -delta < backThick) {
+            float normBack = -delta / backThick;
+            waveProfile = pow(1.0 - normBack, 1.85);
+          }
 
-          float waveAmp = strength * waveProfile * fanMask * distFade * startFade;
+          if (waveProfile > 0.001 && currentRadius < maxDist) {
+            // Sanftes Ausblenden am Horizont & beim Wellenstart
+            float distFade = smoothstep(maxDist, maxDist * 0.85, currentRadius);
+            float startFade = smoothstep(0.12, 1.2, currentRadius);
 
-          // 4. Biegungsrichtung: nach vorne sowie nach links und rechts fächernd!
-          vec2 radialDir = toBlade / dist;
-          vec2 pushDir = normalize(mix(dir, radialDir, 0.52));
+            float waveAmp = strength * waveProfile * fanMask * distFade * startFade;
 
-          dirWaveDisp += pushDir * (waveAmp * 1.05);
+            // Biegungsrichtung: Fächert nach vorne und radial nach außen
+            vec2 radialDir = toBlade / dist;
+            vec2 pushDir = normalize(mix(dir, radialDir, 0.60));
+
+            dirWaveDisp += pushDir * (waveAmp * 1.08);
+          }
         }
       }
     }
@@ -154,13 +179,19 @@ void main() {
       vec2 swPos = uShockwaves[i].xy;
       float swTime = uShockwaves[i].z;
       float distToCenter = distance(instanceOrigin.xz, swPos);
-      float currentRadius = swTime * 22.0;
-      float ringThickness = 3.6;
-      float ringDelta = abs(distToCenter - currentRadius);
-
-      if (ringDelta < ringThickness && distToCenter < 55.0) {
-        float ringFactor = 1.0 - (ringDelta / ringThickness);
-        float rippleShape = sin(ringFactor * 3.14159);
+      float currentRadius = swTime * 18.0;
+      float ringDelta = distToCenter - currentRadius;
+      float frontThick = 2.8;
+      float backThick = 8.5; // Sanftes, elastisches Wiederaufrichten des Rings
+      float rippleShape = 0.0;
+      if (ringDelta >= 0.0 && ringDelta < frontThick) {
+        float fNorm = ringDelta / frontThick;
+        rippleShape = 0.5 + 0.5 * cos(fNorm * 3.14159);
+      } else if (ringDelta < 0.0 && -ringDelta < backThick) {
+        float bNorm = -ringDelta / backThick;
+        rippleShape = pow(1.0 - bNorm, 2.0);
+      }
+      if (rippleShape > 0.001 && distToCenter < 55.0) {
         vec2 ringDir = normalize(instanceOrigin.xz - swPos + vec2(0.0001, 0.0001));
         shockwaveDisp += ringDir * (rippleShape * swStrength * 1.15);
       }
@@ -208,8 +239,56 @@ void main() {
     mouseBrushDisp = brushDir * (smoothBrush * 0.32);
   }
 
+  // -------------------------------------------------------------
+  // 6. Mächtige Panorama-Windstoß-Welle über das gesamte Gras
+  //    Rollt als gigantische Wellenfront vom Vordergrund über alle Hügel bis zum Horizont
+  // -------------------------------------------------------------
+  vec2 gustDisp = vec2(0.0);
+  for (int i = 0; i < 3; i++) {
+    float gustStrength = uGustWaves[i].y;
+    if (gustStrength > 0.005) {
+      float gustTime = uGustWaves[i].x;
+      float gustSpeed = uGustWaves[i].z;
+      float gustWidth = uGustWaves[i].w;
+      vec2 gustDir = uGustDirs[i].xy;
+      vec2 gustOrigin = uGustDirs[i].zw;
+
+      vec2 toBlade = instanceOrigin.xz - gustOrigin;
+      float travelDist = dot(toBlade, gustDir);
+      float waveFrontDist = gustTime * gustSpeed;
+
+      // Organische Krümmung der Wellenfront entlang der Breite (keine starre Kante)
+      vec2 perpDir = vec2(-gustDir.y, gustDir.x);
+      float lateralDist = dot(toBlade, perpDir);
+      float organicWarp = sin(lateralDist * 0.045 + gustTime * 1.6) * 2.8 + sin(lateralDist * 0.11 - gustTime * 2.2) * 1.2;
+
+      float deltaDist = (travelDist + organicWarp) - waveFrontDist;
+
+      if (abs(deltaDist) < gustWidth && waveFrontDist > 0.5) {
+        float norm = deltaDist / gustWidth;
+        float halfCos = 0.5 + 0.5 * cos(norm * 3.14159265);
+        float mainCrest = pow(halfCos, 1.35);
+
+        // Nachschwingen / Verwehung hinter dem Wellenkamm
+        float trailingWake = sin(clamp(-norm, 0.0, 1.0) * 3.14159) * 0.35;
+
+        // Butterweicher Einstieg im Vordergrund und sanftes Ausfaden an den fernen Horizontbergen
+        float startFade = smoothstep(0.0, 12.0, waveFrontDist);
+        float horizonFade = smoothstep(125.0, 95.0, waveFrontDist);
+
+        float amp = gustStrength * (mainCrest + trailingWake) * startFade * horizonFade;
+
+        // Biegungsrichtung mit sanftem seitlichen Wogen
+        vec2 billow = perpDir * (sin(lateralDist * 0.05 + gustTime * 1.4) * 0.18);
+        vec2 pushDir = normalize(gustDir + billow);
+
+        gustDisp += pushDir * (amp * 2.5);
+      }
+    }
+  }
+
   // Total wind vector in world space
-  vec2 totalWind = ambientDisp + dirWaveDisp + shockwaveDisp + tornadoDisp + mouseBrushDisp;
+  vec2 totalWind = ambientDisp + dirWaveDisp + shockwaveDisp + tornadoDisp + mouseBrushDisp + gustDisp;
 
   // Transform blade base vertex from local geometry to world space
   #ifdef USE_INSTANCING
@@ -354,9 +433,77 @@ varying vec2 vPlanePos;
 uniform sampler2D uSkyTexture;
 uniform float uTime;
 uniform float uTimeOfDay; // 0 = day, 1 = golden, 2 = night
+uniform float uGoldenWeight;
+uniform float uNightWeight;
 uniform vec3 uTint;
 uniform float uAspect;
 uniform vec3 uSkyColor;
+
+// Fast 2D Hash (wie auf der Landing-Page)
+vec2 hash2(vec2 p) {
+  p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
+  return fract(sin(p) * 43758.5453123);
+}
+
+// Distance from point p to line segment between a and b (für Sternschnuppen)
+float segDist(vec2 p, vec2 a, vec2 b, out float h) {
+  vec2 pa = p - a;
+  vec2 ba = b - a;
+  h = clamp(dot(pa, ba) / max(dot(ba, ba), 0.00001), 0.0, 1.0);
+  return length(pa - ba * h);
+}
+
+// Zarte, hauchdünne Sternschnuppen (fein & messerscharf wie am echten Nachthimmel)
+float shootingStar(vec2 uv, float time, float seed, float cycleTime, float aspect) {
+  float t = time + seed * 19.41;
+  float cycleId = floor(t / cycleTime);
+  float progress = fract(t / cycleTime);
+
+  vec2 r = hash2(vec2(cycleId, seed * 7.13));
+
+  // Aktives Zeitfenster (~14% des Zyklus fliegen, dann friedliche Pause)
+  float activeDuration = 0.14;
+  if (progress > activeDuration) return 0.0;
+
+  float flight = progress / activeDuration; // 0.0 -> 1.0 Flugphase
+
+  // Flugbahn in seitenverhältnis-korrigierten Koordinaten
+  float startX = (0.10 + 0.80 * r.x) * aspect;
+  float startY = 0.68 + 0.28 * r.y;
+  vec2 startPos = vec2(startX, startY);
+
+  // Sanfter diagonaler Schweif nach unten-links (~-150 bis -165 Grad)
+  float angle = -2.62 - 0.35 * (r.y - 0.5);
+  vec2 dir = vec2(cos(angle), sin(angle));
+
+  // Reisedistanz
+  float speedDist = (0.30 + 0.15 * r.x) * aspect;
+  vec2 head = startPos + dir * (speedDist * flight);
+
+  // Schweiflänge
+  float tailLength = 0.14 + 0.08 * r.y;
+  vec2 tail = head - dir * tailLength;
+
+  vec2 p = vec2(uv.x * aspect, uv.y);
+
+  float h;
+  float dist = segDist(p, head, tail, h);
+
+  // Hauchfeiner, zarter Schweif (fein und filigran statt dicker Balken)
+  float width = mix(0.00065, 0.00010, h);
+  float trailFade = pow(1.0 - h, 2.8);
+
+  float streak = smoothstep(width, 0.0, dist) * trailFade;
+  float halo = smoothstep(width * 2.2, 0.0, dist) * trailFade * 0.16;
+
+  float headDist = length(p - head);
+  float headGlow = smoothstep(0.0014, 0.0002, headDist) * 0.95;
+
+  float life = sin(flight * 3.14159265);
+  float skyMask = smoothstep(0.20, 0.45, head.y);
+
+  return (streak + halo + headGlow) * life * skyMask;
+}
 
 void main() {
   // 1. Panoramic aspect matching:
@@ -392,15 +539,71 @@ void main() {
   float sunPulse = (sin(uTime * 0.65 + texUv.x * 2.2) * 0.5 + 0.5) * 0.08;
   vec3 baseColor = texColor.rgb + vec3(0.14, 0.09, 0.04) * sunPulse * smoothstep(0.55, 0.95, luma);
 
-  // 5. Atmosphären-Tönung für Goldene Stunde und Nacht
-  if (uTimeOfDay > 0.5 && uTimeOfDay < 1.5) {
+  // 5. Atmosphären-Tönung für Goldene Stunde und Nacht (weicher Übergang)
+  float goldenW = uGoldenWeight;
+  float nightW = uNightWeight;
+  if (goldenW <= 0.0001 && nightW <= 0.0001) {
+    if (uTimeOfDay > 0.5 && uTimeOfDay < 1.5) goldenW = 1.0;
+    else if (uTimeOfDay >= 1.5) nightW = 1.0;
+  }
+
+  if (goldenW > 0.001) {
     // Golden Hour: Warme Bernstein- und Pfirsichtöne
     vec3 goldenTint = vec3(1.15, 0.88, 0.65);
-    baseColor = mix(baseColor * goldenTint, vec3(0.95, 0.55, 0.35) * luma, 0.32);
-  } else if (uTimeOfDay >= 1.5) {
-    // Nacht: Geheimnisvolles Mondlicht-Blau & Indigo
-    vec3 nightTint = vec3(0.25, 0.45, 0.75);
-    baseColor = baseColor * nightTint * 0.65;
+    vec3 goldenColor = mix(baseColor * goldenTint, vec3(0.95, 0.55, 0.35) * luma, 0.32);
+    baseColor = mix(baseColor, goldenColor, goldenW);
+  }
+
+  if (nightW > 0.001) {
+    // 1. Wolken faden sanft vollständig aus in einen tiefen, samtigen Mitternachtshimmel
+    vec3 deepNightSky = mix(vec3(0.012, 0.024, 0.052), vec3(0.002, 0.006, 0.016), smoothstep(0.15, 0.95, vUv.y));
+    baseColor = mix(baseColor, deepNightSky, nightW);
+
+    // 2. Sternenhimmel wie auf der Landing-Page (Feinstaub, Kristallsterne & Sternschnuppen)
+    float starSkyVis = smoothstep(0.12, 0.40, vUv.y);
+    float starAspect = max(1.2, uAspect * 1.8);
+
+    // Ebene 1: Zarter Hintergrund-Sternenstaub
+    vec2 starCoord1 = vUv * vec2(starAspect * 42.0, 42.0);
+    vec2 cell1 = floor(starCoord1);
+    vec2 frac1 = fract(starCoord1);
+    vec2 rnd1 = hash2(cell1);
+    float microStars = 0.0;
+    if (rnd1.x > 0.28) {
+      vec2 pos1 = 0.15 + 0.70 * hash2(cell1 + 3.17);
+      float d1 = length(frac1 - pos1);
+      float tw1 = sin(uTime * (1.1 + rnd1.y * 1.8) + rnd1.x * 6.28) * 0.35 + 0.65;
+      microStars = smoothstep(0.018, 0.001, d1) * tw1 * (0.40 + 0.60 * rnd1.y);
+    }
+
+    // Ebene 2: Funkelnde Kristallsterne mit sanftem Glanz-Halo
+    vec2 starCoord2 = vUv * vec2(starAspect * 16.0, 16.0);
+    vec2 cell2 = floor(starCoord2);
+    vec2 frac2 = fract(starCoord2);
+    vec2 rnd2 = hash2(cell2);
+    float crystalStars = 0.0;
+    vec3 starColor = vec3(0.90, 0.96, 1.0);
+    if (rnd2.x > 0.52) {
+      vec2 pos2 = 0.20 + 0.60 * hash2(cell2 + 8.91);
+      float d2 = length(frac2 - pos2);
+      float tw2 = pow(sin(uTime * (1.4 + rnd2.y * 2.1) + rnd2.x * 6.28) * 0.5 + 0.5, 1.6);
+      float core = smoothstep(0.020, 0.002, d2);
+      float halo = smoothstep(0.055, 0.005, d2) * 0.32;
+      crystalStars = (core + halo) * tw2 * (0.55 + 0.45 * rnd2.y);
+      starColor = mix(vec3(0.85, 0.94, 1.00), vec3(1.00, 0.96, 0.88), rnd2.y);
+    }
+
+    // Ebene 3: Elegante Sternschnuppen (diagonal gleitend wie Landing-Page)
+    float shoot1 = shootingStar(vUv, uTime, 1.0, 7.2, starAspect);
+    float shoot2 = shootingStar(vUv, uTime, 2.7, 11.8, starAspect);
+    float shoot3 = shootingStar(vUv, uTime, 5.4, 16.5, starAspect);
+    vec3 colShoot = vec3(0.94, 0.97, 1.00);
+
+    vec3 starsComposite = vec3(0.86, 0.93, 1.00) * microStars * 0.65 +
+                          starColor * crystalStars * 0.85 +
+                          colShoot * (shoot1 + shoot2 + shoot3) * 0.85;
+
+    baseColor += starsComposite * starSkyVis * nightW;
   }
 
   // 6. Weiche atmosphärische Himmelsüberblendung an den extremen Flanken (Sicherheit bei >48:9)
