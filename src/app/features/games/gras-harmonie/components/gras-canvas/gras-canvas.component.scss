@@ -1,7 +1,10 @@
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
 :host {
   display: block;
   width: 100%;
   height: 100%;
+  font-family: $font-sniglet;
 }
 
 .three-canvas-container {

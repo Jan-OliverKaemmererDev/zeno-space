@@ -5,9 +5,11 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 
 :host {
   display: block;
+  font-family: $font-sniglet;
 }
 
 .gras-controls-dock {
+  font-family: $font-sniglet;
   position: fixed;
   bottom: 24px;
   left: 50%;
@@ -28,6 +30,7 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 }
 
 .dock-panel {
+  font-family: $font-sniglet;
   pointer-events: auto;
   display: inline-flex;
   align-items: center;

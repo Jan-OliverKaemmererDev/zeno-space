@@ -1,11 +1,15 @@
 @use 'styles/variables' as v;
 @use 'styles/mixins' as m;
 
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
 :host {
   display: block;
+  font-family: $font-sniglet;
 }
 
 .celestial-orb-tray {
+  font-family: $font-sniglet;
   position: fixed;
   right: 24px;
   top: 50%;

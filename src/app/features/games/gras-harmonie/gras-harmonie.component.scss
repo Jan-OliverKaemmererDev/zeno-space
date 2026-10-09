@@ -4,6 +4,7 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 
 :host {
   display: block;
+  font-family: $font-sniglet;
 }
 
 .gras-wrapper {
