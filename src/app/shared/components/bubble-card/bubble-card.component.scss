@@ -111,6 +111,14 @@
     }
   }
 
+  &.card--gras-harmonie {
+    border-radius: 64px 24px 58px 28px / 28px 60px 24px 62px;
+
+    &:hover {
+      border-radius: 50px 38px 46px 34px / 36px 52px 34px 48px;
+    }
+  }
+
   @media (max-width: 768px) {
     width: min(290px, calc(100vw - 32px));
     min-height: 275px;

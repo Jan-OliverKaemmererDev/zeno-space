@@ -303,6 +303,47 @@ export class GameRegistryService {
         objective: 'Ziehe täglich genau eine Weisheit. Nach 100 Tagen startet ein neuer Zyklus.',
       },
     },
+    {
+      id: 'gras-harmonie',
+      title: 'Gras-Harmonie',
+      subtitle: 'Interaktive Wind- & Gras-Oase',
+      description: 'Sei der Wind über einem endlosen saftigen Grasmeer. Bringe die Grashalme mit deinen Mausbewegungen zum Tanzen und lausche harmonischen Klängen unter majestätischen Kumulus-Wolken.',
+      badge: '3D WebGL',
+      category: 'natur',
+      route: '/game/gras-harmonie',
+      icon: 'grass',
+      primaryColor: '#4ade80',
+      glowColor: 'rgba(74, 222, 128, 0.35)',
+      tags: ['Natur'],
+      floatDelay: '1.5s',
+      floatDuration: '9.6s',
+      sizeClass: 'bubble--lg',
+      controls: {
+        keyboard: [
+          {
+            type: 'inline',
+            keys: ['1', '2', '3'],
+            label: 'Tageszeit wechseln (Mittag, Goldene Stunde, Nacht)',
+          },
+          {
+            type: 'space',
+            keys: ['LEERTASTE'],
+            label: 'Weite Windböe über das gesamte Feld wehen lassen',
+          },
+          {
+            type: 'inline',
+            keys: ['ESC'],
+            label: 'Zurück zur Übersicht',
+          },
+        ],
+        mouse: {
+          leftClick: true,
+          drag: true,
+          label: 'Maus bewegen = Wind streicht durchs Gras, Klicken = Wirbelwind',
+        },
+        objective: 'Streiche mit der Maus sanft oder schwungvoll durch das hohe Gras und lausche den beruhigenden Harmonien.',
+      },
+    },
   ]);
 
   /**

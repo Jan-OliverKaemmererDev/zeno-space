@@ -58,6 +58,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'game/gras-harmonie',
+    loadComponent: () =>
+      import('./features/games/gras-harmonie/gras-harmonie.component').then(
+        (m) => m.GrasHarmonieComponent
+      ),
+  },
+  {
     path: '**',
     redirectTo: '',
   },
