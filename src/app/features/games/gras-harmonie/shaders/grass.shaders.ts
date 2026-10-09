@@ -21,6 +21,9 @@ varying float vIsFlower;
 uniform float uTime;
 uniform vec2 uWindDir;
 uniform float uWindStrength;
+uniform float uWindPhase;
+uniform float uFlutterPhase;
+uniform float uFlutterStrength;
 uniform vec3 uMousePos;
 
 // Concurrent Directional & Circular Waves (24 concurrent waves rolling across the hills)
@@ -83,19 +86,21 @@ void main() {
 
   // -------------------------------------------------------------
   // 1. Ambient Rolling Wind Waves (Anime Prairie aesthetic)
+  //    - Kontinuierlich integrierte Wind- & Flatterphasen (Null Ruckeln / Null Phasensprünge!)
+  //    - Deutliche visuelle Unterschiede zwischen Sanft, Frisch und Kräftig
   // -------------------------------------------------------------
-  vec2 waveCoord = instanceOrigin.xz * 0.09 - uWindDir * (uTime * 1.6);
+  vec2 waveCoord = instanceOrigin.xz * 0.075 - uWindDir * uWindPhase;
   float wave1 = noise2D(waveCoord) * 0.75;
-  float wave2 = sin(waveCoord.x * 2.2 + waveCoord.y * 1.8 + uTime * 2.0) * 0.25;
+  float wave2 = sin(waveCoord.x * 2.2 + waveCoord.y * 1.8 + uWindPhase * 1.35) * 0.25;
   float combinedWave = wave1 + wave2;
 
-  // Natural gust swells
-  float gustSwell = sin(uTime * 0.7 + instanceOrigin.x * 0.04) * 0.35 + 0.65;
-  vec2 ambientDisp = uWindDir * (combinedWave * gustSwell * uWindStrength * 0.48);
+  // Organische Böen-Pulsation der Wellen über die Landschaft
+  float gustSwell = sin(uWindPhase * 0.45 + instanceOrigin.x * 0.04) * 0.35 + 0.65;
+  vec2 ambientDisp = uWindDir * (combinedWave * gustSwell * uWindStrength * 0.75);
 
-  // Micro-flutter per blade
-  float flutter = sin(uTime * 9.0 + aBladeSeed * 30.0) * 0.035 * uWindStrength;
-  ambientDisp += uWindDir * (flutter * 0.5);
+  // Lebendiges Spitzen-Flattern der Halme im Wind
+  float flutter = sin(uFlutterPhase + aBladeSeed * 35.0) * uFlutterStrength;
+  ambientDisp += uWindDir * (flutter * 0.85);
 
   // -------------------------------------------------------------
   // -------------------------------------------------------------

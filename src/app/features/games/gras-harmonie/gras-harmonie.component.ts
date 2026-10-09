@@ -153,6 +153,18 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
   private lastSpawnDir = new THREE.Vector2(0, 1);
   private lastSpawnTime = 0;
 
+  // Dynamic Wind Preset Parameters (smoothly blended with LERP, zero jerking / zero phase reset)
+  private currentWindStrength = 1.4;
+  private targetWindStrength = 1.4;
+  private currentWindSpeed = 1.8;
+  private targetWindSpeed = 1.8;
+  private currentFlutterSpeed = 8.5;
+  private targetFlutterSpeed = 8.5;
+  private currentFlutterStrength = 0.06;
+  private targetFlutterStrength = 0.06;
+  private windPhase = 0.0;
+  private flutterPhase = 0.0;
+
   // Concurrent Click Shockwaves (Ring buffer for 5 waves)
   private shockwaves = [
     { x: 0, z: 0, time: 99.0, strength: 0.0 },
@@ -434,7 +446,10 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
     const uniforms = {
       uTime: { value: 0 },
       uWindDir: { value: new THREE.Vector2(0.85, 0.52).normalize() },
-      uWindStrength: { value: 1.25 },
+      uWindStrength: { value: this.currentWindStrength },
+      uWindPhase: { value: 0.0 },
+      uFlutterPhase: { value: 0.0 },
+      uFlutterStrength: { value: this.currentFlutterStrength },
       uMousePos: { value: new THREE.Vector3(0, 0, 0) },
       uDirWaveA: { value: this.dirWaveUniformsA },
       uDirWaveB: { value: this.dirWaveUniformsB },
@@ -776,9 +791,24 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
       this.tornadoStrength = Math.max(0.0, this.tornadoStrength - delta * 2.2);
     }
 
+    // Smooth, organic transition between ambient wind presets (Sanft / Frisch / Kräftig)
+    const windLerp = Math.min(1.0, 2.5 * delta);
+    this.currentWindStrength += (this.targetWindStrength - this.currentWindStrength) * windLerp;
+    this.currentWindSpeed += (this.targetWindSpeed - this.currentWindSpeed) * windLerp;
+    this.currentFlutterSpeed += (this.targetFlutterSpeed - this.currentFlutterSpeed) * windLerp;
+    this.currentFlutterStrength += (this.targetFlutterStrength - this.currentFlutterStrength) * windLerp;
+
+    // Continuous phase integration: NEVER jumps or resets, zero glitching
+    this.windPhase += delta * this.currentWindSpeed;
+    this.flutterPhase += delta * this.currentFlutterSpeed;
+
     // Update Grass Shader Uniforms
     if (this.grassMaterial) {
       this.grassMaterial.uniforms['uTime'].value = elapsed;
+      this.grassMaterial.uniforms['uWindStrength'].value = this.currentWindStrength;
+      this.grassMaterial.uniforms['uWindPhase'].value = this.windPhase;
+      this.grassMaterial.uniforms['uFlutterPhase'].value = this.flutterPhase;
+      this.grassMaterial.uniforms['uFlutterStrength'].value = this.currentFlutterStrength;
       this.grassMaterial.uniforms['uMousePos'].value.copy(this.smoothMouseGround);
 
       this.grassMaterial.uniforms['uTornadoPos'].value.set(
@@ -853,10 +883,11 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
 
       // Physics integration for ambient particles
       if (p.isAirborne) {
-        p.vx += 0.85 * delta;
-        p.vz += 0.52 * delta;
+        const windDrift = this.currentWindSpeed / 1.8;
+        p.vx += 0.85 * windDrift * delta;
+        p.vz += 0.52 * windDrift * delta;
 
-        p.swirlPhase += delta * 2.5;
+        p.swirlPhase += delta * 2.5 * windDrift;
         p.x += (p.vx + Math.sin(p.swirlPhase) * 0.35) * delta;
         p.y += p.vy * delta;
         p.z += (p.vz + Math.cos(p.swirlPhase) * 0.35) * delta;
@@ -1290,8 +1321,8 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
     this.pointerHoldTimer = 0.0;
     this.startTornadoParticlesSettling();
     if (this.tornadoStrength > 0.2) {
-      this.windSpeedDisplay.set('Sanfte Brise (14 km/h)');
-      this.audio.updateWindIntensity(0.2);
+      this.windSpeedDisplay.set(this.getBaselineWindDisplay());
+      this.audio.updateWindIntensity(this.getBaselineAudioIntensity());
     }
   }
 
@@ -1304,8 +1335,8 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
     this.pointerHoldTimer = 0.0;
     this.tornadoStrength = 0.0;
     this.startTornadoParticlesSettling();
-    this.windSpeedDisplay.set('Sanfte Brise (14 km/h)');
-    this.audio.updateWindIntensity(0.1);
+    this.windSpeedDisplay.set(this.getBaselineWindDisplay());
+    this.audio.updateWindIntensity(this.getBaselineAudioIntensity());
   }
 
   /**
@@ -1562,29 +1593,41 @@ export class GrasHarmonieComponent implements AfterViewInit, OnDestroy {
 
   setWindPreset(preset: 'gentle' | 'fresh' | 'gust'): void {
     this.windPreset.set(preset);
-    if (!this.grassMaterial) return;
 
-    let strength = 1.25;
-    if (preset === 'gentle') strength = 0.75;
-    if (preset === 'gust') strength = 2.1;
+    if (preset === 'gentle') {
+      this.targetWindStrength = 0.45;       // Sehr sanftes, entspanntes Wiegen
+      this.targetWindSpeed = 0.75;          // Langsame, ruhige Sommerwellen
+      this.targetFlutterSpeed = 4.0;
+      this.targetFlutterStrength = 0.02;    // Kaum Halmzittern
+    } else if (preset === 'gust') {
+      this.targetWindStrength = 3.2;        // Kraftvolles, tiefes Durchbiegen im Sturmwind!
+      this.targetWindSpeed = 3.8;           // Schnelle, brausende Windbänder
+      this.targetFlutterSpeed = 16.0;
+      this.targetFlutterStrength = 0.16;    // Lebhaft flatternde Halmspitzen
+    } else {
+      // 'fresh' (Standard)
+      this.targetWindStrength = 1.4;        // Schöne, lebendige Ghibli-Brise
+      this.targetWindSpeed = 1.8;
+      this.targetFlutterSpeed = 8.5;
+      this.targetFlutterStrength = 0.06;
+    }
 
-    this.grassMaterial.uniforms['uWindStrength'].value = strength;
     this.windSpeedDisplay.set(this.getBaselineWindDisplay());
     this.audio.updateWindIntensity(this.getBaselineAudioIntensity());
   }
 
   private getBaselineWindDisplay(): string {
     const p = this.windPreset();
-    if (p === 'gentle') return 'Sanfte Brise (9 km/h)';
-    if (p === 'gust') return 'Frischer Wind (28 km/h)';
-    return 'Frische Brise (16 km/h)';
+    if (p === 'gentle') return 'Sanfte Brise (8 km/h)';
+    if (p === 'gust') return 'Kräftiger Wind (38 km/h)';
+    return 'Frische Brise (18 km/h)';
   }
 
   private getBaselineAudioIntensity(): number {
     const p = this.windPreset();
-    if (p === 'gentle') return 0.1;
-    if (p === 'gust') return 0.45;
-    return 0.2;
+    if (p === 'gentle') return 0.08;
+    if (p === 'gust') return 0.50;
+    return 0.22;
   }
 
   toggleSound(): void {
