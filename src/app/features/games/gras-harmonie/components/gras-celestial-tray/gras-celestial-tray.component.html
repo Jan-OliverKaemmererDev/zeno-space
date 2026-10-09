@@ -1,0 +1,105 @@
+<aside
+  class="celestial-orb-tray"
+  role="radiogroup"
+  aria-label="Tageszeit und Atmosphäre"
+>
+  <div class="celestial-glass-plate" aria-hidden="true">
+    <div class="celestial-plate-dish dish-top"></div>
+    <div class="celestial-plate-dish dish-mid"></div>
+    <div class="celestial-plate-dish dish-bot"></div>
+  </div>
+
+  <!-- 1. Sun (Mittag / Day) -->
+  <button
+    type="button"
+    role="radio"
+    class="celestial-orb orb-sun"
+    [class.active]="timeOfDay === 'day'"
+    [attr.aria-checked]="timeOfDay === 'day'"
+    (click)="setTime('day')"
+    aria-label="Sonniger Mittag (Taste 1)"
+    title="Sonniger Mittag (Taste 1)"
+  >
+    <div class="orb-glass-body">
+      <svg
+        class="celestial-icon sun-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="12" r="4.25" />
+        <path
+          d="M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07l1.77-1.77M17.3 6.7l1.77-1.77"
+        />
+      </svg>
+    </div>
+    <span class="sr-only">Mittag</span>
+  </button>
+
+  <!-- 2. Setting Half-Sun (Goldene Stunde / Sunset) -->
+  <button
+    type="button"
+    role="radio"
+    class="celestial-orb orb-sunset"
+    [class.active]="timeOfDay === 'golden'"
+    [attr.aria-checked]="timeOfDay === 'golden'"
+    (click)="setTime('golden')"
+    aria-label="Goldene Stunde – Sonnenuntergang (Taste 2)"
+    title="Goldene Stunde – Sonnenuntergang (Taste 2)"
+  >
+    <div class="orb-glass-body">
+      <svg
+        class="celestial-icon sunset-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <line x1="3" y1="17.5" x2="21" y2="17.5" />
+        <line x1="6" y1="20.5" x2="18" y2="20.5" />
+        <path d="M7 17.5 A 5 5 0 0 1 17 17.5" />
+        <line x1="12" y1="5.5" x2="12" y2="8" />
+        <line x1="6.3" y1="8.8" x2="8.2" y2="10.4" />
+        <line x1="17.7" y1="8.8" x2="15.8" y2="10.4" />
+      </svg>
+    </div>
+    <span class="sr-only">Goldene Stunde</span>
+  </button>
+
+  <!-- 3. Moon (Zen-Nacht / Night) -->
+  <button
+    type="button"
+    role="radio"
+    class="celestial-orb orb-moon"
+    [class.active]="timeOfDay === 'night'"
+    [attr.aria-checked]="timeOfDay === 'night'"
+    (click)="setTime('night')"
+    aria-label="Zen-Nacht (Taste 3)"
+    title="Zen-Nacht (Taste 3)"
+  >
+    <div class="orb-glass-body">
+      <svg
+        class="celestial-icon moon-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M20.5 13.2A8.5 8.5 0 1 1 10.8 3.5 6.8 6.8 0 0 0 20.5 13.2z" />
+        <circle cx="17.5" cy="5.5" r="0.8" fill="currentColor" stroke="none" />
+        <circle cx="19.5" cy="8.5" r="0.55" fill="currentColor" stroke="none" />
+      </svg>
+    </div>
+    <span class="sr-only">Zen-Nacht</span>
+  </button>
+</aside>

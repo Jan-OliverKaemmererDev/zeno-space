@@ -1,0 +1,218 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+:host {
+  display: block;
+}
+
+.gras-controls-dock {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  pointer-events: none;
+  z-index: 20;
+
+  @include m.mobile-landscape-short {
+    bottom: 10px;
+  }
+
+  @include m.mobile-se {
+    bottom: 12px;
+  }
+}
+
+.dock-panel {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(14, 38, 24, 0.68) 45%,
+    rgba(6, 20, 12, 0.88) 100%
+  );
+  backdrop-filter: blur(26px) saturate(140%);
+  -webkit-backdrop-filter: blur(26px) saturate(140%);
+
+  border: 1px solid rgba(74, 222, 128, 0.28);
+  border-top-color: rgba(255, 255, 255, 0.45);
+  border-bottom-color: rgba(34, 197, 94, 0.18);
+  border-radius: 999px;
+
+  box-shadow:
+    0 18px 44px -6px rgba(0, 0, 0, 0.65),
+    0 4px 14px rgba(0, 0, 0, 0.35),
+    0 0 28px rgba(34, 197, 94, 0.14),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.35),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4);
+
+  @include m.mobile-landscape-short {
+    padding: 5px 12px;
+    gap: 6px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 6px 10px;
+    gap: 4px;
+  }
+}
+
+.control-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  margin: 0;
+  padding: 0;
+  flex-wrap: nowrap;
+
+  @media (max-width: 480px) {
+    gap: 3px;
+  }
+}
+
+.dock-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 18px;
+  border-radius: 999px;
+
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-top-color: rgba(255, 255, 255, 0.28);
+
+  color: #dcfce7;
+  font-family: $font-sniglet;
+  font-size: 0.86rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @include m.mobile-landscape-short {
+    padding: 5px 12px;
+    font-size: 0.78rem;
+  }
+
+  @media (max-width: 480px) {
+    padding: 5px 10px;
+    font-size: 0.76rem;
+  }
+
+  &:hover {
+    background: rgba(74, 222, 128, 0.18);
+    border-color: rgba(134, 239, 172, 0.45);
+    border-top-color: rgba(255, 255, 255, 0.45);
+    color: #ffffff;
+    transform: translateY(-1px);
+  }
+
+  &.active {
+    background: linear-gradient(
+      135deg,
+      rgba(74, 222, 128, 0.35) 0%,
+      rgba(34, 197, 94, 0.48) 100%
+    );
+    border-color: #86efac;
+    border-top-color: rgba(255, 255, 255, 0.7);
+    color: #ffffff;
+    font-weight: 600;
+    box-shadow:
+      0 0 18px rgba(74, 222, 128, 0.45),
+      inset 0 1px 1.5px rgba(255, 255, 255, 0.55);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+.dock-divider {
+  width: 1px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.15);
+  margin: 0 4px;
+
+  @media (max-width: 480px) {
+    margin: 0 2px;
+  }
+}
+
+// Primary Gust Button
+.dock-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-family: $font-sniglet;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  border: none;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @include m.mobile-landscape-short {
+    padding: 5px 12px;
+    font-size: 0.78rem;
+    gap: 4px;
+  }
+
+  @media (max-width: 480px) {
+    padding: 5px 10px;
+    font-size: 0.76rem;
+    gap: 4px;
+  }
+
+  &--primary {
+    background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
+    border: 1px solid rgba(134, 239, 172, 0.45);
+    border-top-color: rgba(255, 255, 255, 0.6);
+    color: #ffffff;
+    box-shadow:
+      0 4px 16px rgba(34, 197, 94, 0.5),
+      inset 0 1px 1.5px rgba(255, 255, 255, 0.5);
+
+    &:hover {
+      background: linear-gradient(135deg, #4ade80 0%, #16a34a 100%);
+      transform: translateY(-2px);
+      box-shadow:
+        0 6px 22px rgba(34, 197, 94, 0.7),
+        0 0 16px rgba(74, 222, 128, 0.5),
+        inset 0 1px 1.5px rgba(255, 255, 255, 0.7);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}

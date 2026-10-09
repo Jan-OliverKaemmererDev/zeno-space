@@ -1,192 +1,28 @@
 <div class="gras-wrapper" role="application" aria-label="Gras-Harmonie – Interaktive Wind- & Gras-Oase">
-  <!-- Three.js Canvas Container -->
-  <div
-    #canvasContainer
-    class="three-canvas-container"
-    role="img"
-    aria-label="3D Gras-Harmonie Simulation mit wogendem Gras und Kumulus-Wolken"
-    (pointerdown)="onPointerDown($event)"
-    (pointermove)="onPointerMove($event)"
-    (pointerup)="onPointerUp($event)"
-    (pointerleave)="onPointerLeave($event)"
-  ></div>
+  <!-- Interactive 3D Canvas Simulation Component -->
+  <app-gras-canvas
+    #canvasComp
+    [timeOfDay]="timeOfDay()"
+    [windPreset]="windPreset()"
+    (windSpeedChange)="windSpeedDisplay.set($event)"
+  ></app-gras-canvas>
 
   <!-- Top Glass HUD Header -->
-  <header class="gras-hud-header">
-    <a
-      routerLink="/"
-      fragment="bubble-hub"
-      class="back-link"
-      aria-label="Zurück zur Startseite"
-    >
-      <span class="back-icon" aria-hidden="true">←</span>
-      <span>Zurück</span>
-    </a>
+  <app-gras-harmonie-header
+    [isMuted]="isMuted()"
+    (toggleSound)="toggleSound()"
+  ></app-gras-harmonie-header>
 
-    <!-- Quick Audio Mute Toggle -->
-    <button
-      type="button"
-      class="audio-toggle-btn"
-      (click)="toggleSound()"
-      [attr.aria-label]="isMuted() ? 'Ton einschalten' : 'Ton stummschalten'"
-      [title]="isMuted() ? 'Ton aktivieren' : 'Stummschalten'"
-    >
-      @if (isMuted()) {
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <line x1="1" y1="1" x2="23" y2="23" />
-          <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6" />
-          <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23" />
-          <line x1="12" y1="19" x2="12" y2="23" />
-          <line x1="8" y1="23" x2="16" y2="23" />
-        </svg>
-      } @else {
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <path d="M11 5L6 9H2v6h4l5 4V5z"/>
-          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
-        </svg>
-      }
-    </button>
-  </header>
+  <!-- Right Side Celestial Time & Atmosphere Tray -->
+  <app-gras-celestial-tray
+    [timeOfDay]="timeOfDay()"
+    (timeOfDayChange)="setTimeOfDay($event)"
+  ></app-gras-celestial-tray>
 
-  <!-- Right Side Celestial Time & Atmosphere Tray (Inspired by orb-3d-container) -->
-  <aside 
-    class="celestial-orb-tray"
-    role="radiogroup"
-    aria-label="Tageszeit und Atmosphäre"
-  >
-    <div class="celestial-glass-plate" aria-hidden="true">
-      <div class="celestial-plate-dish dish-top"></div>
-      <div class="celestial-plate-dish dish-mid"></div>
-      <div class="celestial-plate-dish dish-bot"></div>
-    </div>
-
-    <!-- 1. Sun (Mittag / Day) -->
-    <button
-      type="button"
-      role="radio"
-      class="celestial-orb orb-sun"
-      [class.active]="timeOfDay() === 'day'"
-      [attr.aria-checked]="timeOfDay() === 'day'"
-      (click)="setTimeOfDay('day')"
-      aria-label="Sonniger Mittag (Taste 1)"
-      title="Sonniger Mittag (Taste 1)"
-    >
-      <div class="orb-glass-body">
-        <svg class="celestial-icon sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <circle cx="12" cy="12" r="4.25" />
-          <path d="M12 2v2.5M12 19.5V22M4.93 4.93l1.77 1.77M17.3 17.3l1.77 1.77M2 12h2.5M19.5 12H22M4.93 19.07l1.77-1.77M17.3 6.7l1.77-1.77" />
-        </svg>
-      </div>
-      <span class="sr-only">Mittag</span>
-    </button>
-
-    <!-- 2. Setting Half-Sun (Goldene Stunde / Sunset) -->
-    <button
-      type="button"
-      role="radio"
-      class="celestial-orb orb-sunset"
-      [class.active]="timeOfDay() === 'golden'"
-      [attr.aria-checked]="timeOfDay() === 'golden'"
-      (click)="setTimeOfDay('golden')"
-      aria-label="Goldene Stunde – Sonnenuntergang (Taste 2)"
-      title="Goldene Stunde – Sonnenuntergang (Taste 2)"
-    >
-      <div class="orb-glass-body">
-        <svg class="celestial-icon sunset-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <line x1="3" y1="17.5" x2="21" y2="17.5" />
-          <line x1="6" y1="20.5" x2="18" y2="20.5" />
-          <path d="M7 17.5 A 5 5 0 0 1 17 17.5" />
-          <line x1="12" y1="5.5" x2="12" y2="8" />
-          <line x1="6.3" y1="8.8" x2="8.2" y2="10.4" />
-          <line x1="17.7" y1="8.8" x2="15.8" y2="10.4" />
-        </svg>
-      </div>
-      <span class="sr-only">Goldene Stunde</span>
-    </button>
-
-    <!-- 3. Moon (Zen-Nacht / Night) -->
-    <button
-      type="button"
-      role="radio"
-      class="celestial-orb orb-moon"
-      [class.active]="timeOfDay() === 'night'"
-      [attr.aria-checked]="timeOfDay() === 'night'"
-      (click)="setTimeOfDay('night')"
-      aria-label="Zen-Nacht (Taste 3)"
-      title="Zen-Nacht (Taste 3)"
-    >
-      <div class="orb-glass-body">
-        <svg class="celestial-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M20.5 13.2A8.5 8.5 0 1 1 10.8 3.5 6.8 6.8 0 0 0 20.5 13.2z" />
-          <circle cx="17.5" cy="5.5" r="0.8" fill="currentColor" stroke="none" />
-          <circle cx="19.5" cy="8.5" r="0.55" fill="currentColor" stroke="none" />
-        </svg>
-      </div>
-      <span class="sr-only">Zen-Nacht</span>
-    </button>
-  </aside>
-
-  <!-- Bottom Floating Glass Control Dock: Sanft, Frisch, Kräftig, Windstoß in einer Zeile -->
-  <nav class="gras-controls-dock" aria-label="Gras-Harmonie Windsteuerung">
-    <div class="dock-panel" role="toolbar" aria-label="Windstärke & Windstoß">
-      <!-- Wind Preset Selector -->
-      <fieldset class="control-group" role="radiogroup" aria-label="Grundwind-Stärke">
-        <legend class="sr-only">Grundwind-Stärke</legend>
-        <button
-          type="button"
-          role="radio"
-          class="dock-pill"
-          [class.active]="windPreset() === 'gentle'"
-          [attr.aria-checked]="windPreset() === 'gentle'"
-          (click)="setWindPreset('gentle')"
-          title="Sanfte Brise"
-        >
-          <span>Sanft</span>
-        </button>
-
-        <button
-          type="button"
-          role="radio"
-          class="dock-pill"
-          [class.active]="windPreset() === 'fresh'"
-          [attr.aria-checked]="windPreset() === 'fresh'"
-          (click)="setWindPreset('fresh')"
-          title="Frische Brise"
-        >
-          <span>Frisch</span>
-        </button>
-
-        <button
-          type="button"
-          role="radio"
-          class="dock-pill"
-          [class.active]="windPreset() === 'gust'"
-          [attr.aria-checked]="windPreset() === 'gust'"
-          (click)="setWindPreset('gust')"
-          title="Kräftiger Wind"
-        >
-          <span>Kräftig</span>
-        </button>
-      </fieldset>
-
-      <div class="dock-divider" aria-hidden="true"></div>
-
-      <!-- Action: Trigger Wind Gust -->
-      <button
-        type="button"
-        class="dock-btn dock-btn--primary"
-        (click)="triggerWindGust()"
-        aria-label="Windstoß auslösen (oder Leertaste)"
-        title="Weite Windböe über das Grasfeld wehen lassen (Leertaste)"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/>
-          <path d="M9.6 4.6A2 2 0 1 1 11 8H2"/>
-          <path d="M12.6 19.4A2 2 0 1 0 14 16H2"/>
-        </svg>
-        <span>Windstoß</span>
-      </button>
-    </div>
-  </nav>
+  <!-- Bottom Floating Glass Control Dock -->
+  <app-gras-controls-dock
+    [windPreset]="windPreset()"
+    (windPresetChange)="setWindPreset($event)"
+    (windGust)="triggerWindGust()"
+  ></app-gras-controls-dock>
 </div>

@@ -1,0 +1,75 @@
+<nav class="gras-controls-dock" aria-label="Gras-Harmonie Windsteuerung">
+  <div class="dock-panel" role="toolbar" aria-label="Windstärke & Windstoß">
+    <!-- Wind Preset Selector -->
+    <fieldset
+      class="control-group"
+      role="radiogroup"
+      aria-label="Grundwind-Stärke"
+    >
+      <legend class="sr-only">Grundwind-Stärke</legend>
+      <button
+        type="button"
+        role="radio"
+        class="dock-pill"
+        [class.active]="windPreset === 'gentle'"
+        [attr.aria-checked]="windPreset === 'gentle'"
+        (click)="selectPreset('gentle')"
+        title="Sanfte Brise"
+      >
+        <span>Sanft</span>
+      </button>
+
+      <button
+        type="button"
+        role="radio"
+        class="dock-pill"
+        [class.active]="windPreset === 'fresh'"
+        [attr.aria-checked]="windPreset === 'fresh'"
+        (click)="selectPreset('fresh')"
+        title="Frische Brise"
+      >
+        <span>Frisch</span>
+      </button>
+
+      <button
+        type="button"
+        role="radio"
+        class="dock-pill"
+        [class.active]="windPreset === 'gust'"
+        [attr.aria-checked]="windPreset === 'gust'"
+        (click)="selectPreset('gust')"
+        title="Kräftiger Wind"
+      >
+        <span>Kräftig</span>
+      </button>
+    </fieldset>
+
+    <div class="dock-divider" aria-hidden="true"></div>
+
+    <!-- Action: Trigger Wind Gust -->
+    <button
+      type="button"
+      class="dock-btn dock-btn--primary"
+      (click)="onTriggerGust()"
+      aria-label="Windstoß auslösen (oder Leertaste)"
+      title="Weite Windböe über das Grasfeld wehen lassen (Leertaste)"
+    >
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2" />
+        <path d="M9.6 4.6A2 2 0 1 1 11 8H2" />
+        <path d="M12.6 19.4A2 2 0 1 0 14 16H2" />
+      </svg>
+      <span>Windstoß</span>
+    </button>
+  </div>
+</nav>

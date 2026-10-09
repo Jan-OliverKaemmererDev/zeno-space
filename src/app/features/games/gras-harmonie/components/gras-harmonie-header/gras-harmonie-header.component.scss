@@ -1,0 +1,166 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+:host {
+  display: block;
+}
+
+.gras-hud-header {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 20;
+
+  @include m.mobile-landscape-short {
+    top: 12px;
+    left: 14px;
+    right: 14px;
+  }
+
+  @include m.mobile-se {
+    top: 12px;
+    left: 12px;
+    right: 12px;
+  }
+}
+
+// Back Link: Frosted Green Glass
+.back-link {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-radius: 999px;
+  font-family: $font-sniglet;
+
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(14, 38, 24, 0.65) 45%,
+    rgba(6, 20, 12, 0.85) 100%
+  );
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+
+  border: 1px solid rgba(74, 222, 128, 0.28);
+  border-top-color: rgba(255, 255, 255, 0.45);
+  border-bottom-color: rgba(34, 197, 94, 0.15);
+
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.45),
+    0 2px 8px rgba(0, 0, 0, 0.25),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.35),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4),
+    0 0 18px rgba(74, 222, 128, 0.12);
+
+  color: #f0fdf4;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @include m.mobile-landscape-short {
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    gap: 6px;
+  }
+
+  .back-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+    transition: transform 0.25s ease;
+  }
+
+  &:hover {
+    background: linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.24) 0%,
+      rgba(22, 58, 36, 0.78) 45%,
+      rgba(10, 30, 18, 0.92) 100%
+    );
+    border-color: rgba(134, 239, 172, 0.7);
+    border-top-color: rgba(255, 255, 255, 0.7);
+    box-shadow:
+      0 16px 36px rgba(0, 0, 0, 0.55),
+      0 0 24px rgba(74, 222, 128, 0.35),
+      inset 0 1px 1.5px rgba(255, 255, 255, 0.5);
+    transform: translateY(-1px);
+
+    .back-icon {
+      transform: translateX(-3px);
+    }
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+// Audio Toggle Button: Circular Frosted Green Glass
+.audio-toggle-btn {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.16) 0%,
+    rgba(14, 38, 24, 0.65) 45%,
+    rgba(6, 20, 12, 0.85) 100%
+  );
+  backdrop-filter: blur(24px) saturate(140%);
+  -webkit-backdrop-filter: blur(24px) saturate(140%);
+
+  border: 1px solid rgba(74, 222, 128, 0.28);
+  border-top-color: rgba(255, 255, 255, 0.45);
+  border-bottom-color: rgba(34, 197, 94, 0.15);
+
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.45),
+    0 2px 8px rgba(0, 0, 0, 0.25),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.35),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.4),
+    0 0 18px rgba(74, 222, 128, 0.12);
+
+  color: #bbf7d0;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @include m.mobile-landscape-short {
+    width: 36px;
+    height: 36px;
+  }
+
+  &:hover {
+    background: linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.24) 0%,
+      rgba(22, 58, 36, 0.78) 45%,
+      rgba(10, 30, 18, 0.92) 100%
+    );
+    border-color: rgba(134, 239, 172, 0.7);
+    border-top-color: rgba(255, 255, 255, 0.7);
+    transform: scale(1.08);
+    box-shadow:
+      0 16px 36px rgba(0, 0, 0, 0.55),
+      0 0 22px rgba(74, 222, 128, 0.4);
+    color: #ffffff;
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
