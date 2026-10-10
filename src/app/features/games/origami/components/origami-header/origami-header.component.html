@@ -1,0 +1,70 @@
+<header class="origami-header">
+  <!-- Left: Return to Minigame Hub -->
+  <a
+    routerLink="/"
+    fragment="bubble-hub"
+    class="back-link"
+    aria-label="Zurück zur Startseite"
+    title="Zurück zur Spielübersicht"
+  >
+    <span class="back-icon" aria-hidden="true">←</span>
+    <span>Zurück</span>
+  </a>
+
+  <!-- Center: Dynamic Step Indicator Pill -->
+  <div class="step-center-container" role="status" aria-live="polite">
+    @if (state.selectedPattern(); as pattern) {
+      <div class="step-pill">
+        <div class="step-counter-row">
+          <span class="kanji-badge">{{ pattern.kanji }}</span>
+          <span class="pattern-title">{{ pattern.name }}</span>
+          <span class="step-divider">•</span>
+          <span class="step-numbers">{{ state.stepLabel() }}</span>
+        </div>
+
+        @if (state.currentStep(); as step) {
+          <div class="step-instruction-row">
+            <span class="step-name">{{ step.name }}</span>
+          </div>
+        }
+
+        <!-- Subtle Progress Line -->
+        <div class="step-progress-track" aria-hidden="true">
+          <div
+            class="step-progress-bar"
+            [style.width.%]="state.progressPercentage()"
+          ></div>
+        </div>
+      </div>
+    } @else {
+      <div class="welcome-pill">
+        <span class="kanji-badge">折り紙</span>
+        <span class="welcome-text">Zen Origami Atelier</span>
+      </div>
+    }
+  </div>
+
+  <!-- Right: Sound Mute Toggle -->
+  <button
+    type="button"
+    class="audio-toggle-btn"
+    [class.is-playing]="!audioService.isMuted()"
+    (click)="onToggleSound()"
+    [attr.aria-label]="audioService.isMuted() ? 'Ton einschalten' : 'Ton stummschalten'"
+    [title]="audioService.isMuted() ? 'Ton aktivieren' : 'Stummschalten'"
+  >
+    @if (!audioService.isMuted()) {
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+      </svg>
+    } @else {
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+        <line x1="23" y1="9" x2="17" y2="15" />
+        <line x1="17" y1="9" x2="23" y2="15" />
+      </svg>
+    }
+  </button>
+</header>

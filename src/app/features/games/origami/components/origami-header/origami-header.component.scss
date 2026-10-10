@@ -1,0 +1,308 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+:host {
+  display: block;
+  font-family: $font-sniglet;
+}
+
+.origami-header {
+  font-family: $font-sniglet;
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 30;
+
+  @include m.mobile-landscape-short {
+    top: 12px;
+    left: 14px;
+    right: 14px;
+  }
+
+  @include m.mobile-se {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+  }
+}
+
+// Back Link: Frosted Rose-Gold / Washi Glass
+.back-link {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  border-radius: 999px;
+  font-family: $font-sniglet;
+
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.22) 0%,
+    rgba(244, 114, 182, 0.2) 45%,
+    rgba(190, 24, 93, 0.28) 100%
+  );
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px);
+
+  border: 1.2px solid rgba(244, 114, 182, 0.45);
+  border-top-color: rgba(255, 255, 255, 0.7);
+  border-bottom-color: rgba(190, 24, 93, 0.35);
+
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.25),
+    0 0 16px rgba(244, 114, 182, 0.22),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.5);
+
+  color: #fff1f2;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @include m.mobile-landscape-short {
+    padding: 6px 14px;
+    font-size: 0.82rem;
+    gap: 6px;
+  }
+
+  .back-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+    transition: transform 0.25s ease;
+  }
+
+  &:hover {
+    background: linear-gradient(
+      165deg,
+      rgba(255, 255, 255, 0.35) 0%,
+      rgba(244, 114, 182, 0.32) 45%,
+      rgba(190, 24, 93, 0.45) 100%
+    );
+    border-color: rgba(251, 207, 232, 0.85);
+    border-top-color: #ffffff;
+    box-shadow:
+      0 12px 30px rgba(0, 0, 0, 0.3),
+      0 0 24px rgba(244, 114, 182, 0.45),
+      inset 0 1px 1.5px rgba(255, 255, 255, 0.65);
+    transform: translateY(-1px);
+    color: #ffffff;
+
+    .back-icon {
+      transform: translateX(-3px);
+    }
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+// Center Pill: Step Progress & Instruction
+.step-center-container {
+  pointer-events: auto;
+  display: flex;
+  justify-content: center;
+  max-width: 520px;
+  width: 100%;
+  margin: 0 12px;
+}
+
+.step-pill,
+.welcome-pill {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 24px 10px;
+  border-radius: 999px;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(30, 20, 15, 0.65) 60%,
+    rgba(20, 12, 10, 0.85) 100%
+  );
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(254, 215, 170, 0.35);
+  border-top-color: rgba(255, 255, 255, 0.65);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.4),
+    0 0 20px rgba(245, 158, 11, 0.15),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.35);
+  transition: all 0.3s ease;
+}
+
+.welcome-pill {
+  flex-direction: row;
+  gap: 12px;
+  padding: 8px 24px;
+}
+
+.step-counter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff7ed;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+
+  .kanji-badge {
+    display: inline-block;
+    padding: 2px 7px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #fef08a;
+    background: rgba(245, 158, 11, 0.25);
+    border: 1px solid rgba(253, 224, 71, 0.4);
+    border-radius: 6px;
+    letter-spacing: 0.05em;
+  }
+
+  .pattern-title {
+    color: #fed7aa;
+  }
+
+  .step-divider {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  .step-numbers {
+    color: #ffffff;
+    font-feature-settings: 'tnum';
+    letter-spacing: 0.03em;
+  }
+}
+
+.step-instruction-row {
+  margin-top: 2px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #fed7aa;
+  opacity: 0.95;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 420px;
+}
+
+.step-progress-track {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.step-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #f472b6, #fbbf24);
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.7);
+  transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.welcome-text {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fed7aa;
+  letter-spacing: 0.03em;
+}
+
+// Audio Toggle Button: Frosted Rose Glass with Sound Wave
+.audio-toggle-btn {
+  pointer-events: auto;
+  position: relative;
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(244, 114, 182, 0.35);
+  border-top-color: rgba(255, 255, 255, 0.55);
+  color: rgba(254, 226, 226, 0.85);
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.25),
+    0 0 14px rgba(244, 114, 182, 0.18),
+    inset 0 1px 1px rgba(255, 255, 255, 0.35);
+
+  @include m.mobile-landscape-short {
+    width: 44px;
+    height: 44px;
+  }
+
+  svg {
+    transition: transform 0.2s ease, filter 0.3s ease;
+  }
+
+  &.is-playing {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.25) 0%,
+      rgba(244, 114, 182, 0.28) 45%,
+      rgba(217, 70, 239, 0.35) 100%
+    );
+    border-color: rgba(251, 207, 232, 0.65);
+    border-top-color: rgba(255, 255, 255, 0.8);
+    color: #ffffff;
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.25),
+      0 0 20px rgba(244, 114, 182, 0.5),
+      inset 0 1px 1.5px rgba(255, 255, 255, 0.5);
+
+    svg {
+      animation: soundPulse 2.4s ease-in-out infinite;
+      filter: drop-shadow(0 0 6px rgba(244, 114, 182, 0.8));
+    }
+  }
+
+  &:hover {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.35) 0%,
+      rgba(244, 114, 182, 0.38) 45%,
+      rgba(217, 70, 239, 0.45) 100%
+    );
+    border-color: rgba(253, 242, 248, 0.9);
+    border-top-color: #ffffff;
+    transform: scale(1.08) !important;
+    box-shadow:
+      0 12px 30px rgba(0, 0, 0, 0.3),
+      0 0 26px rgba(244, 114, 182, 0.65),
+      inset 0 1px 1.5px rgba(255, 255, 255, 0.65);
+    color: #ffffff;
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
+@keyframes soundPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.09);
+  }
+}

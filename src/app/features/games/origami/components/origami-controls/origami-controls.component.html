@@ -1,0 +1,66 @@
+@if (state.selectedPattern()) {
+  <nav class="origami-controls-dock" role="toolbar" aria-label="Falt-Steuerung">
+    <!-- Prev Step Button -->
+    <button
+      type="button"
+      class="dock-btn btn-secondary"
+      (click)="onPrev()"
+      [disabled]="state.currentStepIndex() === 0"
+      aria-label="Einen Schritt zurück"
+      title="Vorheriger Schritt"
+    >
+      <span class="btn-icon">◀</span>
+      <span class="btn-text">Zurück</span>
+    </button>
+
+    <!-- Main Fold / Next Step CTA -->
+    <button
+      type="button"
+      class="dock-btn btn-primary"
+      (click)="onNext()"
+      [disabled]="state.isCompleted()"
+      [attr.aria-label]="state.isCompleted() ? 'Origami vollendet' : 'Nächsten Faltschritt ausführen'"
+      [title]="state.isCompleted() ? 'Vollendet' : 'Falten'"
+    >
+      <span class="btn-icon">{{ state.isCompleted() ? '✨' : '🪶' }}</span>
+      <span class="btn-text">{{ state.isCompleted() ? 'Vollendet!' : 'Falten' }}</span>
+    </button>
+
+    <!-- Guide Lines Toggle -->
+    <button
+      type="button"
+      class="dock-btn btn-icon-only"
+      [class.is-active]="state.showGuideLines()"
+      (click)="onToggleGuides()"
+      [attr.aria-pressed]="state.showGuideLines()"
+      title="Hilfslinien & Pfeile ein-/ausblenden"
+      aria-label="Hilfslinien umschalten"
+    >
+      <span class="btn-icon">📐</span>
+    </button>
+
+    <!-- Auto-Fold Play / Pause Toggle -->
+    <button
+      type="button"
+      class="dock-btn btn-icon-only"
+      [class.is-active]="state.isAutoFolding()"
+      (click)="onToggleAuto()"
+      [attr.aria-pressed]="state.isAutoFolding()"
+      [title]="state.isAutoFolding() ? 'Auto-Falten anhalten' : 'Automatisches Falten starten'"
+      aria-label="Automatisches Falten"
+    >
+      <span class="btn-icon">{{ state.isAutoFolding() ? '⏸' : '▶' }}</span>
+    </button>
+
+    <!-- Reset to Step 1 Button -->
+    <button
+      type="button"
+      class="dock-btn btn-icon-only"
+      (click)="onReset()"
+      title="Blatt glätten & von vorn beginnen"
+      aria-label="Zurücksetzen"
+    >
+      <span class="btn-icon">↺</span>
+    </button>
+  </nav>
+}

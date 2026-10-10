@@ -1,0 +1,55 @@
+@if (state.isCompleted() && !isDismissed()) {
+  <div class="completion-backdrop" (click)="dismiss()">
+    <div class="completion-dialog" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <div class="completion-sheen" aria-hidden="true"></div>
+
+      <!-- Icon & Kanji Badge -->
+      <div class="badge-row">
+        <span class="sakura-badge">🌸</span>
+        <span class="kanji-seal">{{ state.selectedPattern()?.kanji }}</span>
+      </div>
+
+      <h2 class="dialog-title">Origami vollendet!</h2>
+      <p class="dialog-subtitle">
+        Dein <strong>{{ state.selectedPattern()?.name }}</strong> ({{ state.selectedPattern()?.japaneseName }})
+        ruht vollendet auf dem Holztisch.
+      </p>
+
+      <div class="zen-wisdom-card">
+        <p class="wisdom-text">
+          {{ state.selectedPattern()?.symbolism }}
+        </p>
+      </div>
+
+      <!-- Actions -->
+      <div class="dialog-actions">
+        <button
+          type="button"
+          class="dialog-btn btn-secondary"
+          (click)="onFoldAgain()"
+          title="Dieses Motiv noch einmal Schritt für Schritt falten"
+        >
+          <span>↺ Noch einmal falten</span>
+        </button>
+
+        <button
+          type="button"
+          class="dialog-btn btn-primary"
+          (click)="onChooseNewMotif()"
+          title="Ein neues Origami-Motiv auswählen"
+        >
+          <span>Neues Motiv wählen</span>
+        </button>
+
+        <button
+          type="button"
+          class="dialog-btn btn-subtle"
+          (click)="dismiss()"
+          title="Dialog schließen und Figur auf dem Tisch betrachten"
+        >
+          <span>Auf dem Tisch betrachten</span>
+        </button>
+      </div>
+    </div>
+  </div>
+}

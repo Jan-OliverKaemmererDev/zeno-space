@@ -1,0 +1,396 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+:host {
+  display: block;
+  font-family: $font-sniglet;
+}
+
+// ----------------------------------------------------
+// MOBILE TOGGLE BUTTON
+// ----------------------------------------------------
+.mobile-drawer-toggle {
+  display: none;
+  position: absolute;
+  top: 86px;
+  right: 18px;
+  z-index: 25;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: rgba(30, 20, 15, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(254, 215, 170, 0.35);
+  color: #fed7aa;
+  font-family: $font-sniglet;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  gap: 6px;
+  align-items: center;
+
+  @media (max-width: 1023px) {
+    display: inline-flex;
+  }
+}
+
+// ----------------------------------------------------
+// MAIN ATELIER SIDEBAR (RIGHT DESKTOP TRAY)
+// ----------------------------------------------------
+.origami-sidebar {
+  position: absolute;
+  top: 86px; // Displayed cleanly below the top-right mute button
+  bottom: 24px;
+  right: 24px;
+  width: 320px;
+  max-height: calc(100vh - 110px);
+  display: flex;
+  flex-direction: column;
+  border-radius: 28px;
+  background: linear-gradient(
+    170deg,
+    rgba(38, 25, 20, 0.78) 0%,
+    rgba(24, 15, 12, 0.88) 60%,
+    rgba(14, 8, 6, 0.94) 100%
+  );
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(254, 215, 170, 0.25);
+  border-top-color: rgba(255, 255, 255, 0.45);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.55),
+    0 0 30px rgba(245, 158, 11, 0.12),
+    inset 0 1px 2px rgba(255, 255, 255, 0.25);
+  z-index: 20;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+
+  @media (max-width: 1023px) {
+    top: 76px; // Also below the mute button on smaller screens
+    bottom: 16px;
+    right: 16px;
+    width: min(340px, 86vw);
+    max-height: calc(100vh - 92px);
+    border-radius: 24px;
+    transform: translateX(110%);
+    z-index: 40;
+
+    &.is-open {
+      transform: translateX(0);
+    }
+  }
+
+  @include m.mobile-landscape-short {
+    top: 60px;
+    bottom: 10px;
+    right: 12px;
+    width: 290px;
+    max-height: calc(100vh - 70px);
+  }
+}
+
+// Header
+.sidebar-header {
+  position: relative;
+  padding: 20px 22px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+  .title-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .header-kanji {
+      font-size: 0.85rem;
+      color: #fef08a;
+      background: rgba(245, 158, 11, 0.2);
+      border: 1px solid rgba(253, 224, 71, 0.35);
+      padding: 1px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    .sidebar-title {
+      margin: 0;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #fff7ed;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  .sidebar-subtitle {
+    margin: 4px 0 0;
+    font-size: 0.8rem;
+    color: #fed7aa;
+    opacity: 0.85;
+  }
+
+  .mobile-close-btn {
+    display: none;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #ffffff;
+    font-size: 0.9rem;
+    cursor: pointer;
+
+    @media (max-width: 1023px) {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+  }
+}
+
+// Scrollable Body
+.sidebar-scrollable-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+
+  // Sleek custom scrollbar
+  &::-webkit-scrollbar {
+    width: 5px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(254, 215, 170, 0.25);
+    border-radius: 999px;
+  }
+}
+
+// Section styling
+.atelier-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .section-label-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .section-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(244, 114, 182, 0.3);
+      border: 1px solid rgba(244, 114, 182, 0.5);
+      color: #fbcfe8;
+      font-size: 0.7rem;
+      font-weight: 700;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #fed7aa;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+  }
+}
+
+// Patterns Grid
+.patterns-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pattern-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff7ed;
+  cursor: pointer;
+  text-align: left;
+  font-family: $font-sniglet;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(254, 215, 170, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  }
+
+  &.is-active {
+    background: linear-gradient(
+      135deg,
+      rgba(244, 114, 182, 0.22) 0%,
+      rgba(245, 158, 11, 0.25) 100%
+    );
+    border-color: rgba(253, 224, 71, 0.65);
+    box-shadow:
+      0 8px 24px rgba(0, 0, 0, 0.35),
+      0 0 16px rgba(245, 158, 11, 0.3);
+
+    .pattern-card-icon {
+      background: rgba(251, 191, 36, 0.3);
+      color: #fef08a;
+      border-color: rgba(251, 191, 36, 0.6);
+    }
+  }
+
+  .pattern-card-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fed7aa;
+    transition: all 0.2s ease;
+  }
+
+  .pattern-card-info {
+    flex: 1;
+
+    .card-name-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .card-name {
+        font-size: 0.98rem;
+        font-weight: 700;
+        color: #ffffff;
+      }
+
+      .card-kanji {
+        font-size: 0.75rem;
+        color: #fef08a;
+        opacity: 0.85;
+      }
+    }
+
+    .card-meta-row {
+      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.74rem;
+      color: #fed7aa;
+      opacity: 0.9;
+
+      .card-difficulty {
+        color: #86efac;
+      }
+    }
+  }
+
+  .active-sparkle {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #f59e0b;
+    color: #1c1917;
+    font-size: 0.75rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+// Colors Grid
+.color-palette-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.color-swatch-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  font-family: $font-sniglet;
+
+  &:hover .swatch-circle {
+    transform: scale(1.12);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  }
+
+  &.is-active .swatch-circle {
+    transform: scale(1.12);
+    box-shadow: 0 0 0 3px #fbbf24, 0 6px 16px rgba(0, 0, 0, 0.5);
+  }
+
+  .swatch-circle {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+    .pattern-tag-icon {
+      font-size: 0.65rem;
+    }
+  }
+
+  .swatch-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #fed7aa;
+    opacity: 0.85;
+  }
+}
+
+// Symbolism Box
+.symbolism-card {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(254, 215, 170, 0.18);
+
+  .symbolism-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #fbcfe8;
+    margin-bottom: 4px;
+  }
+
+  .symbolism-text {
+    margin: 0;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: #fed7aa;
+    opacity: 0.9;
+  }
+}

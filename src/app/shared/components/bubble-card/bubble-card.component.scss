@@ -119,6 +119,14 @@
     }
   }
 
+  &.card--origami {
+    border-radius: 46px 60px 32px 56px / 58px 34px 62px 28px;
+
+    &:hover {
+      border-radius: 40px 52px 38px 48px / 50px 38px 54px 34px;
+    }
+  }
+
   @media (max-width: 768px) {
     width: min(290px, calc(100vw - 32px));
     min-height: 275px;

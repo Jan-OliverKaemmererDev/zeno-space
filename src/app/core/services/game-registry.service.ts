@@ -344,6 +344,51 @@ export class GameRegistryService {
         objective: 'Streiche mit der Maus sanft oder schwungvoll durch das hohe Gras und lausche den beruhigenden Harmonien.',
       },
     },
+    {
+      id: 'origami',
+      title: 'Zen Origami',
+      subtitle: 'Traditionelle Papierfalt-Kunst',
+      description: 'Blicke aus der Vogelperspektive auf einen warmen Holztisch und falte Schritt für Schritt Kranich, Eule oder Schildkröte mit sanften Papierklängen und Achtsamkeit.',
+      badge: 'Chill Sandbox',
+      category: 'relax',
+      route: '/game/origami',
+      icon: 'origami',
+      primaryColor: '#f472b6',
+      glowColor: 'rgba(244, 114, 182, 0.35)',
+      tags: ['Relax', 'Kreativ'],
+      floatDelay: '1.8s',
+      floatDuration: '9.4s',
+      sizeClass: 'bubble--md',
+      controls: {
+        keyboard: [
+          {
+            type: 'space',
+            keys: ['LEERTASTE', '→'],
+            label: 'Nächsten Faltschritt ausführen',
+          },
+          {
+            type: 'inline',
+            keys: ['←'],
+            label: 'Einen Schritt zurück',
+          },
+          {
+            type: 'inline',
+            keys: ['1', '2', '3'],
+            label: 'Motiv wählen (Kranich, Eule, Schildkröte)',
+          },
+          {
+            type: 'inline',
+            keys: ['ESC'],
+            label: 'Zurück zur Übersicht',
+          },
+        ],
+        mouse: {
+          leftClick: true,
+          label: 'Klicke auf das Papier oder die leuchtende Ecke zum Falten',
+        },
+        objective: 'Wähle dein Motiv und deine Papierfarbe und falte das Origami Schritt für Schritt originalgetreu nach.',
+      },
+    },
   ]);
 
   /**

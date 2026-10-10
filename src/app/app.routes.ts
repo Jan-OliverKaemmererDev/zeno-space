@@ -65,6 +65,11 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'game/origami',
+    loadComponent: () =>
+      import('./features/games/origami/origami.component').then((m) => m.OrigamiComponent),
+  },
+  {
     path: '**',
     redirectTo: '',
   },

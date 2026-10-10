@@ -1,0 +1,125 @@
+<!-- Mobile Floating Drawer Trigger Button -->
+<button
+  type="button"
+  class="mobile-drawer-toggle"
+  (click)="toggleMobileDrawer()"
+  [attr.aria-expanded]="isMobileOpen()"
+  aria-label="Origami-Motive und Farben öffnen"
+>
+  <span class="toggle-icon">🎋</span>
+  <span class="toggle-label">Motive</span>
+</button>
+
+<!-- Main Sidebar Container -->
+<aside
+  class="origami-sidebar"
+  [class.is-open]="isMobileOpen()"
+  role="region"
+  aria-label="Origami-Motive & Papierauswahl"
+>
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+    <div class="title-group">
+      <span class="header-kanji">千代紙</span>
+      <h2 class="sidebar-title">Origami Atelier</h2>
+    </div>
+    <p class="sidebar-subtitle">Wähle Figur & Faltpapier</p>
+
+    <!-- Close button for mobile -->
+    <button
+      type="button"
+      class="mobile-close-btn"
+      (click)="toggleMobileDrawer()"
+      aria-label="Sidebar schließen"
+    >
+      ✕
+    </button>
+  </div>
+
+  <div class="sidebar-scrollable-content">
+    <!-- SECTION 1: ORIGAMI MOTIFS -->
+    <section class="atelier-section">
+      <div class="section-label-row">
+        <span class="section-badge">1</span>
+        <h3 class="section-title">Origami Motive</h3>
+      </div>
+
+      <div class="patterns-grid">
+        @for (pattern of state.patterns(); track pattern.id) {
+          <button
+            type="button"
+            class="pattern-card"
+            [class.is-active]="state.selectedPattern()?.id === pattern.id"
+            (click)="onSelectPattern(pattern.id)"
+            [attr.aria-pressed]="state.selectedPattern()?.id === pattern.id"
+          >
+            <div class="pattern-card-icon">
+              <svg width="28" height="28" viewBox="0 0 500 500" class="pattern-svg" aria-hidden="true">
+                <path [attr.d]="pattern.iconSvgPath" fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </div>
+
+            <div class="pattern-card-info">
+              <div class="card-name-row">
+                <span class="card-name">{{ pattern.name }}</span>
+                <span class="card-kanji">{{ pattern.kanji }}</span>
+              </div>
+              <div class="card-meta-row">
+                <span class="card-steps">{{ pattern.totalSteps }} Schritte</span>
+                <span class="card-difficulty">{{ pattern.difficulty }}</span>
+              </div>
+            </div>
+
+            @if (state.selectedPattern()?.id === pattern.id) {
+              <div class="active-sparkle" aria-hidden="true">✓</div>
+            }
+          </button>
+        }
+      </div>
+    </section>
+
+    <!-- SECTION 2: PAPER COLORS & WASHI PATTERNS -->
+    <section class="atelier-section">
+      <div class="section-label-row">
+        <span class="section-badge">2</span>
+        <h3 class="section-title">Papier & Washi-Muster</h3>
+      </div>
+
+      <div class="color-palette-grid">
+        @for (style of state.paperStyles(); track style.id) {
+          <button
+            type="button"
+            class="color-swatch-btn"
+            [class.is-active]="state.selectedPaperStyle().id === style.id"
+            (click)="onSelectColor(style.id)"
+            [title]="style.name"
+            [attr.aria-label]="style.name + ' auswählen'"
+          >
+            <div
+              class="swatch-circle"
+              [style.background]="style.patternType === 'seigaiha' ? 'radial-gradient(circle, #38bdf8 20%, #0284c7 90%)' : style.patternType === 'asanoha' ? 'radial-gradient(circle, #fb7185 20%, #e11d48 90%)' : style.primaryColor"
+            >
+              @if (style.patternType !== 'solid') {
+                <span class="pattern-tag-icon">✨</span>
+              }
+            </div>
+            <span class="swatch-label">{{ style.name.split(' ')[0] }}</span>
+          </button>
+        }
+      </div>
+    </section>
+
+    <!-- SECTION 3: ZEN SYMBOLISM -->
+    @if (state.selectedPattern(); as pattern) {
+      <section class="atelier-section symbolism-section">
+        <div class="symbolism-card">
+          <div class="symbolism-header">
+            <span class="zen-lotus">🌸</span>
+            <span class="symbolism-title">Bedeutung ({{ pattern.japaneseName }})</span>
+          </div>
+          <p class="symbolism-text">{{ pattern.symbolism }}</p>
+        </div>
+      </section>
+    }
+  </div>
+</aside>

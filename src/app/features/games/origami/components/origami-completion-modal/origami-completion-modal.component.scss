@@ -1,0 +1,193 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+:host {
+  display: block;
+  font-family: $font-sniglet;
+}
+
+.completion-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(10, 5, 3, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: backdropFade 0.4s ease-out;
+}
+
+.completion-dialog {
+  position: relative;
+  overflow: hidden;
+  max-width: 480px;
+  width: 100%;
+  border-radius: 28px;
+  padding: 36px 32px 30px;
+  background: linear-gradient(
+    170deg,
+    rgba(40, 24, 18, 0.92) 0%,
+    rgba(25, 14, 10, 0.96) 60%,
+    rgba(15, 8, 5, 0.98) 100%
+  );
+  border: 1.5px solid rgba(254, 215, 170, 0.35);
+  border-top-color: rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.7),
+    0 0 35px rgba(245, 158, 11, 0.25),
+    inset 0 1px 2px rgba(255, 255, 255, 0.4);
+  text-align: center;
+  animation: dialogZoom 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 12px;
+
+  .sakura-badge {
+    font-size: 1.8rem;
+    animation: gentleWiggle 3s ease-in-out infinite;
+  }
+
+  .kanji-seal {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #fef08a;
+    background: rgba(245, 158, 11, 0.25);
+    border: 1.2px solid rgba(253, 224, 71, 0.5);
+    padding: 2px 10px;
+    border-radius: 8px;
+  }
+}
+
+.dialog-title {
+  margin: 0 0 8px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #fff7ed;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+.dialog-subtitle {
+  margin: 0 0 18px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: #fed7aa;
+
+  strong {
+    color: #ffffff;
+    font-weight: 700;
+  }
+}
+
+.zen-wisdom-card {
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(254, 215, 170, 0.2);
+  margin-bottom: 24px;
+
+  .wisdom-text {
+    margin: 0;
+    font-size: 0.86rem;
+    line-height: 1.55;
+    color: #fef3c7;
+    font-style: italic;
+  }
+}
+
+.dialog-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dialog-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-family: $font-sniglet;
+  font-size: 0.92rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  &.btn-primary {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 60%, #b45309 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 18px rgba(245, 158, 11, 0.45);
+
+    &:hover {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 60%, #d97706 100%);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.6);
+    }
+  }
+
+  &.btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(254, 215, 170, 0.3);
+    color: #fff7ed;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(254, 215, 170, 0.55);
+      transform: translateY(-1px);
+    }
+  }
+
+  &.btn-subtle {
+    background: none;
+    color: #fed7aa;
+    font-size: 0.82rem;
+    padding: 6px;
+    opacity: 0.85;
+
+    &:hover {
+      opacity: 1;
+      color: #ffffff;
+      text-decoration: underline;
+    }
+  }
+}
+
+@keyframes backdropFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialogZoom {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes gentleWiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(8deg);
+  }
+}
