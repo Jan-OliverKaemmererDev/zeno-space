@@ -144,7 +144,7 @@ void main() {
           // - Hinter dem Kamm (delta < 0): Sanftes, elastisches und natürliches Wiederaufrichten (8.0m)
           //   (kein abruptes Zurückschnappen, aber auch kein träges Hängenbleiben)
           float frontThick = 3.4 + currentRadius * 0.02;
-          float backThick = 8.0 + currentRadius * 0.04;
+          float backThick = 11.0 + currentRadius * 0.04;
 
           float waveProfile = 0.0;
           if (delta >= 0.0 && delta < frontThick) {
@@ -153,7 +153,8 @@ void main() {
             waveProfile = halfCos * halfCos;
           } else if (delta < 0.0 && -delta < backThick) {
             float normBack = -delta / backThick;
-            waveProfile = pow(1.0 - normBack, 1.85);
+            // Sanftes, langsameres Aufrichten mit weichem Auslauf statt steilem Abfall
+            waveProfile = 0.5 + 0.5 * cos(normBack * 3.14159265);
           }
 
           if (waveProfile > 0.001 && currentRadius < maxDist) {
