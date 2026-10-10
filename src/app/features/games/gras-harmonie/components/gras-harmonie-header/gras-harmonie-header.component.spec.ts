@@ -37,5 +37,10 @@ describe('GrasHarmonieHeaderComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     const btn = compiled.querySelector('.audio-toggle-btn');
     expect(btn?.getAttribute('aria-label')).toBe('Ton einschalten');
+
+    const polygon = btn?.querySelector('polygon');
+    expect(polygon).toBeTruthy();
+    const lines = btn?.querySelectorAll('line');
+    expect(lines?.length).toBe(2);
   });
 });

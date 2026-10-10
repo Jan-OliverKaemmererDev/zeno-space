@@ -16,12 +16,12 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   transform: translateY(-50%);
   z-index: 30;
   width: 60px;
-  height: 220px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-around;
-  padding: 12px 0;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px 0;
   box-sizing: border-box;
   pointer-events: auto;
   user-select: none;
@@ -29,18 +29,19 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   @include m.mobile-landscape-short {
     right: 12px;
     width: 50px;
-    height: 180px;
-    padding: 8px 0;
+    gap: 10px;
+    padding: 10px 0;
   }
 
   @media (max-width: 640px) {
     right: 12px;
     width: 52px;
-    height: 190px;
+    gap: 12px;
+    padding: 12px 0;
   }
 }
 
-// Frosted Emerald Glass Plate (Behind Orbs)
+// Frosted Emerald Glass Plate (Behind Orbs) - Translucent & Airy
 .celestial-glass-plate {
   position: absolute;
   inset: 0;
@@ -50,79 +51,71 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 
   background: linear-gradient(
     170deg,
-    rgba(255, 255, 255, 0.18) 0%,
-    rgba(16, 42, 28, 0.62) 42%,
-    rgba(6, 20, 12, 0.82) 100%
+    rgba(255, 255, 255, 0.20) 0%,
+    rgba(22, 101, 52, 0.20) 45%,
+    rgba(6, 40, 20, 0.32) 100%
   );
-  backdrop-filter: blur(26px) saturate(145%);
-  -webkit-backdrop-filter: blur(26px) saturate(145%);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px);
 
-  border: 1px solid rgba(74, 222, 128, 0.28);
-  border-top-color: rgba(255, 255, 255, 0.46);
-  border-bottom-color: rgba(34, 197, 94, 0.16);
+  border: 1.2px solid rgba(134, 239, 172, 0.38);
+  border-top-color: rgba(255, 255, 255, 0.6);
+  border-bottom-color: rgba(34, 197, 94, 0.2);
 
   box-shadow:
-    0 16px 42px rgba(0, 0, 0, 0.55),
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    inset 0 1px 1.5px rgba(255, 255, 255, 0.38),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.45),
-    0 0 24px rgba(74, 222, 128, 0.12);
+    0 12px 32px rgba(0, 0, 0, 0.20),
+    0 0 20px rgba(74, 222, 128, 0.16),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.4);
 }
 
-// Saucer Dish Indentations under each orb
-.celestial-plate-dish {
-  position: absolute;
-  left: 50%;
-  transform: translate(-50%, -50%);
+// Slot wrapper strictly binding orb and concentric background dish
+.celestial-orb-slot {
+  position: relative;
   width: 44px;
   height: 44px;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.08) 0%,
-    rgba(74, 222, 128, 0.03) 60%,
-    transparent 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1);
-  pointer-events: none;
-
-  &.dish-top {
-    top: 38px;
-  }
-  &.dish-mid {
-    top: 110px;
-  }
-  &.dish-bot {
-    top: 182px;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   @include m.mobile-landscape-short {
     width: 36px;
     height: 36px;
-    &.dish-top {
-      top: 30px;
-    }
-    &.dish-mid {
-      top: 90px;
-    }
-    &.dish-bot {
-      top: 150px;
-    }
   }
 
   @media (max-width: 640px) {
     width: 38px;
     height: 38px;
-    &.dish-top {
-      top: 32px;
-    }
-    &.dish-mid {
-      top: 95px;
-    }
-    &.dish-bot {
-      top: 158px;
-    }
+  }
+}
+
+// Concentric Saucer Dish Indentation behind each orb
+.celestial-plate-dish {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.10) 0%,
+    rgba(74, 222, 128, 0.04) 60%,
+    transparent 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+  z-index: 0;
+
+  @include m.mobile-landscape-short {
+    width: 38px;
+    height: 38px;
+  }
+
+  @media (max-width: 640px) {
+    width: 40px;
+    height: 40px;
   }
 }
 
@@ -162,15 +155,15 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
     justify-content: center;
     background: radial-gradient(
       circle at 35% 30%,
-      rgba(255, 255, 255, 0.14) 0%,
-      rgba(255, 255, 255, 0.04) 50%,
-      rgba(10, 28, 18, 0.6) 100%
+      rgba(255, 255, 255, 0.16) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(10, 36, 22, 0.32) 100%
     );
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-top-color: rgba(255, 255, 255, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.20);
+    border-top-color: rgba(255, 255, 255, 0.45);
     box-shadow:
-      0 4px 12px rgba(0, 0, 0, 0.35),
-      inset 0 1px 1px rgba(255, 255, 255, 0.25);
+      0 4px 12px rgba(0, 0, 0, 0.20),
+      inset 0 1px 1px rgba(255, 255, 255, 0.3);
     color: rgba(220, 252, 231, 0.85);
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   }

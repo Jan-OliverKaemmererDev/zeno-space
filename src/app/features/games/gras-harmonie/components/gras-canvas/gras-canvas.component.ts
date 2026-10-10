@@ -245,7 +245,7 @@ export class GrasCanvasComponent implements AfterViewInit, OnDestroy, OnChanges 
   private buildSkyBackdrop(): void {
     if (!this.renderer) return;
     const skyTexture = this.textureLoader.load(
-      '/images/gras-harmonie/sky-backdrop.jpg'
+      '/images/gras-harmonie/sky-backdrop.jpg?v=2'
     );
     skyTexture.wrapS = THREE.MirroredRepeatWrapping;
     skyTexture.wrapT = THREE.ClampToEdgeWrapping;

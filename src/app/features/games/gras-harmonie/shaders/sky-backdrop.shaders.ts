@@ -94,18 +94,19 @@ float shootingStar(vec2 uv, float time, float seed, float cycleTime, float aspec
 }
 
 void main() {
-  // 1. Panoramic aspect matching:
-  // Visible width at z = -84: H_vis ~ 96.52.
-  // wTex ensures the backdrop covers the full view frustum horizontally
-  // without being cut off on widescreen (21:9, 32:9) while preserving the exact
-  // original framing on standard 16:9 displays (aspect <= 1.79).
-  float wTex = max(215.0, 113.9 * uAspect);
-  float hTex = 120.0;
+  // 1. Panoramic aspect matching & zero distortion:
+  // Strictly enforce the exact 1376/768 (1.79167) aspect ratio so the clouds
+  // are 100% natural and completely undistorted (no stretching, no squashing).
+  float imgAspect = 1376.0 / 768.0; // 1.7916667
+  float wTex = max(185.0, 98.0 * uAspect);
+  float hTex = wTex / imgAspect;
+  float yHorizonOffset = 0.04;
 
-  // Center-anchored UV coordinates
+  // Undistorted UV coordinates
+  float rawUvY = yHorizonOffset + (vPlanePos.y / hTex);
   vec2 baseUv = vec2(
     0.5 + vPlanePos.x / wTex,
-    clamp(0.5 + vPlanePos.y / hTex, 0.001, 0.999)
+    clamp(rawUvY, 0.001, 0.999)
   );
 
   // 2. Sanftes meditatives Atmen (wie auf der Landing-Page)
@@ -126,6 +127,10 @@ void main() {
   float luma = dot(texColor.rgb, vec3(0.299, 0.587, 0.114));
   float sunPulse = (sin(uTime * 0.65 + texUv.x * 2.2) * 0.5 + 0.5) * 0.08;
   vec3 baseColor = texColor.rgb + vec3(0.14, 0.09, 0.04) * sunPulse * smoothstep(0.55, 0.95, luma);
+
+  // Sanfte Himmels-Verschmelzung am oberen Rand ins unendliche Zen-Blau
+  float topSkyFade = smoothstep(0.92, 1.02, rawUvY);
+  baseColor = mix(baseColor, uSkyColor, topSkyFade);
 
   // 5. Atmosphären-Tönung für Goldene Stunde und Nacht (weicher Übergang)
   float goldenW = uGoldenWeight;
