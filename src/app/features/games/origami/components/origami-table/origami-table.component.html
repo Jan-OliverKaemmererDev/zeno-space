@@ -1,57 +1,24 @@
 <div class="origami-desktop-surface" role="main" aria-label="Origami Tisch – Vogelperspektive">
-  <!-- Desk Background Wood Grain Overlay & Lighting -->
-  <div class="wood-grain-overlay" aria-hidden="true"></div>
-  <div class="desk-ambient-light" aria-hidden="true"></div>
-
-  <!-- Ambient Decorative Zen Props on the Desktop -->
-  <div class="desk-props" aria-hidden="true">
-    <!-- Scattered Resting Sakura Petals on the wooden desk -->
-    <div class="prop-sakura petal-1"></div>
-    <div class="prop-sakura petal-2"></div>
-    <div class="prop-sakura petal-3"></div>
-    <div class="prop-sakura petal-4"></div>
-    <div class="prop-sakura petal-5"></div>
-    <div class="prop-sakura petal-6"></div>
-    <div class="prop-sakura petal-7"></div>
-    <div class="prop-sakura petal-8"></div>
-    <div class="prop-sakura petal-9"></div>
-
-    <!-- Gentle Drifting Sakura Petals (occasional ambient breeze, non-intrusive) -->
-    <div class="drifting-sakura drift-1"></div>
-    <div class="drifting-sakura drift-2"></div>
-    <div class="drifting-sakura drift-3"></div>
-    <div class="drifting-sakura drift-4"></div>
-    <div class="drifting-sakura drift-5"></div>
-  </div>
+  <!-- Desk Background Wood Grain Overlay & Sakura Petals -->
+  <app-origami-desk-ambient />
 
   <!-- Center Stage: The Table Workspace -->
   <div class="table-center">
     @if (!state.selectedPattern()) {
-      <!-- Empty Desk State (Initial view requested by user) -->
-      <div class="empty-table-placeholder" role="region" aria-label="Leerer Schreibtisch">
-        <div class="placeholder-paper-ghost">
-          <svg width="120" height="120" viewBox="0 0 100 100" class="ghost-svg" aria-hidden="true">
-            <rect x="15" y="15" width="70" height="70" rx="4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-dasharray="5,5" />
-            <line x1="15" y1="15" x2="85" y2="85" stroke="currentColor" stroke-width="1.2" stroke-dasharray="3,3" />
-            <polygon points="15,85 85,85 50,50" fill="currentColor" opacity="0.12" />
-          </svg>
-          <div class="ghost-shimmer"></div>
-        </div>
-
-        <h2 class="placeholder-title">Dein Faltpapier wartet</h2>
-        <p class="placeholder-desc">
-          Wähle rechts am Rand dein gewünschtes Motiv (<strong>Kranich</strong>, <strong>Eule</strong> oder <strong>Schildkröte</strong>)
-          sowie deine Papierfarbe, um das Blatt auf den Tisch zu legen.
-        </p>
-      </div>
+      <!-- Empty Desk State (Waiting for Motif) -->
+      <app-origami-empty-table />
     } @else {
       <!-- Active 3D Origami Workspace -->
-      <div
-        class="paper-stage"
-        [class.is-completed]="state.isCompleted()"
-      >
+      <div class="paper-stage" [class.is-completed]="state.isCompleted()">
         <!-- Full 3D Interactive Three.js Viewport: Freely floating over the desk -->
         <div class="origami-3d-stage" role="region" aria-label="3D Origami Faltansicht">
+          <!-- Active Animal Badge Tag -->
+          @switch (state.selectedPattern()?.id) {
+            @case ('crane') { <app-origami-crane /> }
+            @case ('owl') { <app-origami-owl /> }
+            @case ('turtle') { <app-origami-turtle /> }
+          }
+
           <!-- WebGL Canvas: Hold down mouse button to rotate model around itself -->
           <canvas
             #origamiCanvas
@@ -96,27 +63,7 @@
         </div>
 
         <!-- Folding Instruction Pill directly under the Paper -->
-        @if (state.currentStep(); as step) {
-          <div class="paper-instruction-box">
-            <div class="instruction-header">
-              <span class="fold-type-tag" [class]="'tag--' + step.creaseType">
-                {{ step.creaseType === 'valley' ? 'Talfalte' : step.creaseType === 'mountain' ? 'Bergfalte' : step.creaseType === 'squash' ? 'Quetschfalte' : step.creaseType === 'petal' ? 'Blütenblattfalte' : step.creaseType === 'turnover' ? 'Wenden' : 'Formvollendung' }}
-              </span>
-              <p class="instruction-text">{{ step.instruction }}</p>
-            </div>
-
-            @if (step.tip) {
-              <div class="tip-row">
-                <span class="tip-icon">💡</span>
-                <span class="tip-text">{{ step.tip }}</span>
-              </div>
-            }
-
-            <div class="step-cta-hint">
-              <span>👉 Weiter geht es über den Button <strong>„Falten“</strong> in der unteren Steuerleiste</span>
-            </div>
-          </div>
-        }
+        <app-origami-step-instruction />
       </div>
     }
   </div>

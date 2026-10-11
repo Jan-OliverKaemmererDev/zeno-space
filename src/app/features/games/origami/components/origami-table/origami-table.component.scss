@@ -25,7 +25,7 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 
   // Authentic Warm Japanese Hinoki / Walnut Table Grain
   background-color: #241611;
-  background-image: 
+  background-image:
     radial-gradient(ellipse at 50% 45%, rgba(68, 42, 29, 0.9) 0%, rgba(36, 22, 17, 0.95) 60%, rgba(18, 10, 7, 0.98) 100%),
     repeating-linear-gradient(
       90deg,
@@ -42,160 +42,6 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
       transparent 64px
     );
   box-shadow: inset 0 0 160px rgba(0, 0, 0, 0.8);
-}
-
-// Soft Overhead Warm Ambient Lamp Glow
-.desk-ambient-light {
-  position: absolute;
-  top: 10%;
-  left: 30%;
-  width: 65vw;
-  height: 65vh;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(254, 215, 170, 0.12) 0%, rgba(251, 146, 60, 0.03) 50%, transparent 75%);
-  filter: blur(40px);
-  pointer-events: none;
-  z-index: 1;
-}
-
-// ----------------------------------------------------
-// DESKTOP ZEN PROPS (SAKURA PETALS)
-// ----------------------------------------------------
-.desk-props {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2;
-}
-
-// Scattered Resting Sakura Petals on the wooden desk
-.prop-sakura {
-  position: absolute;
-  width: 17px;
-  height: 25px;
-  background: linear-gradient(135deg, #fce7f3 0%, #f472b6 60%, #ec4899 100%);
-  border-radius: 65% 35% 65% 35% / 70% 30% 70% 30%;
-  box-shadow: 2px 5px 12px rgba(0, 0, 0, 0.42);
-  opacity: 0.88;
-  pointer-events: none;
-
-  &.petal-1 {
-    top: 75px;
-    left: 80px;
-    transform: rotate(28deg);
-  }
-  &.petal-2 {
-    top: 110px;
-    left: 135px;
-    transform: rotate(-48deg) scale(0.9);
-  }
-  &.petal-3 {
-    top: 155px;
-    left: 65px;
-    transform: rotate(82deg) scale(0.85);
-  }
-  &.petal-4 {
-    bottom: 95px;
-    left: 75px;
-    transform: rotate(-65deg) scale(0.95);
-  }
-  &.petal-5 {
-    bottom: 60px;
-    left: 140px;
-    transform: rotate(35deg) scale(0.88);
-  }
-  &.petal-6 {
-    bottom: 150px;
-    left: 110px;
-    transform: rotate(115deg) scale(0.78);
-  }
-  &.petal-7 {
-    top: 90px;
-    right: 380px;
-    transform: rotate(105deg) scale(0.92);
-  }
-  &.petal-8 {
-    top: 145px;
-    right: 430px;
-    transform: rotate(-25deg) scale(0.82);
-  }
-  &.petal-9 {
-    bottom: 85px;
-    right: 390px;
-    transform: rotate(-42deg) scale(0.86);
-  }
-}
-
-// Gentle Drifting Sakura Breeze across desk
-.drifting-sakura {
-  position: absolute;
-  width: 18px;
-  height: 26px;
-  background: linear-gradient(135deg, rgba(254, 242, 242, 0.95) 0%, rgba(244, 114, 182, 0.85) 65%, rgba(236, 72, 153, 0.75) 100%);
-  border-radius: 65% 35% 65% 35% / 70% 30% 70% 30%;
-  box-shadow: 2px 4px 10px rgba(0, 0, 0, 0.35);
-  opacity: 0;
-  pointer-events: none;
-
-  &.drift-1 {
-    top: -40px;
-    left: 8%;
-    animation: sakuraBreezeDiagonal 28s 0s infinite linear;
-  }
-  &.drift-2 {
-    top: -40px;
-    left: 28%;
-    animation: sakuraBreezeWide 32s 6s infinite linear;
-  }
-  &.drift-3 {
-    top: -40px;
-    left: 55%;
-    animation: sakuraBreezeDiagonal 30s 14s infinite linear;
-  }
-  &.drift-4 {
-    top: -40px;
-    left: 78%;
-    animation: sakuraBreezeWide 34s 20s infinite linear;
-  }
-  &.drift-5 {
-    top: -40px;
-    left: 40%;
-    animation: sakuraBreezeDiagonal 36s 26s infinite linear;
-  }
-}
-
-@keyframes sakuraBreezeDiagonal {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0) rotate(0deg) scale(0.8);
-  }
-  10% {
-    opacity: 0.85;
-  }
-  90% {
-    opacity: 0.85;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(320px, 980px) rotate(420deg) scale(1);
-  }
-}
-
-@keyframes sakuraBreezeWide {
-  0% {
-    opacity: 0;
-    transform: translate(0, 0) rotate(0deg) scale(0.85);
-  }
-  10% {
-    opacity: 0.9;
-  }
-  90% {
-    opacity: 0.9;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(440px, 1020px) rotate(-380deg) scale(0.95);
-  }
 }
 
 // ----------------------------------------------------
@@ -218,62 +64,6 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 
   @include m.mobile-landscape-short {
     padding: 40px 12px 24px;
-  }
-}
-
-// ----------------------------------------------------
-// EMPTY TABLE PLACEHOLDER (DESKTOP WAITING)
-// ----------------------------------------------------
-.empty-table-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  max-width: 460px;
-  padding: 36px 32px;
-  border-radius: 28px;
-  background: rgba(18, 10, 7, 0.45);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1.5px dashed rgba(254, 215, 170, 0.28);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
-  animation: fadeIn 0.6s ease-out;
-
-  .placeholder-paper-ghost {
-    position: relative;
-    width: 130px;
-    height: 130px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
-    color: #fed7aa;
-    filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.35));
-
-    .ghost-svg {
-      display: block;
-    }
-  }
-
-  .placeholder-title {
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: #fff7ed;
-    margin: 0 0 10px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
-  }
-
-  .placeholder-desc {
-    font-size: 0.92rem;
-    line-height: 1.55;
-    color: #fed7aa;
-    opacity: 0.9;
-    margin: 0;
-
-    strong {
-      color: #ffffff;
-      font-weight: 700;
-    }
   }
 }
 
@@ -326,8 +116,7 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   }
 }
 
-// Floating HUD elements on top of the 3D scene (no enclosing box)
-// Floating Circular Controls on top of the 3D scene (no enclosing box)
+// Floating Circular HUD Controls on top of the 3D scene
 .stage-hud-overlay {
   position: absolute;
   top: 10px;
@@ -375,107 +164,6 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 
     &:active {
       transform: scale(0.92);
-    }
-  }
-}
-
-// ----------------------------------------------------
-// INSTRUCTION BOX DIRECTLY UNDER PAPER
-// ----------------------------------------------------
-.paper-instruction-box {
-  margin-top: 14px;
-  width: 100%;
-  max-width: 480px;
-  padding: 12px 20px;
-  border-radius: 18px;
-  background: rgba(18, 10, 7, 0.65);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(254, 215, 170, 0.25);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-
-  .instruction-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
-  .fold-type-tag {
-    display: inline-block;
-    padding: 3px 9px;
-    border-radius: 6px;
-    font-size: 0.74rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    background: rgba(244, 114, 182, 0.25);
-    color: #fbcfe8;
-    border: 1px solid rgba(244, 114, 182, 0.4);
-
-    &.tag--mountain {
-      background: rgba(249, 115, 22, 0.25);
-      color: #fed7aa;
-      border-color: rgba(249, 115, 22, 0.45);
-    }
-
-    &.tag--squash {
-      background: rgba(168, 85, 247, 0.25);
-      color: #e9d5ff;
-      border-color: rgba(168, 85, 247, 0.4);
-    }
-
-    &.tag--petal {
-      background: rgba(236, 72, 153, 0.25);
-      color: #fbcfe8;
-      border-color: rgba(236, 72, 153, 0.45);
-    }
-
-    &.tag--turnover {
-      background: rgba(56, 189, 248, 0.25);
-      color: #bae6fd;
-      border-color: rgba(56, 189, 248, 0.4);
-    }
-
-    &.tag--final {
-      background: rgba(251, 191, 36, 0.3);
-      color: #fef08a;
-      border-color: rgba(251, 191, 36, 0.5);
-    }
-  }
-
-  .instruction-text {
-    margin: 0;
-    font-size: 0.88rem;
-    font-weight: 600;
-    line-height: 1.45;
-    color: #fff7ed;
-    flex: 1;
-    min-width: 220px;
-  }
-
-  .tip-row {
-    margin-top: 6px;
-    padding-top: 6px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.78rem;
-    color: #fed7aa;
-    opacity: 0.9;
-  }
-
-  .step-cta-hint {
-    margin-top: 8px;
-    padding-top: 6px;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-    font-size: 0.78rem;
-    color: #fde68a;
-    opacity: 0.95;
-
-    strong {
-      color: #ffffff;
-      font-weight: 700;
     }
   }
 }
