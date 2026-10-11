@@ -180,7 +180,7 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         creaseType: 'turnover',
         hotspot: { x: 250, y: 250, label: 'Papier umdrehen' },
         facets: [
-          { points: '250,70 430,250 250,430 70,250', isReverseSide: true, shadeFactor: 1.0 },
+          { points: '250,70 430,250 250,430 70,250', isReverseSide: false, shadeFactor: 1.0 },
         ],
         creaseLines: [
           { x1: 70, y1: 250, x2: 430, y2: 250, type: 'guide' },
@@ -189,6 +189,9 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         foldAnimation: {
           type: 'turnover',
           rotateTransform: 'rotateY(180deg)',
+          turnoverBackFacets: [
+            { points: '250,70 430,250 250,430 70,250', isReverseSide: true, shadeFactor: 1.0 },
+          ],
         },
       },
       {
@@ -260,13 +263,14 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         facets: [
           { points: '250,130 370,250 250,250', shadeFactor: 1.0 },
           { points: '250,130 130,250 250,370', shadeFactor: 0.95 },
-          { points: '250,250 370,250 250,370', shadeFactor: 1.04 },
+          { points: '250,250 310,250 250,370', shadeFactor: 1.02 },
+          { points: '250,370 370,250 310,250', shadeFactor: 1.06 },
         ],
         foldAnimation: {
           type: 'flap',
-          flapPoints: '250,250 370,250 250,370',
-          origin: { x: 310, y: 310 },
-          animationClass: 'anim-fold-left-y',
+          flapPoints: '250,370 370,250 310,250',
+          origin: { x: 250, y: 370 },
+          animationClass: 'anim-fold-kite-right',
           showsReverseSide: true,
         },
       },
@@ -280,14 +284,15 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         creaseLines: [{ x1: 250, y1: 370, x2: 190, y2: 250, type: 'valley' }],
         facets: [
           { points: '250,130 310,250 250,370', shadeFactor: 1.05 },
-          { points: '250,130 190,250 250,370', shadeFactor: 0.95 },
-          { points: '250,250 130,250 250,370', shadeFactor: 0.92 },
+          { points: '250,130 130,250 250,250', shadeFactor: 0.95 },
+          { points: '250,250 190,250 250,370', shadeFactor: 0.92 },
+          { points: '250,370 130,250 190,250', shadeFactor: 0.96 },
         ],
         foldAnimation: {
           type: 'flap',
-          flapPoints: '250,250 130,250 250,370',
-          origin: { x: 190, y: 310 },
-          animationClass: 'anim-fold-right-y',
+          flapPoints: '250,370 130,250 190,250',
+          origin: { x: 250, y: 370 },
+          animationClass: 'anim-fold-kite-left',
           showsReverseSide: true,
         },
       },
@@ -359,6 +364,12 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         foldAnimation: {
           type: 'turnover',
           rotateTransform: 'rotateY(180deg)',
+          turnoverBackFacets: [
+            { points: '250,70 310,250 250,250', shadeFactor: 1.06 },
+            { points: '250,70 190,250 250,250', shadeFactor: 0.95 },
+            { points: '250,250 310,250 250,430', shadeFactor: 1.04 },
+            { points: '250,250 190,250 250,430', shadeFactor: 0.94 },
+          ],
         },
       },
       {
@@ -384,10 +395,10 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         hotspot: { x: 230, y: 400, label: 'Hals nach links-oben falten' },
         arrow: { fromX: 230, fromY: 400, toX: 140, toY: 135, curveOffset: -40 },
         facets: [
-          { points: '250,110 330,245 250,255', shadeFactor: 1.05 },
-          { points: '250,110 170,245 250,255', shadeFactor: 0.95 },
+          { points: '250,90 310,250 250,250', shadeFactor: 1.05 },
+          { points: '250,90 190,250 250,250', shadeFactor: 0.95 },
           { points: '220,245 140,125 160,145 250,255', shadeFactor: 1.08 },
-          { points: '280,245 250,280 250,440 270,350', shadeFactor: 0.92 },
+          { points: '310,250 250,250 250,440 270,350', shadeFactor: 0.95 },
         ],
         foldAnimation: { type: 'reverse' },
       },
@@ -396,13 +407,14 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         name: 'Schwanz nach oben stülpen',
         instruction: 'Führe die rechte untere Spitze ebenfalls per Gegenfaltung schräg nach rechts oben.',
         creaseType: 'reverse',
-        hotspot: { x: 260, y: 400, label: 'Schwanz nach rechts-oben falten' },
-        arrow: { fromX: 260, fromY: 400, toX: 375, toY: 135, curveOffset: 40 },
+        hotspot: { x: 270, y: 350, label: 'Schwanz nach rechts-oben falten' },
+        arrow: { fromX: 270, fromY: 360, toX: 360, toY: 135, curveOffset: 35 },
         facets: [
-          { points: '250,110 330,245 250,255', shadeFactor: 1.04 },
-          { points: '250,110 170,245 250,255', shadeFactor: 0.96 },
+          { points: '250,90 310,250 250,250', shadeFactor: 1.05 },
+          { points: '250,90 190,250 250,250', shadeFactor: 0.95 },
           { points: '220,245 140,125 160,145 250,255', shadeFactor: 1.08 },
-          { points: '280,245 385,125 250,280', shadeFactor: 0.92 },
+          { points: '280,245 360,125 340,145 250,255', shadeFactor: 1.02 },
+          { points: '220,245 280,245 250,270', shadeFactor: 0.92 },
         ],
         foldAnimation: { type: 'reverse' },
       },
@@ -415,22 +427,39 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         tip: 'Puste sanft von unten in das kleine Loch im Bauch, um den Kranichkörper dreidimensional aufzublasen!',
         hotspot: { x: 120, y: 150, label: 'Kranich vollenden' },
         facets: [
-          // Vollendeter meisterhafter 3D Origami-Kranich (Tsuru)
-          { points: '250,195 220,245 250,255', shadeFactor: 1.05 }, // Rücken links
-          { points: '250,195 280,245 250,255', shadeFactor: 1.15 }, // Rücken rechts
-          { points: '250,195 55,175 220,245', shadeFactor: 1.08 },  // Flügel links oben
-          { points: '220,245 55,175 150,245', shadeFactor: 0.96 },  // Flügel links unten
-          { points: '220,245 150,245 200,265', shadeFactor: 0.90 }, // Flügelfalte links
-          { points: '250,195 445,175 280,245', shadeFactor: 1.18 }, // Flügel rechts oben
-          { points: '280,245 445,175 350,245', shadeFactor: 1.02 }, // Flügel rechts unten
-          { points: '280,245 350,245 300,265', shadeFactor: 0.94 }, // Flügelfalte rechts
-          { points: '220,245 140,125 160,145 250,255', shadeFactor: 1.06 }, // Hals
-          { points: '140,125 105,160 135,150', shadeFactor: 1.20 }, // Kopf Krone
-          { points: '135,150 105,160 160,145', shadeFactor: 0.88 }, // Schnabel / Kehle
-          { points: '280,245 385,125 265,265', shadeFactor: 1.15 }, // Schwanz oben
-          { points: '265,265 385,125 250,280', shadeFactor: 0.96 }, // Schwanz unten
-          { points: '220,245 250,255 250,280', shadeFactor: 0.92 }, // Bauch links
-          { points: '280,245 250,255 250,280', shadeFactor: 0.98 }, // Bauch rechts
+          // Vollendeter meisterhafter 3D Origami-Kranich (Tsuru) mit echtem räumlichen Volumen
+          // 1. Rumpf / Diamant-Körper (aufgeblähter 3D Oktaeder-Rumpf mit Rückengrat Z=65 und Bauchkiel Z=-35)
+          { points: '250,195,65 215,240,18 250,255,30', shadeFactor: 1.05 }, // Rücken vorn links
+          { points: '250,195,65 250,255,30 285,240,18', shadeFactor: 1.15 }, // Rücken vorn rechts
+          { points: '250,195,65 250,220,30 215,240,18', shadeFactor: 1.00 }, // Rücken hinten links
+          { points: '250,195,65 285,240,18 250,220,30', shadeFactor: 1.10 }, // Rücken hinten rechts
+          { points: '215,240,18 250,275,-35 250,255,30', shadeFactor: 0.92 }, // Bauch vorn links
+          { points: '285,240,18 250,255,30 250,275,-35', shadeFactor: 0.98 }, // Bauch vorn rechts
+          { points: '215,240,18 250,220,30 250,275,-35', shadeFactor: 0.88 }, // Bauch hinten links
+          { points: '285,240,18 250,275,-35 250,220,30', shadeFactor: 0.94 }, // Bauch hinten rechts
+
+          // 2. Linker Flügel (3D geneigt, schwingt seitlich nach außen und unten)
+          { points: '250,195,65 45,170,-22 215,240,18', shadeFactor: 1.08 },  // Flügel links oben
+          { points: '215,240,18 45,170,-22 140,235,-8', shadeFactor: 0.96 },  // Flügel links unten
+          { points: '215,240,18 140,235,-8 195,260,6', shadeFactor: 0.90 },  // Flügelfalte links
+
+          // 3. Rechter Flügel (symmetrisch 3D geneigt)
+          { points: '250,195,65 285,240,18 455,170,-22', shadeFactor: 1.18 }, // Flügel rechts oben
+          { points: '285,240,18 360,235,-8 455,170,-22', shadeFactor: 1.02 }, // Flügel rechts unten
+          { points: '285,240,18 305,260,6 360,235,-8', shadeFactor: 0.94 },   // Flügelfalte rechts
+
+          // 4. Hals (ragt räumlich nach schräg vorn-oben heraus)
+          { points: '215,240,18 135,125,52 155,140,44', shadeFactor: 1.06 }, // Hals Außenseite
+          { points: '215,240,18 155,140,44 250,255,30', shadeFactor: 1.10 }, // Hals Innenseite
+
+          // 5. Kopf & Schnabel (durch Gegenfaltung nach vorn unten geneigt)
+          { points: '135,125,52 100,155,48 128,145,38', shadeFactor: 1.20 }, // Kopf Krone
+          { points: '128,145,38 100,155,48 155,140,44', shadeFactor: 0.88 }, // Schnabel / Kehle
+
+          // 6. Schwanz (ragt räumlich nach schräg hinten-oben heraus)
+          { points: '285,240,18 365,125,52 345,140,44', shadeFactor: 1.15 }, // Schwanz oben
+          { points: '285,240,18 345,140,44 265,260,22', shadeFactor: 0.96 }, // Schwanz unten
+          { points: '265,260,22 345,140,44 250,275,-35', shadeFactor: 0.90 }, // Schwanz Unterkiel
         ],
         foldAnimation: { type: 'final' },
       },
@@ -478,10 +507,13 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         instruction: 'Falte das Blatt wieder auf. Die diagonale Linie dient als Orientierungsachse.',
         creaseType: 'valley',
         hotspot: { x: 250, y: 250, label: 'Auffalten' },
-        creaseLines: [{ x1: 250, y1: 70, x2: 250, y2: 430, type: 'guide' }],
+        creaseLines: [
+          { x1: 250, y1: 70, x2: 250, y2: 430, type: 'guide' },
+          { x1: 70, y1: 250, x2: 430, y2: 250, type: 'guide' },
+        ],
         facets: [
           { points: '250,70 430,250 70,250', shadeFactor: 1.04 },
-          { points: '250,70 430,250 70,250', shadeFactor: 0.96, isReverseSide: true },
+          { points: '70,250 430,250 250,430', shadeFactor: 0.98 },
         ],
         foldAnimation: {
           type: 'unfold',
@@ -501,7 +533,7 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         facets: [
           { points: '250,70 320,230 250,230', shadeFactor: 1.08 },
           { points: '250,70 180,230 250,230', shadeFactor: 0.94 },
-          { points: '250,230 430,250 250,430 70,250', shadeFactor: 1.0 },
+          { points: '250,230 320,230 430,250 250,430 70,250 180,230', shadeFactor: 1.0 },
         ],
         foldAnimation: { type: 'squash' },
       },
@@ -571,12 +603,19 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         creaseType: 'turnover',
         hotspot: { x: 250, y: 250, label: 'Modell wenden' },
         facets: [
-          { points: '140,240 360,240 250,420', shadeFactor: 1.0 },
-          { points: '140,240 250,160 360,240', shadeFactor: 0.95 },
+          { points: '180,230 320,230 250,300', isReverseSide: true, shadeFactor: 1.15 },
+          { points: '250,230 370,280 250,410', shadeFactor: 1.05 },
+          { points: '250,230 130,280 250,410', shadeFactor: 0.94 },
         ],
         foldAnimation: {
           type: 'turnover',
           rotateTransform: 'rotateY(180deg)',
+          turnoverBackFacets: [
+            { points: '140,240 250,160 360,240', shadeFactor: 0.96 },
+            { points: '140,240 360,240 250,420', shadeFactor: 1.0 },
+            { points: '140,240 130,280 200,320', shadeFactor: 0.90 },
+            { points: '360,240 370,280 300,320', shadeFactor: 1.02 },
+          ],
         },
       },
       {
@@ -584,11 +623,18 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         name: 'Federohren hervorheben',
         instruction: 'Falte die beiden oberen Spitzen leicht nach oben heraus für die charakteristischen Eulenohren.',
         creaseType: 'valley',
-        hotspot: { x: 250, y: 160, label: 'Federohren knicken' },
+        tip: 'Streiche die Ohren sanft nach vorn, damit sie plastisch abstehen.',
+        hotspot: { x: 250, y: 130, label: 'Federohren knicken' },
+        arrow: { fromX: 250, fromY: 170, toX: 250, toY: 110, curveOffset: 0 },
+        creaseLines: [{ x1: 205, y1: 160, x2: 295, y2: 160, type: 'guide' }],
         facets: [
+          { points: '205,160 250,130 295,160', shadeFactor: 1.05 }, // Stirndreieck zwischen Ohren
+          { points: '140,240 205,160 295,160 360,240', shadeFactor: 0.96 }, // Brust-Trapez
+          { points: '170,95 250,130 205,160', shadeFactor: 1.12 }, // Federohr links
+          { points: '330,95 250,130 295,160', shadeFactor: 1.10 }, // Federohr rechts
           { points: '140,240 360,240 250,420', shadeFactor: 1.0 },
-          { points: '170,95 250,130 205,160', shadeFactor: 1.12 },
-          { points: '330,95 250,130 295,160', shadeFactor: 1.10 },
+          { points: '140,240 130,280 200,320', shadeFactor: 0.90 },
+          { points: '360,240 370,280 300,320', shadeFactor: 1.02 },
         ],
         foldAnimation: { type: 'squash' },
       },
@@ -599,9 +645,16 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         creaseType: 'valley',
         hotspot: { x: 250, y: 410, label: 'Bauchspitze umknicken' },
         arrow: { fromX: 250, fromY: 410, toX: 250, toY: 340, curveOffset: 0 },
+        creaseLines: [{ x1: 190, y1: 360, x2: 310, y2: 360, type: 'valley' }],
         facets: [
+          { points: '205,160 250,130 295,160', shadeFactor: 1.05 },
+          { points: '140,240 205,160 295,160 360,240', shadeFactor: 0.96 },
+          { points: '170,95 250,130 205,160', shadeFactor: 1.12 },
+          { points: '330,95 250,130 295,160', shadeFactor: 1.10 },
           { points: '140,240 360,240 310,360 190,360', shadeFactor: 1.0 },
           { points: '190,360 310,360 250,420', shadeFactor: 0.95 },
+          { points: '140,240 130,280 200,320', shadeFactor: 0.90 },
+          { points: '360,240 370,280 300,320', shadeFactor: 1.02 },
         ],
         foldAnimation: {
           type: 'flap',
@@ -618,16 +671,42 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         creaseType: 'turnover',
         hotspot: { x: 250, y: 250, label: 'Vorderseite betrachten' },
         facets: [
-          { points: '170,95 250,130 205,160', shadeFactor: 1.08 },
-          { points: '330,95 250,130 295,160', shadeFactor: 1.15 },
-          { points: '205,160 295,160 250,265', isReverseSide: true, shadeFactor: 1.18 },
-          { points: '170,95 205,160 130,240', shadeFactor: 0.96 },
-          { points: '330,95 295,160 370,240', shadeFactor: 1.10 },
-          { points: '185,370 315,370 280,400 220,400', shadeFactor: 0.88 },
+          { points: '205,160 250,130 295,160', shadeFactor: 1.05 },
+          { points: '140,240 205,160 295,160 360,240', shadeFactor: 0.96 },
+          { points: '170,95 250,130 205,160', shadeFactor: 1.12 },
+          { points: '330,95 250,130 295,160', shadeFactor: 1.10 },
+          { points: '140,240 360,240 310,360 190,360', shadeFactor: 1.0 },
+          { points: '190,360 310,360 250,300', isReverseSide: true, shadeFactor: 0.95 },
+          { points: '140,240 130,280 200,320', shadeFactor: 0.90 },
+          { points: '360,240 370,280 300,320', shadeFactor: 1.02 },
         ],
         foldAnimation: {
           type: 'turnover',
           rotateTransform: 'rotateY(180deg)',
+          turnoverBackFacets: [
+            { points: '170,95 250,130 205,160', shadeFactor: 1.08 },
+            { points: '330,95 250,130 295,160', shadeFactor: 1.15 },
+            { points: '205,160 250,130 295,160', shadeFactor: 1.05 },
+            { points: '205,160 295,160 250,265', isReverseSide: true, shadeFactor: 1.18 },
+            { points: '205,160 250,265 205,300', shadeFactor: 0.96 },
+            { points: '295,160 250,265 295,300', shadeFactor: 1.04 },
+            { points: '170,95 205,160 130,240', shadeFactor: 0.96 },
+            { points: '205,160 130,240 165,340 205,300', shadeFactor: 0.90 },
+            { points: '330,95 295,160 370,240', shadeFactor: 1.12 },
+            { points: '295,160 370,240 335,340 295,300', shadeFactor: 1.04 },
+            { points: '250,265 205,300 165,340 250,370', shadeFactor: 0.94 },
+            { points: '250,265 295,300 335,340 250,370', shadeFactor: 1.02 },
+            { points: '242,235 258,235 250,265', fillOverride: '#f59e0b', shadeFactor: 1.10 },
+            { points: '210,180 230,175 240,195 220,200', shadeFactor: 0.94 },
+            { points: '220,183 232,185 228,197 216,195', fillOverride: '#1e1b18' },
+            { points: '224,185 228,186 226,190', fillOverride: '#ffffff' },
+            { points: '290,180 270,175 260,195 280,200', shadeFactor: 1.06 },
+            { points: '280,183 268,185 272,197 284,195', fillOverride: '#1e1b18' },
+            { points: '276,185 272,186 274,190', fillOverride: '#ffffff' },
+            { points: '210,365 240,365 225,385', fillOverride: '#d97706', shadeFactor: 1.0 },
+            { points: '260,365 290,365 275,385', fillOverride: '#d97706', shadeFactor: 1.1 },
+            { points: '185,370 315,370 280,395 220,395', shadeFactor: 0.85 },
+          ],
         },
       },
       {
@@ -639,20 +718,31 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         tip: 'Deine weise Zen-Eule ist vollendet! Sie wacht aufmerksam über deinen Schreibtisch.',
         hotspot: { x: 250, y: 240, label: 'Eule bewundern' },
         facets: [
-          // Meisterhafte, authentische Zen-Eule (Fukuro)
-          { points: '170,95 250,130 205,160', shadeFactor: 1.08 }, // Federohr links
-          { points: '330,95 250,130 295,160', shadeFactor: 1.15 }, // Federohr rechts
-          { points: '205,160 295,160 250,265', isReverseSide: true, shadeFactor: 1.18 }, // Weißes Gesicht / Brustschild
-          { points: '240,240 260,240 250,265', shadeFactor: 0.95 }, // Gefalteter Schnabel
-          { points: '215,185 235,195 220,210', isReverseSide: true, shadeFactor: 0.88 }, // Origami-Auge links
-          { points: '285,185 265,195 280,210', isReverseSide: true, shadeFactor: 0.92 }, // Origami-Auge rechts
-          { points: '170,95 205,160 130,240', shadeFactor: 0.96 }, // Flügel links oben
-          { points: '205,160 130,240 165,340 205,300', shadeFactor: 0.90 }, // Flügel links unten
-          { points: '330,95 295,160 370,240', shadeFactor: 1.12 }, // Flügel rechts oben
-          { points: '295,160 370,240 335,340 295,300', shadeFactor: 1.04 }, // Flügel rechts unten
-          { points: '250,265 205,300 165,340 250,370', shadeFactor: 0.94 }, // Rumpf links
-          { points: '250,265 295,300 335,340 250,370', shadeFactor: 1.02 }, // Rumpf rechts
-          { points: '185,370 315,370 280,400 220,400', shadeFactor: 0.85 }, // Perch Standfuß
+          // Meisterhafte, authentische Zen-Eule (Fukuro) – nahtlos geschlossen mit 3D-Tiefe
+          { points: '170,95,15 250,130,22 205,160,20', shadeFactor: 1.08 }, // Federohr links
+          { points: '330,95,15 250,130,22 295,160,20', shadeFactor: 1.15 }, // Federohr rechts
+          { points: '205,160,20 250,130,22 295,160,20', shadeFactor: 1.05 }, // Stirn / Scheitel (schließt Lücke zwischen Ohren)
+          { points: '205,160,20 295,160,20 250,265,42', isReverseSide: true, shadeFactor: 1.18 }, // Weißes Gesicht / Brustschild gewölbt
+          { points: '205,160,20 250,265,42 205,300,28', shadeFactor: 0.96 }, // Linke Flanke (schließt Lücke zum Flügel)
+          { points: '295,160,20 250,265,42 295,300,28', shadeFactor: 1.04 }, // Rechte Flanke (schließt Lücke zum Flügel)
+          { points: '170,95,15 205,160,20 130,240,-12', shadeFactor: 0.96 }, // Flügel links oben
+          { points: '205,160,20 130,240,-12 165,340,-6 205,300,28', shadeFactor: 0.90 }, // Flügel links unten
+          { points: '330,95,15 295,160,20 370,240,-12', shadeFactor: 1.12 }, // Flügel rechts oben
+          { points: '295,160,20 370,240,-12 335,340,-6 295,300,28', shadeFactor: 1.04 }, // Flügel rechts unten
+          { points: '250,265,42 205,300,28 165,340,-6 250,370,18', shadeFactor: 0.94 }, // Rumpf links
+          { points: '250,265,42 295,300,28 335,340,-6 250,370,18', shadeFactor: 1.02 }, // Rumpf rechts
+          { points: '242,235,46 258,235,46 250,265,60', fillOverride: '#f59e0b', shadeFactor: 1.10 }, // Gefalteter goldener Schnabel ragt hervor
+          // Ausgeprägte Origami-Augen mit Pupille & Lichtglanz
+          { points: '210,180,32 230,175,34 240,195,36 220,200,34', shadeFactor: 0.94 }, // Augenring links
+          { points: '220,183,35 232,185,36 228,197,37 216,195,36', fillOverride: '#1e1b18' }, // Pupille links
+          { points: '224,185,38 228,186,38 226,190,38', fillOverride: '#ffffff' }, // Lichtglanz links
+          { points: '290,180,32 270,175,34 260,195,36 280,200,34', shadeFactor: 1.06 }, // Augenring rechts
+          { points: '280,183,35 268,185,36 272,197,37 284,195,36', fillOverride: '#1e1b18' }, // Pupille rechts
+          { points: '276,185,38 272,186,38 274,190,38', fillOverride: '#ffffff' }, // Lichtglanz rechts
+          // Standfüße & Perch
+          { points: '210,365,18 240,365,18 225,385,14', fillOverride: '#d97706', shadeFactor: 1.0 }, // Fuß links
+          { points: '260,365,18 290,365,18 275,385,14', fillOverride: '#d97706', shadeFactor: 1.1 }, // Fuß rechts
+          { points: '185,370,10 315,370,10 280,395,2 220,395,2', shadeFactor: 0.85 }, // Perch Standfuß
         ],
         foldAnimation: { type: 'final' },
       },
@@ -738,11 +828,17 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         creaseType: 'turnover',
         hotspot: { x: 250, y: 250, label: 'Wenden' },
         facets: [
-          { points: '70,250 250,70 430,250 250,430', isReverseSide: true, shadeFactor: 1.0 },
+          { points: '70,250 250,70 250,250', shadeFactor: 1.05 },
+          { points: '250,70 430,250 250,250', shadeFactor: 1.02 },
+          { points: '430,250 250,430 250,250', shadeFactor: 0.95 },
+          { points: '250,430 70,250 250,250', shadeFactor: 0.98 },
         ],
         foldAnimation: {
           type: 'turnover',
           rotateTransform: 'rotateY(180deg)',
+          turnoverBackFacets: [
+            { points: '70,250 250,70 430,250 250,430', isReverseSide: true, shadeFactor: 1.0 },
+          ],
         },
       },
       {
@@ -766,11 +862,17 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         creaseType: 'turnover',
         hotspot: { x: 250, y: 250, label: 'Wenden' },
         facets: [
-          { points: '160,160 340,160 340,340 160,340', shadeFactor: 1.0 },
+          { points: '160,250 250,160 250,250', shadeFactor: 1.06 },
+          { points: '250,160 340,250 250,250', shadeFactor: 1.02 },
+          { points: '340,250 250,340 250,250', shadeFactor: 0.94 },
+          { points: '250,340 160,250 250,250', shadeFactor: 0.98 },
         ],
         foldAnimation: {
           type: 'turnover',
           rotateTransform: 'rotateY(180deg)',
+          turnoverBackFacets: [
+            { points: '160,160 340,160 340,340 160,340', shadeFactor: 1.0 },
+          ],
         },
       },
       {
@@ -821,7 +923,7 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         hotspot: { x: 250, y: 140, label: 'Kopf nach oben falten' },
         arrow: { fromX: 250, fromY: 190, toX: 250, toY: 100, curveOffset: 0 },
         facets: [
-          { points: '250,95 275,145 250,175 225,145', shadeFactor: 1.15 },
+          { points: '250,95 275,145 250,190 225,145', shadeFactor: 1.15 },
           { points: '190,190 310,190 310,310 190,310', shadeFactor: 1.0 },
           { points: '190,190 75,135 125,210', shadeFactor: 0.92 },
           { points: '310,190 425,135 375,210', shadeFactor: 1.08 },
@@ -837,9 +939,9 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         creaseType: 'valley',
         hotspot: { x: 250, y: 340, label: 'Schwanz formen' },
         facets: [
-          { points: '250,95 275,145 250,175 225,145', shadeFactor: 1.15 },
+          { points: '250,95 275,145 250,190 225,145', shadeFactor: 1.15 },
           { points: '190,190 310,190 310,310 190,310', shadeFactor: 1.0 },
-          { points: '220,330 280,330 250,375', shadeFactor: 0.86 },
+          { points: '220,310 280,310 250,375', shadeFactor: 0.86 },
           { points: '190,190 75,135 125,210', shadeFactor: 0.92 },
           { points: '310,190 425,135 375,210', shadeFactor: 1.08 },
           { points: '190,310 130,375 155,335', shadeFactor: 0.88 },
@@ -857,7 +959,7 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         facets: [
           { points: '250,95 275,145 250,175 225,145', shadeFactor: 1.15 },
           { points: '215,175 285,175 325,225 325,265 285,315 215,315 175,265 175,225', shadeFactor: 1.05 },
-          { points: '220,330 280,330 250,375', shadeFactor: 0.86 },
+          { points: '215,315 285,315 250,375', shadeFactor: 0.86 },
           { points: '190,190 75,135 125,210', shadeFactor: 0.92 },
           { points: '310,190 425,135 375,210', shadeFactor: 1.08 },
           { points: '190,310 130,375 155,335', shadeFactor: 0.88 },
@@ -877,14 +979,19 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
           { points: '250,205 285,225 285,265 250,285 215,265 215,225', shadeFactor: 1.22 },
           { points: '250,205 215,175 285,175', shadeFactor: 1.12 },
           { points: '215,225 215,175 175,200', shadeFactor: 1.04 },
+          { points: '215,225 175,200 175,245', shadeFactor: 0.96 },
           { points: '285,225 285,175 325,200', shadeFactor: 1.16 },
+          { points: '285,225 325,200 325,245', shadeFactor: 1.08 },
           { points: '215,265 175,245 190,295 250,285', shadeFactor: 0.94 },
           { points: '285,265 325,245 310,295 250,285', shadeFactor: 1.02 },
+          { points: '250,285 190,295 220,330 280,330 310,295', shadeFactor: 0.92 },
+          { points: '215,175 175,200 75,135', shadeFactor: 0.92 },
+          { points: '175,200 125,210 75,135', shadeFactor: 0.86 },
+          { points: '285,175 325,200 425,135', shadeFactor: 1.10 },
+          { points: '325,200 375,210 425,135', shadeFactor: 1.04 },
+          { points: '190,295 220,330 130,375 155,335', shadeFactor: 0.88 },
+          { points: '310,295 280,330 370,375 345,335', shadeFactor: 1.00 },
           { points: '220,330 280,330 250,375', shadeFactor: 0.86 },
-          { points: '190,190 75,135 125,210', shadeFactor: 0.92 },
-          { points: '310,190 425,135 375,210', shadeFactor: 1.08 },
-          { points: '190,310 130,375 155,335', shadeFactor: 0.88 },
-          { points: '310,310 370,375 345,335', shadeFactor: 1.02 },
         ],
         foldAnimation: { type: 'squash' },
       },
@@ -898,24 +1005,24 @@ export const ORIGAMI_PATTERNS: OrigamiPattern[] = [
         hotspot: { x: 250, y: 250, label: 'Schildkröte bewundern' },
         facets: [
           // Meisterhafte, authentische 3D Origami-Schildkröte (Kame)
-          { points: '250,95 250,175 225,145', shadeFactor: 1.06 }, // Kopf links
-          { points: '250,95 275,145 250,175', shadeFactor: 1.18 }, // Kopf rechts
-          { points: '250,205 285,225 285,265 250,285 215,265 215,225', shadeFactor: 1.22 }, // Zentrales Kikkō-Schild
-          { points: '250,205 215,175 285,175', shadeFactor: 1.12 }, // Oberschild
-          { points: '215,225 215,175 175,200', shadeFactor: 1.04 }, // Schuppe oben links
-          { points: '215,225 175,200 175,245', shadeFactor: 0.96 }, // Schuppe Mitte links
-          { points: '285,225 285,175 325,200', shadeFactor: 1.16 }, // Schuppe oben rechts
-          { points: '285,225 325,200 325,245', shadeFactor: 1.08 }, // Schuppe Mitte rechts
-          { points: '215,265 175,245 190,295 250,285', shadeFactor: 0.94 }, // Schuppe unten links
-          { points: '285,265 325,245 310,295 250,285', shadeFactor: 1.02 }, // Schuppe unten rechts
-          { points: '250,285 190,295 220,330 280,330 310,295', shadeFactor: 0.92 }, // Schuppe unten
-          { points: '215,175 175,200 75,135', shadeFactor: 0.92 }, // Flosse VL oben
-          { points: '175,200 125,210 75,135', shadeFactor: 0.86 }, // Flosse VL unten
-          { points: '285,175 325,200 425,135', shadeFactor: 1.10 }, // Flosse VR oben
-          { points: '325,200 375,210 425,135', shadeFactor: 1.04 }, // Flosse VR unten
-          { points: '190,295 220,330 130,375 155,335', shadeFactor: 0.88 }, // Hinterflosse links
-          { points: '310,295 280,330 370,375 345,335', shadeFactor: 1.00 }, // Hinterflosse rechts
-          { points: '220,330 280,330 250,375', shadeFactor: 0.86 }, // Spitzenschwanz
+          { points: '250,95,16 250,175,22 225,145,18', shadeFactor: 1.06 }, // Kopf links
+          { points: '250,95,16 275,145,18 250,175,22', shadeFactor: 1.18 }, // Kopf rechts
+          { points: '250,205,52 285,225,44 285,265,44 250,285,50 215,265,44 215,225,44', shadeFactor: 1.22 }, // Zentrales Kikkō-Schild (Domed peak Z=52)
+          { points: '250,205,52 215,175,32 285,175,32', shadeFactor: 1.12 }, // Oberschild
+          { points: '215,225,44 215,175,32 175,200,20', shadeFactor: 1.04 }, // Schuppe oben links
+          { points: '215,225,44 175,200,20 175,245,20', shadeFactor: 0.96 }, // Schuppe Mitte links
+          { points: '285,225,44 285,175,32 325,200,20', shadeFactor: 1.16 }, // Schuppe oben rechts
+          { points: '285,225,44 325,200,20 325,245,20', shadeFactor: 1.08 }, // Schuppe Mitte rechts
+          { points: '215,265,44 175,245,20 190,295,22 250,285,50', shadeFactor: 0.94 }, // Schuppe unten links
+          { points: '285,265,44 325,245,20 310,295,22 250,285,50', shadeFactor: 1.02 }, // Schuppe unten rechts
+          { points: '250,285,50 190,295,22 220,330,16 280,330,16 310,295,22', shadeFactor: 0.92 }, // Schuppe unten
+          { points: '215,175,32 175,200,20 75,135,-6', shadeFactor: 0.92 }, // Flosse VL oben
+          { points: '175,200,20 125,210,-4 75,135,-6', shadeFactor: 0.86 }, // Flosse VL unten
+          { points: '285,175,32 325,200,20 425,135,-6', shadeFactor: 1.10 }, // Flosse VR oben
+          { points: '325,200,20 375,210,-4 425,135,-6', shadeFactor: 1.04 }, // Flosse VR unten
+          { points: '190,295,22 220,330,16 130,375,-8 155,335,-4', shadeFactor: 0.88 }, // Hinterflosse links
+          { points: '310,295,22 280,330,16 370,375,-8 345,335,-4', shadeFactor: 1.00 }, // Hinterflosse rechts
+          { points: '220,330,16 280,330,16 250,375,4', shadeFactor: 0.86 }, // Spitzenschwanz
         ],
         foldAnimation: { type: 'final' },
       },

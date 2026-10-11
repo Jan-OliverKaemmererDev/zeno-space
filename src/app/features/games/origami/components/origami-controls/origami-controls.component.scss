@@ -8,12 +8,34 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   font-family: $font-sniglet;
 }
 
-.origami-controls-dock {
+// ----------------------------------------------------
+// CONTROLS WRAPPER (DOCK + 3D INTERACTION HINT PILL)
+// ----------------------------------------------------
+.origami-controls-wrapper {
   position: absolute;
-  bottom: 24px;
+  bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 25;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+
+  @media (min-width: 1024px) {
+    margin-left: -70px; // Offset due to right atelier sidebar
+  }
+
+  @include m.mobile-landscape-short {
+    bottom: 8px;
+    gap: 4px;
+  }
+}
+
+.origami-controls-dock {
+  position: relative;
+  pointer-events: auto;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -33,13 +55,45 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
     0 0 20px rgba(245, 158, 11, 0.15),
     inset 0 1px 1.5px rgba(255, 255, 255, 0.3);
 
-  @media (min-width: 1024px) {
-    margin-left: -70px; // Offset due to right sidebar
+  @include m.mobile-landscape-short {
+    padding: 6px 10px;
+    gap: 6px;
+  }
+}
+
+// ----------------------------------------------------
+// 3D INTERACTION HINT PILL (LARGER GLASSMORPHISM PILL)
+// ----------------------------------------------------
+.dock-interaction-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 22px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #fed7aa;
+  background: rgba(18, 10, 7, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(254, 215, 170, 0.28);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+
+  .hint-icon {
+    font-size: 0.96rem;
+  }
+
+  .hint-sep {
+    opacity: 0.4;
+    margin: 0 2px;
   }
 
   @include m.mobile-landscape-short {
-    bottom: 10px;
-    padding: 6px 10px;
+    padding: 4px 14px;
+    font-size: 0.78rem;
     gap: 6px;
   }
 }

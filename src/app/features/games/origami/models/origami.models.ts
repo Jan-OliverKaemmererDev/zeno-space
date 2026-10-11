@@ -94,6 +94,8 @@ export interface FoldAnimation {
   animationClass?: string;
   /** Whether the flap shows the white back face when folded */
   showsReverseSide?: boolean;
+  /** Optional custom back facets during a full turnover animation */
+  turnoverBackFacets?: PaperFacet[];
 }
 
 /**
