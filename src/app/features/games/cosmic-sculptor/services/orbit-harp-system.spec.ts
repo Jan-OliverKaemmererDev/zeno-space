@@ -70,10 +70,30 @@ describe('OrbitHarpSystem', () => {
     expect(posAttr).toBeTruthy();
   });
 
-  it('should toggle visibility of orbital lines', () => {
-    harpSystem.setVisibility(false);
-    expect(harpSystem.getGroup().visible).toBe(false);
+  it('should toggle visibility of orbital lines and prevent plucking when hidden', () => {
+    harpSystem.createOrbitTrack('track-1', 'body-1', 20.0, new THREE.Color(0x38bdf8), 1);
+    const raycaster = new THREE.Raycaster();
+    raycaster.ray.origin.set(20.0, 10.0, 0);
+    raycaster.ray.direction.set(0, -1, 0);
+
+    // Visible: plucking succeeds
     harpSystem.setVisibility(true);
     expect(harpSystem.getGroup().visible).toBe(true);
+    expect(harpSystem.checkHarpPluck(raycaster, 10.0)).toBeTruthy();
+
+    // Hidden (turned off by user): plucking returns null, no sound triggered
+    harpSystem.setVisibility(false);
+    expect(harpSystem.getGroup().visible).toBe(false);
+    expect(harpSystem.checkHarpPluck(raycaster, 15.0)).toBeNull();
+  });
+
+  it('should reset active vibrations when strings are switched off', () => {
+    const track = harpSystem.createOrbitTrack('track-1', 'body-1', 12.0, new THREE.Color(0x38bdf8), 2);
+    track.harpPluckTime = 10.0;
+    harpSystem.update(10.2);
+
+    harpSystem.setVisibility(false);
+    expect(track.harpPluckTime).toBe(-999);
+    expect(track.currentPositions[1]).toBe(0);
   });
 });

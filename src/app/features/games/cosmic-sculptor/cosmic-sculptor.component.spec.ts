@@ -103,4 +103,18 @@ describe('CosmicSculptorComponent', () => {
     expect(component.blackHoleCount()).toBe(0);
     expect(component.planetCount()).toBe(3);
   });
+
+  it('should toggle orbit strings and prevent chime sound on pointer move when disabled', () => {
+    expect(component.orbitStringsVisible()).toBe(true);
+    component.toggleOrbitStrings();
+    expect(component.orbitStringsVisible()).toBe(false);
+
+    mockAudioService.playChime.mockClear();
+
+    // Trigger pointer move event
+    const event = new PointerEvent('pointermove', { clientX: 200, clientY: 200 });
+    component.onPointerMove(event);
+
+    expect(mockAudioService.playChime).not.toHaveBeenCalled();
+  });
 });

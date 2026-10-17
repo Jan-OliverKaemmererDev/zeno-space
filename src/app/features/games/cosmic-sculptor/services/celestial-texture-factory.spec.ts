@@ -47,4 +47,18 @@ describe('CelestialTextureFactory', () => {
     const diskTex = factory.createAccretionDiskTexture();
     expect(diskTex).toBeTruthy();
   });
+
+  it('should generate milky way panorama, solar corona, pulse wavefront and flare rays textures', () => {
+    const panoramaTex = factory.createMilkyWaySkyPanoramaTexture();
+    expect(panoramaTex).toBeTruthy();
+
+    const coronaTex = factory.createSolarCoronaTexture();
+    expect(coronaTex).toBeTruthy();
+
+    const pulseTex = factory.createSolarPulseTexture();
+    expect(pulseTex).toBeTruthy();
+
+    const raysTex = factory.createSolarFlareRaysTexture();
+    expect(raysTex).toBeTruthy();
+  });
 });

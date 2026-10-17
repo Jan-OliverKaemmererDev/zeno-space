@@ -127,6 +127,11 @@ export class OrbitHarpSystem {
    * @returns Plucked OrbitTrack instance if a string was newly strummed, or null.
    */
   checkHarpPluck(raycaster: THREE.Raycaster, now: number): OrbitTrack | null {
+    // When orbital harp strings are turned off, no strings can be plucked and no audio plays
+    if (!this.orbitGroup.visible) {
+      return null;
+    }
+
     // Intersect with orbital reference plane (Y = 0)
     const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
     const hitPoint = new THREE.Vector3();
@@ -182,10 +187,10 @@ export class OrbitHarpSystem {
   update(now: number): void {
     for (const track of this.tracks.values()) {
       const elapsed = now - track.harpPluckTime;
-      const isVibrating = elapsed >= 0 && elapsed < 2.6;
+      const isVibrating = elapsed >= 0 && elapsed < 3.0;
       const mat = track.line.material as THREE.LineBasicMaterial;
 
-      if (isVibrating) {
+      if (isVibrating && this.orbitGroup.visible) {
         const segments = (track.currentPositions.length / 3) - 1;
         const posAttr = track.geometry.getAttribute('position') as THREE.BufferAttribute;
 
@@ -196,20 +201,19 @@ export class OrbitHarpSystem {
             track.harpPluckAngle,
             elapsed,
             track.frequency,
-            3.2
+            1.35
           );
 
-          // Vertical oscillation perpendicular to orbital plane
-          const amp = displacement * 1.6;
+          // Subtle, delicate vertical oscillation perpendicular to orbital plane
           track.currentPositions[i * 3] = track.basePositions[i * 3];
-          track.currentPositions[i * 3 + 1] = amp;
+          track.currentPositions[i * 3 + 1] = displacement;
           track.currentPositions[i * 3 + 2] = track.basePositions[i * 3 + 2];
         }
 
         posAttr.needsUpdate = true;
-        // Brighten line while ringing
-        mat.opacity = 0.85 * Math.exp(-elapsed * 1.8) + 0.32;
-      } else if (mat.opacity !== 0.35) {
+        // Softly brighten line while ringing and fade back smoothly
+        mat.opacity = 0.35 + 0.30 * Math.exp(-elapsed * 1.35) * Math.max(0, 1.0 - elapsed / 3.0);
+      } else if (mat.opacity !== 0.35 || track.currentPositions[1] !== 0) {
         // Reset to rest state
         const segments = (track.currentPositions.length / 3) - 1;
         const posAttr = track.geometry.getAttribute('position') as THREE.BufferAttribute;
@@ -225,12 +229,36 @@ export class OrbitHarpSystem {
   }
 
   /**
-   * Toggles the visual rendering of all orbital harp lines.
+   * Resets all harp string vibrations immediately to the calm resting state.
+   */
+  resetPlucks(): void {
+    this.lastPluckedTrackId = null;
+    for (const track of this.tracks.values()) {
+      track.harpPluckTime = -999;
+      track.isHovered = false;
+      const segments = (track.currentPositions.length / 3) - 1;
+      const posAttr = track.geometry.getAttribute('position') as THREE.BufferAttribute;
+      for (let i = 0; i <= segments; i++) {
+        track.currentPositions[i * 3] = track.basePositions[i * 3];
+        track.currentPositions[i * 3 + 1] = 0;
+        track.currentPositions[i * 3 + 2] = track.basePositions[i * 3 + 2];
+      }
+      posAttr.needsUpdate = true;
+      const mat = track.line.material as THREE.LineBasicMaterial;
+      mat.opacity = 0.35;
+    }
+  }
+
+  /**
+   * Toggles the visual rendering of all orbital harp lines and stops audio when hidden.
    *
    * @param visible Whether orbit tracks should be visible.
    */
   setVisibility(visible: boolean): void {
     this.orbitGroup.visible = visible;
+    if (!visible) {
+      this.resetPlucks();
+    }
   }
 
   /**

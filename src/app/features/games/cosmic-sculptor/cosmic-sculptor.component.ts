@@ -65,10 +65,10 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
   private animationId: number | null = null;
   private lastFrameTime = performance.now();
 
-  // Celestial Night Sky Particle Systems
+  // Celestial Night Sky Particle & Skydome Systems
   private starfieldPoints!: THREE.Points;
   private milkyWayPoints!: THREE.Points;
-  private milkyWayGroup!: THREE.Group;
+  private celestialSkydome!: THREE.Mesh;
 
   // Pure Mouse Interaction State (No WASD!)
   private isPointerDown = false;
@@ -77,14 +77,14 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
   private readonly raycaster = new THREE.Raycaster();
   private readonly mouseNDC = new THREE.Vector2(-9999, -9999);
 
-  // Camera Spherical Coordinates
+  // Camera Spherical Coordinates (comfortable perspective for glowing Sun and spaced orbits)
   private cameraSpherical = {
-    radius: 54.0,
+    radius: 64.0,
     theta: Math.PI / 4.2,
     phi: Math.PI / 3.4,
   };
   private targetSpherical = {
-    radius: 54.0,
+    radius: 64.0,
     theta: Math.PI / 4.2,
     phi: Math.PI / 3.4,
   };
@@ -126,25 +126,19 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     this.harpSystem.clear();
     this.textureFactory.dispose();
 
+    if (this.celestialSkydome) {
+      this.celestialSkydome.geometry.dispose();
+      (this.celestialSkydome.material as THREE.Material).dispose();
+    }
+
+    if (this.milkyWayPoints) {
+      this.milkyWayPoints.geometry.dispose();
+      (this.milkyWayPoints.material as THREE.Material).dispose();
+    }
+
     if (this.starfieldPoints) {
       this.starfieldPoints.geometry.dispose();
       (this.starfieldPoints.material as THREE.Material).dispose();
-    }
-
-    if (this.milkyWayGroup) {
-      this.milkyWayGroup.traverse((obj) => {
-        if (obj instanceof THREE.Mesh) {
-          obj.geometry.dispose();
-          if (Array.isArray(obj.material)) {
-            obj.material.forEach((m) => m.dispose());
-          } else {
-            obj.material.dispose();
-          }
-        } else if (obj instanceof THREE.Points) {
-          obj.geometry.dispose();
-          (obj.material as THREE.Material).dispose();
-        }
-      });
     }
 
     if (this.renderer) {
@@ -172,8 +166,8 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    // Brighter, radiant exposure
-    this.renderer.toneMappingExposure = 1.55;
+    // Balanced celestial exposure
+    this.renderer.toneMappingExposure = 1.18;
     container.appendChild(this.renderer.domElement);
 
     // Warm, welcoming solar point light
@@ -198,68 +192,51 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Creates the magnificent, tranquil deep cosmic night sky:
-   * 1. The Milky Way: A smooth, glowing ethereal galactic ribbon with soft dust nebulae and stardust core.
-   * 2. Distant Starfield: Delicate, quiet pinprick background stars placed strictly on the far celestial dome.
-   * NOTE: All celestial sky elements are placed at r >= 780 to completely prevent any foreground noise or jitter.
+   * Creates the magnificent, deep cosmic night sky:
+   * 1. 360° Celestial Skydome: Seamless, photorealistic Milky Way panorama with Great Rift dust lanes
+   *    and luminous golden Sagittarius core on an expansive celestial sphere (R = 960).
+   * 2. Galactic Stardust Lane: Fine micro-particles along the galactic stream providing realistic subtle depth.
+   * 3. Deep Celestial Starfield: Layer A prominent alpha stars + Layer B pinprick field stars (R >= 940).
+   * NOTE: All celestial sky elements are placed at r >= 920 to completely prevent any foreground noise or jitter.
    */
   private createCosmicEnvironment(): void {
     const particleTexture = this.textureFactory.getParticleGlowTexture();
-    const nebulaTexture = this.textureFactory.createMilkyWayNebulaTexture();
-    const coreTexture = this.textureFactory.createGalacticCoreTexture();
 
     // -------------------------------------------------------------------------
-    // 1. The Milky Way Band (Die Milchstraße: Smooth Luminous Galactic Nebula)
+    // 1. The 360-Degree Photorealistic Milky Way Celestial Skydome (R = 960)
     // -------------------------------------------------------------------------
-    this.milkyWayGroup = new THREE.Group();
-    // Majestic celestial angle across the cosmic sphere
-    this.milkyWayGroup.rotation.x = 0.62;
-    this.milkyWayGroup.rotation.z = -0.42;
+    const skyGeo = new THREE.SphereGeometry(960, 64, 48);
+    const skyTex = this.textureFactory.createMilkyWaySkyPanoramaTexture();
+    const skyMat = new THREE.MeshBasicMaterial({
+      map: skyTex,
+      side: THREE.BackSide,
+      depthWrite: false,
+      fog: false,
+      transparent: true,
+      opacity: 0.82,
+    });
+    this.celestialSkydome = new THREE.Mesh(skyGeo, skyMat);
+    // Authentic celestial tilt across the cosmic sphere
+    this.celestialSkydome.rotation.x = 0.52;
+    this.celestialSkydome.rotation.z = -0.38;
+    this.scene.add(this.celestialSkydome);
 
-    const cloudSegments = 36;
-    const bandRadius = 800.0;
-    const cloudGeo = new THREE.PlaneGeometry(240, 130);
-
-    for (let k = 0; k < cloudSegments; k++) {
-      const alpha = (k / cloudSegments) * Math.PI * 2;
-      const x = Math.cos(alpha) * bandRadius;
-      const z = Math.sin(alpha) * bandRadius;
-      const y = (Math.sin(alpha * 2.0) * 0.08) * bandRadius;
-
-      // Distance to galactic core (Sagittarius region near alpha = 0 or 2pi)
-      const distToCore = Math.min(alpha, Math.PI * 2 - alpha);
-      const isCore = distToCore < 0.65;
-
-      const mat = new THREE.MeshBasicMaterial({
-        map: isCore ? coreTexture : nebulaTexture,
-        transparent: true,
-        opacity: isCore ? 0.28 : 0.19,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-        side: THREE.DoubleSide,
-        fog: false,
-      });
-
-      const mesh = new THREE.Mesh(cloudGeo, mat);
-      mesh.position.set(x, y, z);
-      mesh.lookAt(0, 0, 0); // Always face inward toward the solar system
-      this.milkyWayGroup.add(mesh);
-    }
-
-    // Embedded delicate stardust along the galactic lane
-    const mwStarCount = 750;
+    // -------------------------------------------------------------------------
+    // 2. Galactic Stardust Particles Along The Milky Way Stream (R = 930)
+    // -------------------------------------------------------------------------
+    const mwStarCount = 360;
     const mwStarPositions = new Float32Array(mwStarCount * 3);
     const mwStarColors = new Float32Array(mwStarCount * 3);
 
-    const colCoreGold = new THREE.Color(0xfde68a);
+    const colCoreGold = new THREE.Color(0xfef08a);
     const colDiamond = new THREE.Color(0xffffff);
     const colIceBlue = new THREE.Color(0xbae6fd);
     const colLavender = new THREE.Color(0xc084fc);
 
     for (let i = 0; i < mwStarCount; i++) {
       const alpha = Math.random() * Math.PI * 2;
-      const r = 780.0 + Math.random() * 50.0;
-      const dispY = (Math.random() + Math.random() + Math.random() - 1.5) * 36.0;
+      const r = 930.0 + Math.random() * 25.0;
+      const dispY = (Math.random() + Math.random() - 1.0) * 8.5;
 
       mwStarPositions[i * 3] = Math.cos(alpha) * r;
       mwStarPositions[i * 3 + 1] = dispY;
@@ -267,7 +244,7 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
 
       const mix = Math.random();
       const col = mix < 0.4 ? colDiamond : mix < 0.7 ? colIceBlue : mix < 0.88 ? colCoreGold : colLavender;
-      const brightness = 0.4 + Math.random() * 0.5;
+      const brightness = 0.20 + Math.random() * 0.28;
 
       mwStarColors[i * 3] = col.r * brightness;
       mwStarColors[i * 3 + 1] = col.g * brightness;
@@ -279,32 +256,40 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     mwStarGeo.setAttribute('color', new THREE.BufferAttribute(mwStarColors, 3));
 
     const mwStarMat = new THREE.PointsMaterial({
-      size: 1.4,
-      sizeAttenuation: false, // Prevents close-up scaling or foreground noise
+      size: 0.85,
+      sizeAttenuation: false,
       vertexColors: true,
       map: particleTexture,
       transparent: true,
-      opacity: 0.65,
+      opacity: 0.35,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       fog: false,
     });
 
     this.milkyWayPoints = new THREE.Points(mwStarGeo, mwStarMat);
+    this.milkyWayPoints.rotation.x = 0.52;
+    this.milkyWayPoints.rotation.z = -0.38;
     this.milkyWayPoints.frustumCulled = false;
-    this.milkyWayGroup.add(this.milkyWayPoints);
-    this.scene.add(this.milkyWayGroup);
+    this.scene.add(this.milkyWayPoints);
 
     // -------------------------------------------------------------------------
-    // 2. Surrounding Deep Celestial Starfield (~1,200 delicate pinprick stars)
+    // 3. Deep Celestial Starfield (180 Alpha Stars + 1,600 Field Stars, R >= 940)
     // -------------------------------------------------------------------------
-    const starCount = 1200;
-    const positions = new Float32Array(starCount * 3);
-    const colors = new Float32Array(starCount * 3);
+    const alphaCount = 180;
+    const fieldCount = 1600;
+    const totalStars = alphaCount + fieldCount;
+    const positions = new Float32Array(totalStars * 3);
+    const colors = new Float32Array(totalStars * 3);
 
-    for (let i = 0; i < starCount; i++) {
-      // Placed strictly on the distant cosmic sphere (r = 820 to 880)
-      const r = 820.0 + Math.random() * 60.0;
+    const colSirius = new THREE.Color(0xf0fdfa);
+    const colVega = new THREE.Color(0xe0f2fe);
+    const colArcturus = new THREE.Color(0xfde68a);
+    const colBetelgeuse = new THREE.Color(0xfca5a5);
+
+    for (let i = 0; i < totalStars; i++) {
+      const isAlpha = i < alphaCount;
+      const r = 940.0 + Math.random() * 30.0;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
 
@@ -312,9 +297,18 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
       positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
       positions[i * 3 + 2] = r * Math.cos(phi);
 
-      const mix = Math.random();
-      const col = mix < 0.6 ? colDiamond : mix < 0.85 ? colIceBlue : colCoreGold;
-      const brightness = 0.35 + Math.random() * 0.55;
+      let col: THREE.Color;
+      let brightness: number;
+
+      if (isAlpha) {
+        const type = Math.random();
+        col = type < 0.45 ? colVega : type < 0.7 ? colSirius : type < 0.88 ? colArcturus : colBetelgeuse;
+        brightness = 0.85 + Math.random() * 0.15;
+      } else {
+        const type = Math.random();
+        col = type < 0.5 ? colSirius : type < 0.8 ? colVega : colArcturus;
+        brightness = 0.35 + Math.random() * 0.45;
+      }
 
       colors[i * 3] = col.r * brightness;
       colors[i * 3 + 1] = col.g * brightness;
@@ -326,12 +320,12 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
     const starMat = new THREE.PointsMaterial({
-      size: 1.2,
-      sizeAttenuation: false, // Delicate, calm pinprick starlight, zero noise
+      size: 1.4,
+      sizeAttenuation: false,
       vertexColors: true,
       map: particleTexture,
       transparent: true,
-      opacity: 0.68,
+      opacity: 0.85,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       fog: false,
@@ -376,8 +370,11 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     if (this.starfieldPoints) {
       this.starfieldPoints.rotation.y += 0.000018 * this.timeSpeed();
     }
-    if (this.milkyWayGroup) {
-      this.milkyWayGroup.rotation.y += 0.000025 * this.timeSpeed();
+    if (this.milkyWayPoints) {
+      this.milkyWayPoints.rotation.y += 0.000022 * this.timeSpeed();
+    }
+    if (this.celestialSkydome) {
+      this.celestialSkydome.rotation.y += 0.000020 * this.timeSpeed();
     }
 
     // Advance serene N-body gravitational physics
@@ -427,7 +424,7 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
   }
 
   resetCameraView(): void {
-    this.targetSpherical.radius = 54.0;
+    this.targetSpherical.radius = 64.0;
     this.targetSpherical.theta = Math.PI / 4.2;
     this.targetSpherical.phi = Math.PI / 3.4;
   }
@@ -498,12 +495,14 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
         this.mouseNDC.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         this.mouseNDC.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-        // Raycast against thin orbital lines to pluck harp strings
-        this.raycaster.setFromCamera(this.mouseNDC, this.camera);
-        const nowSeconds = performance.now() / 1000;
-        const plucked = this.harpSystem.checkHarpPluck(this.raycaster, nowSeconds);
-        if (plucked) {
-          this.audioService.playChime(plucked.noteIndex, 0.24);
+        // Raycast against thin orbital lines to pluck harp strings only when strings are enabled
+        if (this.orbitStringsVisible()) {
+          this.raycaster.setFromCamera(this.mouseNDC, this.camera);
+          const nowSeconds = performance.now() / 1000;
+          const plucked = this.harpSystem.checkHarpPluck(this.raycaster, nowSeconds);
+          if (plucked) {
+            this.audioService.playChime(plucked.noteIndex, 0.24);
+          }
         }
       }
     }
@@ -546,7 +545,7 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     const zoomSpeed = 0.055;
     this.targetSpherical.radius = Math.max(
       18.0,
-      Math.min(130.0, this.targetSpherical.radius + event.deltaY * zoomSpeed)
+      Math.min(160.0, this.targetSpherical.radius + event.deltaY * zoomSpeed)
     );
   }
 

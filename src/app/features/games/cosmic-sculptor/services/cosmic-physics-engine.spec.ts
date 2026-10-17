@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import * as THREE from 'three';
 import { CosmicPhysicsEngine } from './cosmic-physics-engine';
 import { CelestialTextureFactory } from './celestial-texture-factory';
 import { OrbitHarpSystem } from './orbit-harp-system';
@@ -20,15 +21,17 @@ describe('CosmicPhysicsEngine', () => {
     textureFactory.dispose();
   });
 
-  it('should initialize the central Sun with solar mass', () => {
+  it('should initialize the central Sun with solar mass, radiant corona and soft pulse wavefronts', () => {
     const sun = physicsEngine.initSun();
     expect(sun).toBeTruthy();
     expect(sun.type).toBe('sun');
     expect(sun.mass).toBe(physicsEngine.sunMass);
+    expect(sun.coronaSprite).toBeTruthy();
+    expect(sun.solarPulseSprites?.length).toBe(3);
     expect(physicsEngine.getBodies().length).toBe(1);
   });
 
-  it('should spawn planets on non-intersecting orbits', () => {
+  it('should spawn planets on non-intersecting orbits far enough from the Sun with dense particle rings for gas giants', () => {
     physicsEngine.initSun();
     const p1 = physicsEngine.spawnPlanet('terrestrial');
     const p2 = physicsEngine.spawnPlanet('gas-giant');
@@ -36,8 +39,16 @@ describe('CosmicPhysicsEngine', () => {
     const r1 = Math.hypot(p1.position.x, p1.position.z);
     const r2 = Math.hypot(p2.position.x, p2.position.z);
 
-    expect(Math.abs(r1 - r2)).toBeGreaterThanOrEqual(4.0);
+    // Minimum orbit radius is >= 24.0 (dignified distance from the glowing Sun)
+    expect(r1).toBeGreaterThanOrEqual(24.0);
+    expect(Math.abs(r1 - r2)).toBeGreaterThanOrEqual(5.0);
     expect(physicsEngine.getPlanetCount()).toBe(2);
+
+    // Gas giant rings must be composed of small particles (THREE.Points with 10,000 dense points)
+    expect(p2.ringsMesh).toBeInstanceOf(THREE.Points);
+    const ringPoints = p2.ringsMesh as THREE.Points;
+    const posAttr = ringPoints.geometry.getAttribute('position');
+    expect(posAttr.count).toBe(10000);
   });
 
   it('should spawn a black hole with high gravitational mass', () => {

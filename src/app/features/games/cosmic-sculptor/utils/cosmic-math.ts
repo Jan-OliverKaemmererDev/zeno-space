@@ -35,8 +35,8 @@ export function computeCircularOrbitVelocity(centralMass: number, radius: number
  */
 export function findNextSafeOrbitRadius(
   existingRadii: number[],
-  minRadius = 12.0,
-  deltaRadius = 5.8
+  minRadius = 24.0,
+  deltaRadius = 6.8
 ): number {
   if (existingRadii.length === 0) {
     return minRadius + (Math.random() * 2.0);
@@ -72,35 +72,55 @@ export function angularDistance(a: number, b: number): number {
 
 /**
  * Calculates dynamic out-of-plane displacement for a vibrating orbital harp string.
- * Simulates a localized pluck impulse decaying into traveling standing wave modes.
+ * Simulates a tender, localized pluck impulse directly under the mouse cursor that propagates
+ * outward as a gentle wave in both directions along the orbit, fading out smoothly over ~3 seconds.
  *
  * @param theta Radial angle on the orbit ring (0 to 2π).
  * @param pluckAngle Angle where the cursor plucked the string.
  * @param elapsedTime Seconds elapsed since the pluck occurred.
  * @param frequency Base vibrational frequency in Hz.
  * @param damping Exponential decay coefficient.
- * @returns Normal displacement value in 3D units.
+ * @returns Normal displacement value in 3D units (delicate, subtle amplitude).
  */
 export function evaluateHarpDisplacement(
   theta: number,
   pluckAngle: number,
   elapsedTime: number,
-  frequency: number,
-  damping = 3.6
+  frequency = 4.0,
+  damping = 1.35
 ): number {
-  if (elapsedTime < 0 || elapsedTime > 2.8) return 0;
+  const maxDuration = 3.0;
+  if (elapsedTime < 0 || elapsedTime >= maxDuration) return 0;
 
+  // Shortest angular distance from cursor pluck position along the circular orbit [0, π]
   const angDist = angularDistance(theta, pluckAngle);
-  const waveSpeed = 8.0;
-  const pulseCenter = (elapsedTime * waveSpeed) % (Math.PI * 2);
-  const localizedFalloff = Math.exp(-(angDist * angDist) / 0.55);
-  const travelingWave = Math.exp(-Math.pow(angDist - pulseCenter, 2) / 0.85) * 0.45;
 
+  // Gentle angular wave propagation speed: travels outward in both directions along the ring
+  const waveSpeed = 2.8;
+  const pulseCenter = waveSpeed * elapsedTime;
+
+  // 1. Traveling wave pulse envelope: starts tightly focused at cursor, disperses gracefully
+  const sigma = 0.22 + 0.16 * elapsedTime;
+  const travelingEnvelope = Math.exp(-Math.pow(angDist - pulseCenter, 2) / (2 * sigma * sigma));
+
+  // 2. High-frequency wave carrier propagating along the orbit
+  const waveCarrier = Math.cos(9.0 * (angDist - pulseCenter));
+
+  // 3. Delicate local standing resonance at the pluck site that decays quickly
+  const localEnvelope = Math.exp(-Math.pow(angDist, 2) / 0.08) * Math.exp(-elapsedTime * 3.6);
+  const localCarrier = Math.cos(elapsedTime * frequency * Math.PI * 2);
+
+  // Superposition of traveling pulse and local pluck resonance
+  const waveMotion = travelingEnvelope * waveCarrier + localEnvelope * localCarrier * 0.4;
+
+  // Smooth, gentle decay and gradual polynomial fade-out to 0
   const decay = Math.exp(-damping * elapsedTime);
-  const fundamental = Math.sin(elapsedTime * frequency * Math.PI * 2);
-  const harmonic = Math.sin(elapsedTime * frequency * 2.0 * Math.PI * 2) * 0.35;
+  const fadeOut = Math.max(0, 1.0 - (elapsedTime / maxDuration));
 
-  return (localizedFalloff + travelingWave) * (fundamental + harmonic) * decay;
+  // Soft, delicate amplitude scale (~0.28 units max displacement)
+  const amplitudeScale = 0.28;
+
+  return waveMotion * decay * fadeOut * amplitudeScale;
 }
 
 /**

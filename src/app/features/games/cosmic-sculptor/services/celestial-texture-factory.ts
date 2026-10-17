@@ -112,7 +112,243 @@ export class CelestialTextureFactory {
   }
 
   /**
-   * Warm, soothing golden star texture with luminous cream core and soft amber radiance.
+   * Generates an authentic, slender, 360-degree celestial sky panorama texture of the Milky Way.
+   * Features a slender galactic band, gentle translucent stardust clouds,
+   * subtle dark absorption dust lanes (the Great Rift), and fine unresolved micro-stars.
+   */
+  createMilkyWaySkyPanoramaTexture(): THREE.CanvasTexture {
+    const width = 1024;
+    const height = 512;
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx || typeof ctx.createLinearGradient !== 'function') return new THREE.CanvasTexture(canvas);
+
+    if (typeof ctx.clearRect === 'function') {
+      ctx.clearRect(0, 0, width, height);
+    }
+
+    // 1. Deep velvety obsidian cosmic void background
+    const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+    bgGrad.addColorStop(0.0, '#020308');
+    bgGrad.addColorStop(0.5, '#050714');
+    bgGrad.addColorStop(1.0, '#010206');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, width, height);
+
+    // 2. The Slender Galactic Stream: Sinusoidal band across equirectangular panorama
+    const bandPoints = 54;
+    for (let i = 0; i <= bandPoints; i++) {
+      const u = i / bandPoints;
+      const x = u * width;
+      const angle = u * Math.PI * 2 - 0.5;
+      const centerY = height * 0.5 + Math.sin(angle) * (height * 0.28);
+
+      // Distance to galactic center (Sagittarius bulge around u ~= 0.5)
+      const distToCore = Math.abs(u - 0.5);
+      const isCore = distToCore < 0.15;
+
+      // Slender ribbon profile (radius 18px on arms, up to 38px at core peak)
+      const cloudRadius = isCore ? 20 + (1 - distToCore / 0.15) * 18 : 18;
+      if (typeof ctx.createRadialGradient === 'function') {
+        const cloudGrad = ctx.createRadialGradient(x, centerY, 0, x, centerY, cloudRadius);
+        if (isCore) {
+          // Subtle, warm galactic core bulge (translucent and gentle)
+          cloudGrad.addColorStop(0.0, 'rgba(254, 243, 199, 0.16)'); // Soft cream stardust
+          cloudGrad.addColorStop(0.35, 'rgba(217, 119, 6, 0.08)');   // Warm amber glow
+          cloudGrad.addColorStop(0.70, 'rgba(147, 51, 234, 0.04)');  // Dusky twilight purple
+          cloudGrad.addColorStop(1.0, 'rgba(2, 4, 12, 0.0)');
+        } else {
+          // Delicate, ethereal spiral arm stardust
+          cloudGrad.addColorStop(0.0, 'rgba(224, 231, 255, 0.09)'); // Soft diamond starlight
+          cloudGrad.addColorStop(0.40, 'rgba(129, 140, 248, 0.04)'); // Faint lavender mist
+          cloudGrad.addColorStop(0.80, 'rgba(56, 189, 248, 0.02)');  // Faint ice cyan
+          cloudGrad.addColorStop(1.0, 'rgba(2, 4, 12, 0.0)');
+        }
+        ctx.fillStyle = cloudGrad;
+        ctx.beginPath();
+        ctx.arc(x, centerY, cloudRadius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // 3. The Great Rift (Delicate dark interstellar dust absorption lanes across the core)
+    if (typeof ctx.beginPath === 'function' && typeof ctx.stroke === 'function' && typeof ctx.moveTo === 'function' && typeof ctx.lineTo === 'function') {
+      ctx.strokeStyle = 'rgba(2, 3, 10, 0.45)';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+
+      ctx.beginPath();
+      for (let i = 0; i <= 24; i++) {
+        const u = 0.36 + (i / 24) * 0.28;
+        const x = u * width;
+        const angle = u * Math.PI * 2 - 0.5;
+        const centerY = height * 0.5 + Math.sin(angle) * (height * 0.28) + (Math.sin(i * 1.5) * 3.0);
+        if (i === 0) ctx.moveTo(x, centerY);
+        else ctx.lineTo(x, centerY);
+      }
+      ctx.stroke();
+    }
+
+    // 4. Integrated micro-stars tightly hugging the slender galactic lane
+    if (typeof ctx.beginPath === 'function' && typeof ctx.arc === 'function' && typeof ctx.fill === 'function') {
+      ctx.fillStyle = 'rgba(241, 245, 249, 0.55)';
+      for (let s = 0; s < 380; s++) {
+        const u = Math.random();
+        const x = u * width;
+        const angle = u * Math.PI * 2 - 0.5;
+        const centerY = height * 0.5 + Math.sin(angle) * (height * 0.28);
+        const distToCore = Math.abs(u - 0.5);
+        const isCore = distToCore < 0.15;
+        const disp = (Math.random() + Math.random() - 1.0) * (isCore ? 14 : 9);
+        const y = Math.max(0, Math.min(height - 1, centerY + disp));
+        const starRadius = Math.random() < 0.2 ? 0.7 : 0.45;
+
+        ctx.beginPath();
+        ctx.arc(x, y, starRadius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.generateMipmaps = true;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    return texture;
+  }
+
+  /**
+   * High-intensity radiant solar corona texture with multi-stop exponential falloff.
+   * Creates an intense, blinding, warm star glow around the Sun.
+   */
+  createSolarCoronaTexture(): THREE.CanvasTexture {
+    const size = 512;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx || typeof ctx.createRadialGradient !== 'function') return new THREE.CanvasTexture(canvas);
+
+    if (typeof ctx.clearRect === 'function') {
+      ctx.clearRect(0, 0, size, size);
+    }
+
+    const center = size / 2;
+    const grad = ctx.createRadialGradient(center, center, 0, center, center, center * 0.98);
+    grad.addColorStop(0.0, 'rgba(255, 255, 255, 1.0)');   // Pure white-hot core
+    grad.addColorStop(0.12, 'rgba(254, 240, 138, 0.95)');  // Dazzling solar gold
+    grad.addColorStop(0.26, 'rgba(245, 158, 11, 0.72)');   // Blazing amber
+    grad.addColorStop(0.48, 'rgba(217, 119, 6, 0.38)');    // Deep solar flame
+    grad.addColorStop(0.72, 'rgba(180, 83, 9, 0.14)');    // Outer ethereal corona
+    grad.addColorStop(0.90, 'rgba(120, 53, 15, 0.03)');   // Soft cosmic edge
+    grad.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
+
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.generateMipmaps = true;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    return texture;
+  }
+
+  /**
+   * Generates a soft, slender circular wavefront pulse texture.
+   * Feathered Gaussian ring profile with zero harsh edges for delicate solar wave emissions.
+   */
+  createSolarPulseTexture(): THREE.CanvasTexture {
+    const size = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx || typeof ctx.createRadialGradient !== 'function') return new THREE.CanvasTexture(canvas);
+
+    if (typeof ctx.clearRect === 'function') {
+      ctx.clearRect(0, 0, size, size);
+    }
+
+    const center = size / 2;
+    const grad = ctx.createRadialGradient(center, center, center * 0.45, center, center, center * 0.96);
+    grad.addColorStop(0.0, 'rgba(254, 240, 138, 0.0)');  // Transparent inner hole
+    grad.addColorStop(0.35, 'rgba(254, 240, 138, 0.02)'); // Subtle inner feather
+    grad.addColorStop(0.68, 'rgba(255, 248, 220, 0.55)'); // Slender luminous peak
+    grad.addColorStop(0.82, 'rgba(251, 191, 36, 0.35)');  // Warm solar amber transition
+    grad.addColorStop(1.0, 'rgba(245, 158, 11, 0.0)');   // Completely transparent outer edge
+
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, size, size);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.generateMipmaps = true;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    return texture;
+  }
+
+  /**
+   * Starburst diffraction rays radiating from the solar core into deep space.
+   */
+  createSolarFlareRaysTexture(): THREE.CanvasTexture {
+    const size = 512;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    if (!ctx || typeof ctx.createRadialGradient !== 'function') return new THREE.CanvasTexture(canvas);
+
+    if (typeof ctx.clearRect === 'function') {
+      ctx.clearRect(0, 0, size, size);
+    }
+
+    const center = size / 2;
+    const rayCount = 14;
+
+    for (let i = 0; i < rayCount; i++) {
+      const angle = (i / rayCount) * Math.PI * 2;
+      const rayLen = center * (0.65 + (i % 2 === 0 ? 0.35 : 0.15));
+
+      if (
+        typeof ctx.beginPath === 'function' &&
+        typeof ctx.save === 'function' &&
+        typeof ctx.translate === 'function' &&
+        typeof ctx.rotate === 'function' &&
+        typeof ctx.moveTo === 'function' &&
+        typeof ctx.lineTo === 'function' &&
+        typeof ctx.restore === 'function'
+      ) {
+        ctx.save();
+        ctx.translate(center, center);
+        ctx.rotate(angle);
+
+        const rayGrad = ctx.createLinearGradient(0, 0, rayLen, 0);
+        rayGrad.addColorStop(0.0, 'rgba(255, 255, 255, 0.70)');
+        rayGrad.addColorStop(0.25, 'rgba(254, 240, 138, 0.40)');
+        rayGrad.addColorStop(0.65, 'rgba(245, 158, 11, 0.12)');
+        rayGrad.addColorStop(1.0, 'rgba(0, 0, 0, 0.0)');
+
+        ctx.fillStyle = rayGrad;
+        ctx.beginPath();
+        ctx.moveTo(0, -6);
+        ctx.lineTo(rayLen, 0);
+        ctx.lineTo(0, 6);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+      }
+    }
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.generateMipmaps = true;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+    return texture;
+  }
+
+  /**
+   * Realistic solar photosphere texture with convective plasma granulation,
+   * blazing golden convection cells, and turbulent chromospheric flares.
    */
   createSunTexture(): THREE.CanvasTexture {
     const width = 512;
@@ -124,14 +360,15 @@ export class CelestialTextureFactory {
     if (!this.hasFullContext(ctx)) return new THREE.CanvasTexture(canvas);
 
     const grad = ctx.createLinearGradient(0, 0, 0, height);
-    grad.addColorStop(0, '#fef08a'); // Warm sunny gold
-    grad.addColorStop(0.3, '#f59e0b'); // Radiant amber
-    grad.addColorStop(0.7, '#fbbf24'); // Luminous honey
-    grad.addColorStop(1, '#f59e0b');
+    grad.addColorStop(0.0, '#fffbeb'); // White-hot solar crown
+    grad.addColorStop(0.2, '#fef08a'); // Radiant golden photosphere
+    grad.addColorStop(0.5, '#f59e0b'); // Blazing amber
+    grad.addColorStop(0.8, '#d97706'); // Deep turbulent plasma
+    grad.addColorStop(1.0, '#fef08a');
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, width, height);
 
-    // Soft swirling plasma waves
+    // Convective solar granulation cells & turbulent flares
     const imgData = ctx.getImageData(0, 0, width, height);
     const data = imgData.data;
 
@@ -141,10 +378,14 @@ export class CelestialTextureFactory {
         const nx = x / width;
         const idx = (y * width + x) * 4;
 
-        const wave = Math.sin(nx * 12.0 + Math.sin(ny * 16.0) * 1.5) * 18.0;
-        data[idx] = Math.min(255, Math.max(0, data[idx] + wave));
-        data[idx + 1] = Math.min(255, Math.max(0, data[idx + 1] + wave * 0.75));
-        data[idx + 2] = Math.min(255, Math.max(0, data[idx + 2] + wave * 0.4));
+        // Multi-frequency solar plasma turbulence
+        const wave1 = Math.sin(nx * 24.0 + Math.sin(ny * 20.0) * 2.2) * 22.0;
+        const wave2 = Math.cos(nx * 48.0 - ny * 36.0) * 12.0;
+        const granule = wave1 + wave2;
+
+        data[idx] = Math.min(255, Math.max(0, data[idx] + granule * 1.2));
+        data[idx + 1] = Math.min(255, Math.max(0, data[idx + 1] + granule * 0.9));
+        data[idx + 2] = Math.min(255, Math.max(0, data[idx + 2] + granule * 0.45));
       }
     }
     ctx.putImageData(imgData, 0, 0);

@@ -28,7 +28,7 @@ export class GameRegistryService {
       id: 'cosmic-sculptor',
       title: 'Cosmic Zen Sculptor',
       subtitle: '3D Gravitations-Kosmos',
-      description: 'Erschaffe leuchtende Himmelskörper in einem interaktiven 3D-Universum mit Three.js, sanften Umlaufbahnen und leuchtenden Sternenschweifen.',
+      description: 'Erschaffe leuchtende Planeten und resonante Umlaufbahnen in einem meditativen 3D-Universum. Zupfe die Orbit-Harfensaiten und beobachte den Einfluss von Schwarzen Löchern.',
       badge: '3D WebGL',
       category: 'astronomie',
       route: '/game/cosmic-sculptor',
@@ -42,11 +42,6 @@ export class GameRegistryService {
       controls: {
         keyboard: [
           {
-            type: 'wasd',
-            keys: ['W', 'A', 'S', 'D'],
-            label: 'Kamera im 3D-Raum drehen',
-          },
-          {
             type: 'inline',
             keys: ['ESC'],
             label: 'Zurück zur Übersicht',
@@ -56,9 +51,9 @@ export class GameRegistryService {
           leftClick: true,
           drag: true,
           wheel: true,
-          label: 'Maus ziehen zum Rotieren & Mausrad zum Zoomen',
+          label: 'Maus ziehen zum Drehen, Scrollen zum Zoomen & Hover über Orbits für Harfenklänge',
         },
-        objective: 'Erschaffe leuchtende Himmelskörper und beobachte sanfte Gravitationsbahnen im All.',
+        objective: 'Erschaffe Planeten und Schwarze Löcher, bringe Orbit-Harfensaiten zum Klingen und beobachte kosmische Resonanzen.',
       },
     },
     {

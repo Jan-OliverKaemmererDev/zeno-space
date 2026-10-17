@@ -31,10 +31,16 @@ export interface CelestialBody {
   mesh: THREE.Mesh;
   /** Optional secondary mesh for atmospheric cloud layers (rotates at differential speed). */
   cloudsMesh?: THREE.Mesh;
-  /** Optional mesh for realistic planetary rings (e.g. Saturnian rings). */
-  ringsMesh?: THREE.Mesh;
-  /** Optional glowing corona or accretion disk mesh. */
-  glowMesh?: THREE.Mesh;
+  /** Optional mesh or particle system for realistic planetary rings (e.g. Saturnian rings). */
+  ringsMesh?: THREE.Object3D;
+  /** Optional glowing corona or accretion disk object. */
+  glowMesh?: THREE.Object3D;
+  /** Optional camera-facing radiant solar corona sprite. */
+  coronaSprite?: THREE.Sprite;
+  /** Optional rotating solar starburst rays sprite. */
+  solarRaysSprite?: THREE.Sprite;
+  /** Optional soft, slender expanding solar light pulse sprites. */
+  solarPulseSprites?: THREE.Sprite[];
   /** Gravitational mass in simulation units. */
   mass: number;
   /** Physical radius in 3D units. */

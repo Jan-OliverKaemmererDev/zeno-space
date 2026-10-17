@@ -35,10 +35,20 @@ describe('CosmicMath Utils', () => {
     expect(angularDistance(0.1, Math.PI * 2 - 0.1)).toBeCloseTo(0.2);
   });
 
-  it('should evaluate harp displacement with damping decay', () => {
-    const d0 = evaluateHarpDisplacement(0, 0, 0.1, 4.0);
-    const dLate = evaluateHarpDisplacement(0, 0, 2.5, 4.0);
-    expect(Math.abs(dLate)).toBeLessThan(Math.abs(d0));
+  it('should evaluate harp displacement with localized pluck, wave propagation, and gentle fade out', () => {
+    // Immediately after pluck (t = 0.02s), displacement is strongly localized near pluck angle
+    const dPluckSite = evaluateHarpDisplacement(0, 0, 0.02, 4.0);
+    const dFarAway = evaluateHarpDisplacement(Math.PI, 0, 0.02, 4.0);
+    expect(Math.abs(dPluckSite)).toBeGreaterThan(0.1);
+    expect(Math.abs(dFarAway)).toBeLessThan(0.01);
+
+    // Later (t = 2.0s), wave has propagated and decayed gently
+    const dLate = evaluateHarpDisplacement(0, 0, 2.0, 4.0);
+    expect(Math.abs(dLate)).toBeLessThan(Math.abs(dPluckSite));
+
+    // After fade-out window (t >= 3.0s), displacement is completely 0
+    const dFinished = evaluateHarpDisplacement(0, 0, 3.1, 4.0);
+    expect(dFinished).toBe(0);
   });
 
   it('should generate formatted planet names for all subtypes', () => {

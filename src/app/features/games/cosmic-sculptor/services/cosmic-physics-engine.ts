@@ -75,29 +75,64 @@ export class CosmicPhysicsEngine {
     });
     const sunMesh = new THREE.Mesh(sunGeo, sunMat);
 
-    // Warm, soothing solar corona glow
-    const coronaGeo = new THREE.SphereGeometry(this.sunRadius * 1.35, 32, 32);
+    // Warm, soothing solar atmospheric limb glow
+    const coronaGeo = new THREE.SphereGeometry(this.sunRadius * 1.15, 32, 32);
     const coronaMat = new THREE.MeshBasicMaterial({
-      color: 0xf59e0b,
+      color: 0xfef08a,
       transparent: true,
-      opacity: 0.38,
+      opacity: 0.35,
       blending: THREE.AdditiveBlending,
       side: THREE.BackSide,
     });
     const coronaMesh = new THREE.Mesh(coronaGeo, coronaMat);
     sunMesh.add(coronaMesh);
 
-    // Outer ethereal aura
-    const outerCoronaGeo = new THREE.SphereGeometry(this.sunRadius * 1.75, 32, 32);
-    const outerCoronaMat = new THREE.MeshBasicMaterial({
-      color: 0xfbbf24,
+    // Radiant camera-facing solar corona sprite (intense, visible volumetric glow)
+    const coronaTex = this.textureFactory.createSolarCoronaTexture();
+    const coronaSpriteMat = new THREE.SpriteMaterial({
+      map: coronaTex,
+      color: 0xfffbeb,
       transparent: true,
-      opacity: 0.18,
+      opacity: 0.88,
       blending: THREE.AdditiveBlending,
-      side: THREE.BackSide,
+      depthWrite: false,
     });
-    const outerCoronaMesh = new THREE.Mesh(outerCoronaGeo, outerCoronaMat);
-    sunMesh.add(outerCoronaMesh);
+    const coronaSprite = new THREE.Sprite(coronaSpriteMat);
+    coronaSprite.scale.set(this.sunRadius * 4.6, this.sunRadius * 4.6, 1);
+    sunMesh.add(coronaSprite);
+
+    // Outer ethereal aura extending into interplanetary space
+    const outerAuraMat = new THREE.SpriteMaterial({
+      map: coronaTex,
+      color: 0xf59e0b,
+      transparent: true,
+      opacity: 0.28,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    const outerAuraSprite = new THREE.Sprite(outerAuraMat);
+    outerAuraSprite.scale.set(this.sunRadius * 9.5, this.sunRadius * 9.5, 1);
+    sunMesh.add(outerAuraSprite);
+
+    // Soft, slender expanding solar pulse wavefronts (delicate, transparent, smoothly fading)
+    const pulseTex = this.textureFactory.createSolarPulseTexture();
+    const solarPulseSprites: THREE.Sprite[] = [];
+    const pulseCount = 3;
+
+    for (let p = 0; p < pulseCount; p++) {
+      const pulseMat = new THREE.SpriteMaterial({
+        map: pulseTex,
+        color: 0xfef08a,
+        transparent: true,
+        opacity: 0.0,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const pulseSprite = new THREE.Sprite(pulseMat);
+      pulseSprite.scale.set(this.sunRadius * 2.2, this.sunRadius * 2.2, 1);
+      sunMesh.add(pulseSprite);
+      solarPulseSprites.push(pulseSprite);
+    }
 
     const sun: CelestialBody = {
       id: 'celestial-sun',
@@ -105,6 +140,8 @@ export class CosmicPhysicsEngine {
       name: 'Sol Harmonia',
       mesh: sunMesh,
       glowMesh: coronaMesh,
+      coronaSprite,
+      solarPulseSprites,
       mass: this.sunMass,
       radius: this.sunRadius,
       position: new THREE.Vector3(0, 0, 0),
@@ -131,8 +168,8 @@ export class CosmicPhysicsEngine {
       .filter((b) => b.type !== 'sun')
       .map((b) => Math.hypot(b.position.x, b.position.z));
 
-    // Guarantee non-intersecting concentric orbit
-    const orbitRadius = findNextSafeOrbitRadius(currentRadii, 11.5, 5.5);
+    // Guarantee non-intersecting concentric orbit with comfortable distance from the glowing Sun
+    const orbitRadius = findNextSafeOrbitRadius(currentRadii, 24.0, 6.8);
 
     const subtypes: PlanetSubtype[] = ['terrestrial', 'gas-giant', 'ice-giant', 'desert', 'volcanic'];
     const subtype = specificSubtype ?? subtypes[this.bodyCounter % subtypes.length];
@@ -191,7 +228,7 @@ export class CosmicPhysicsEngine {
     mesh.add(atmosphereMesh);
 
     let cloudsMesh: THREE.Mesh | undefined;
-    let ringsMesh: THREE.Mesh | undefined;
+    let ringsMesh: THREE.Object3D | undefined;
 
     // Atmospheric cloud layer for terrestrial planets
     if (subtype === 'terrestrial') {
@@ -208,20 +245,91 @@ export class CosmicPhysicsEngine {
       mesh.add(cloudsMesh);
     }
 
-    // Translucent golden rings for gas giants
+    // Shimmering particle ring system for gas giants (dense, white & gray, 100% circular!)
     if (subtype === 'gas-giant') {
-      const ringGeo = new THREE.RingGeometry(radius * 1.45, radius * 2.6, 64);
-      const ringTex = this.textureFactory.createSaturnRingTexture();
-      const ringMat = new THREE.MeshStandardMaterial({
-        map: ringTex,
-        side: THREE.DoubleSide,
+      const ringParticleCount = 10000; // Dense, continuous, velvety ring disc
+      const ringPositions = new Float32Array(ringParticleCount * 3);
+      const ringColors = new Float32Array(ringParticleCount * 3);
+
+      // Authentic white & gray ring particles: ice whites, silver pearls, and mineral grays
+      const colWhite = new THREE.Color(0xffffff);
+      const colSnow = new THREE.Color(0xf8fafc);
+      const colSilver = new THREE.Color(0xf1f5f9);
+      const colPearlGray = new THREE.Color(0xe2e8f0);
+      const colSlateLight = new THREE.Color(0xcbd5e1);
+      const colAshGray = new THREE.Color(0x94a3b8);
+      const colDuskGray = new THREE.Color(0x64748b);
+
+      for (let i = 0; i < ringParticleCount; i++) {
+        // Polar coordinates guarantee 100% true circular rings without clipping
+        const theta = Math.random() * Math.PI * 2;
+
+        // Structured concentric rings: dense Ring B, Cassini division gap, and Ring A
+        const isRingB = Math.random() < 0.62;
+        let r: number;
+        if (isRingB) {
+          // Main dense inner ring (Ring B)
+          r = radius * (1.42 + Math.random() * 0.52);
+        } else {
+          // Outer ring (Ring A)
+          r = radius * (2.06 + Math.random() * 0.56);
+        }
+
+        // Very faint sparse particles in the Cassini gap (1.94 to 2.06)
+        if (Math.random() < 0.02) {
+          r = radius * (1.94 + Math.random() * 0.12);
+        }
+
+        // Slight vertical dispersion for 3D realism
+        const h = (Math.random() + Math.random() - 1.0) * (radius * 0.02);
+
+        ringPositions[i * 3] = Math.cos(theta) * r;
+        ringPositions[i * 3 + 1] = h;
+        ringPositions[i * 3 + 2] = Math.sin(theta) * r;
+
+        // Rich white & gray palette with natural shading
+        const colorMix = Math.random();
+        const baseCol =
+          colorMix < 0.32
+            ? colWhite
+            : colorMix < 0.58
+            ? colSnow
+            : colorMix < 0.76
+            ? colSilver
+            : colorMix < 0.88
+            ? colPearlGray
+            : colorMix < 0.95
+            ? colSlateLight
+            : colorMix < 0.98
+            ? colAshGray
+            : colDuskGray;
+
+        const brightness = 0.60 + Math.random() * 0.40;
+        ringColors[i * 3] = baseCol.r * brightness;
+        ringColors[i * 3 + 1] = baseCol.g * brightness;
+        ringColors[i * 3 + 2] = baseCol.b * brightness;
+      }
+
+      const ringGeo = new THREE.BufferGeometry();
+      ringGeo.setAttribute('position', new THREE.BufferAttribute(ringPositions, 3));
+      ringGeo.setAttribute('color', new THREE.BufferAttribute(ringColors, 3));
+
+      const particleTexture = this.textureFactory.getParticleGlowTexture();
+      const ringMat = new THREE.PointsMaterial({
+        size: 0.09,
+        map: particleTexture,
+        vertexColors: true,
         transparent: true,
-        opacity: 0.88,
-        roughness: 0.3,
+        opacity: 0.92,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
       });
-      ringsMesh = new THREE.Mesh(ringGeo, ringMat);
-      ringsMesh.rotation.x = Math.PI / 2.3;
-      mesh.add(ringsMesh);
+
+      const ringsPoints = new THREE.Points(ringGeo, ringMat);
+      // Realistic axial tilt relative to orbital plane
+      ringsPoints.rotation.x = Math.PI / 2.3;
+      mesh.add(ringsPoints);
+      ringsMesh = ringsPoints;
     }
 
     // Initial Keplerian orbital insertion (non-intersecting concentric orbit)
@@ -277,7 +385,7 @@ export class CosmicPhysicsEngine {
       .filter((b) => b.type !== 'sun')
       .map((b) => Math.hypot(b.position.x, b.position.z));
 
-    const orbitRadius = findNextSafeOrbitRadius(currentRadii, 16.0, 6.5);
+    const orbitRadius = findNextSafeOrbitRadius(currentRadii, 32.0, 7.5);
     const radius = 1.8;
     const mass = 1200.0; // High gravitational attraction
 
@@ -369,6 +477,29 @@ export class CosmicPhysicsEngine {
       for (const b of this.bodies) {
         if (b.type === 'sun') {
           b.mesh.rotation.y += b.rotationSpeed;
+          if (b.coronaSprite) {
+            const pulse = 1.0 + Math.sin(performance.now() * 0.0018) * 0.035;
+            b.coronaSprite.scale.set(b.radius * 4.6 * pulse, b.radius * 4.6 * pulse, 1);
+          }
+          if (b.solarPulseSprites) {
+            const nowTime = performance.now() / 1000;
+            const cycleDuration = 3.6;
+            const baseScale = b.radius * 2.2;
+            const maxScale = b.radius * 5.4;
+
+            for (let p = 0; p < b.solarPulseSprites.length; p++) {
+              const sprite = b.solarPulseSprites[p];
+              const phaseOffset = (p / b.solarPulseSprites.length) * cycleDuration;
+              const progress = ((nowTime + phaseOffset) % cycleDuration) / cycleDuration;
+
+              const scale = baseScale + progress * (maxScale - baseScale);
+              sprite.scale.set(scale, scale, 1);
+
+              // Slender, gentle transparent pulse that softly fades into space
+              const opacity = 0.22 * Math.sin(progress * Math.PI) * (1.0 - progress * 0.45);
+              sprite.material.opacity = Math.max(0, opacity);
+            }
+          }
           continue;
         }
 
@@ -445,6 +576,28 @@ export class CosmicPhysicsEngine {
         b.velocity.set(0, 0, 0);
         b.mesh.position.set(0, 0, 0);
         b.mesh.rotation.y += b.rotationSpeed;
+        if (b.coronaSprite) {
+          const pulse = 1.0 + Math.sin(performance.now() * 0.0018) * 0.035;
+          b.coronaSprite.scale.set(b.radius * 4.6 * pulse, b.radius * 4.6 * pulse, 1);
+        }
+        if (b.solarPulseSprites) {
+          const nowTime = performance.now() / 1000;
+          const cycleDuration = 3.6;
+          const baseScale = b.radius * 2.2;
+          const maxScale = b.radius * 5.4;
+
+          for (let p = 0; p < b.solarPulseSprites.length; p++) {
+            const sprite = b.solarPulseSprites[p];
+            const phaseOffset = (p / b.solarPulseSprites.length) * cycleDuration;
+            const progress = ((nowTime + phaseOffset) % cycleDuration) / cycleDuration;
+
+            const scale = baseScale + progress * (maxScale - baseScale);
+            sprite.scale.set(scale, scale, 1);
+
+            const opacity = 0.22 * Math.sin(progress * Math.PI) * (1.0 - progress * 0.45);
+            sprite.material.opacity = Math.max(0, opacity);
+          }
+        }
         continue;
       }
 
