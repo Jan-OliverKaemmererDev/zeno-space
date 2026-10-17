@@ -1,0 +1,43 @@
+<header class="game-hud-header">
+  <a routerLink="/" fragment="bubble-hub" class="back-link" aria-label="Zurückkehren">
+    <span class="back-icon" aria-hidden="true">←</span>
+    <span>Zurückkehren</span>
+  </a>
+
+  <!-- Live Stats Pill & Info Bubble Trigger -->
+  <div class="hud-stats" aria-live="polite">
+    <div class="stat-pill-wrapper">
+      <button
+        type="button"
+        class="stat-pill cosmic-pill"
+        [class.is-active]="showBubble"
+        (click)="onStatPillClick($event)"
+        title="Kosmische Systemdaten und Astrophysik-Details anzeigen"
+        aria-haspopup="dialog"
+        [attr.aria-expanded]="showBubble"
+      >
+        <span class="cosmic-sparkle" aria-hidden="true">✦</span>
+        <span class="cosmic-text">{{ planetCount }} {{ planetCount === 1 ? 'Planet' : 'Planeten' }}</span>
+        @if (blackHoleCount > 0) {
+          <span class="bh-badge" title="Schwarzes Loch aktiv">• {{ blackHoleCount }} Singularität</span>
+        }
+      </button>
+
+      @if (showBubble) {
+        <app-cosmic-info-bubble
+          [planetCount]="planetCount"
+          [blackHoleCount]="blackHoleCount"
+          [collisionCount]="collisionCount"
+          [systemStability]="systemStability"
+          [isClosing]="closingBubble"
+          (close)="onBubbleClose()"
+        ></app-cosmic-info-bubble>
+      }
+    </div>
+
+    <div class="stat-bubble" title="System-Stabilität">
+      <span class="stat-dot" [class.is-danger]="blackHoleCount > 0" aria-hidden="true"></span>
+      <span class="stat-text">{{ systemStability }}</span>
+    </div>
+  </div>
+</header>

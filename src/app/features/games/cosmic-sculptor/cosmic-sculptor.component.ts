@@ -6,149 +6,147 @@ import {
   OnDestroy,
   inject,
   signal,
+  computed,
   HostListener,
 } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import * as THREE from 'three';
 import { AudioService } from '../../../core/services/audio.service';
+import { CelestialTextureFactory } from './services/celestial-texture-factory';
+import { OrbitHarpSystem } from './services/orbit-harp-system';
+import { CosmicPhysicsEngine } from './services/cosmic-physics-engine';
+import { CosmicHeaderComponent } from './components/cosmic-header/cosmic-header.component';
+import { CosmicControlsComponent } from './components/cosmic-controls/cosmic-controls.component';
 
 /**
- * Represents an orbiting planet mesh along with its orbital physics and visual trail.
- */
-interface PlanetBody {
-  /** The 3D sphere mesh representing the planet. */
-  mesh: THREE.Mesh;
-  /** Radius of the planetary orbit in Three.js units. */
-  orbitRadius: number;
-  /** Angular orbital speed in radians per frame. */
-  orbitSpeed: number;
-  /** Current orbital angle in radians. */
-  angle: number;
-  /** Vertical tilt offset on the Y axis. */
-  yOffset: number;
-  /** Self-rotation speed of the planet mesh. */
-  rotationSpeed: number;
-  /** Historical trajectory points forming the planetary trail. */
-  trailPoints: THREE.Vector3[];
-  /** Three.js line object rendering the trailing path. */
-  trailLine: THREE.Line;
-  /** Three.js color instance applied to the planet and trail. */
-  color: THREE.Color;
-}
-
-/**
- * Interactive 3D planetary system simulator using Three.js with realistic orbits, customizable speeds, and orbital trails.
+ * Cosmic Sculptor – Aesthetic, luminous planetary system simulation in Zeno Space.
+ * Features a breathtaking Milky Way night sky, gentle orbital and axial velocities,
+ * velvety harmonious colors, resonant harp string orbits, and pure mouse navigation.
  */
 @Component({
   selector: 'app-cosmic-sculptor',
-  imports: [RouterLink],
+  standalone: true,
+  imports: [CosmicHeaderComponent, CosmicControlsComponent],
   templateUrl: './cosmic-sculptor.component.html',
   styleUrl: './cosmic-sculptor.component.scss',
 })
 export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
-  /** Container element hosting the WebGL renderer canvas. */
   @ViewChild('canvasContainer') containerRef!: ElementRef<HTMLDivElement>;
 
   readonly audioService = inject(AudioService);
   private readonly router = inject(Router);
 
-  /**
-   * Closes the minigame and returns to the home page on Escape key press.
-   *
-   * @returns {void}
-   */
-  @HostListener('document:keydown.escape')
-  onEscape(): void {
-    this.router.navigate(['/'], { fragment: 'bubble-hub' });
-  }
+  // Subsystems
+  private readonly textureFactory = new CelestialTextureFactory();
+  private readonly harpSystem = new OrbitHarpSystem();
+  private readonly physicsEngine = new CosmicPhysicsEngine(this.textureFactory, this.harpSystem);
 
-  /**
-   * Controls 3D orbital camera orientation via WASD or Arrow keys.
-   */
-  @HostListener('document:keydown', ['$event'])
-  onKeyDown(event: KeyboardEvent): void {
-    const key = event.key.toLowerCase();
-    const step = 0.08;
-    let handled = false;
-
-    if (key === 'a' || key === 'arrowleft') {
-      this.cameraSpherical.theta += step;
-      handled = true;
-    } else if (key === 'd' || key === 'arrowright') {
-      this.cameraSpherical.theta -= step;
-      handled = true;
-    } else if (key === 'w' || key === 'arrowup') {
-      this.cameraSpherical.phi = Math.max(0.1, this.cameraSpherical.phi - step);
-      handled = true;
-    } else if (key === 's' || key === 'arrowdown') {
-      this.cameraSpherical.phi = Math.min(Math.PI - 0.1, this.cameraSpherical.phi + step);
-      handled = true;
-    }
-
-    if (handled) {
-      this.updateCameraPosition();
-    }
-  }
-
-
-  // Stats & Controls
-  /** Count of currently orbiting planets in the system. */
+  // Reactive UI Signals
   readonly planetCount = signal<number>(0);
-  /** Simulation speed multiplier. */
+  readonly blackHoleCount = signal<number>(0);
+  readonly collisionCount = signal<number>(0);
   readonly timeSpeed = signal<number>(1);
-  /** Whether orbital trail ribbons are rendered behind planets. */
-  readonly trailsEnabled = signal<boolean>(true);
+  readonly orbitStringsVisible = signal<boolean>(true);
+  readonly showInfoBubble = signal<boolean>(false);
+  readonly closingInfoBubble = signal<boolean>(false);
 
-  // Three.js instances
+  private closingBubbleTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  readonly systemStability = computed<'Harmonisch' | 'Gravitativ aktiv' | 'Singulär verzerrt'>(() => {
+    if (this.blackHoleCount() > 0) return 'Singulär verzerrt';
+    if (this.collisionCount() > 0 || this.planetCount() > 5) return 'Gravitativ aktiv';
+    return 'Harmonisch';
+  });
+
+  // Three.js Core Instances
   private scene!: THREE.Scene;
   private camera!: THREE.PerspectiveCamera;
   private renderer!: THREE.WebGLRenderer;
   private animationId: number | null = null;
+  private lastFrameTime = performance.now();
 
-  // Cosmic Objects
-  private centralStar!: THREE.Mesh;
-  private centralCorona!: THREE.Mesh;
-  private planets: PlanetBody[] = [];
-  private starParticles!: THREE.Points;
+  // Celestial Night Sky Particle Systems
+  private starfieldPoints!: THREE.Points;
+  private milkyWayPoints!: THREE.Points;
+  private milkyWayGroup!: THREE.Group;
 
-  // Interaction State
-  private isDragging = false;
-  private previousMousePosition = { x: 0, y: 0 };
-  private cameraSpherical = { radius: 45, theta: Math.PI / 4, phi: Math.PI / 3 };
+  // Pure Mouse Interaction State (No WASD!)
+  private isPointerDown = false;
+  private pointerStartX = 0;
+  private pointerStartY = 0;
+  private readonly raycaster = new THREE.Raycaster();
+  private readonly mouseNDC = new THREE.Vector2(-9999, -9999);
 
-  private readonly pastelColors = [
-    0xa78bfa, // Lavender
-    0x38bdf8, // Cyan
-    0xf472b6, // Rose
-    0xfb923c, // Peach
-    0x2dd4bf, // Teal
-    0xfde047, // Gold
-    0x818cf8, // Indigo
-  ];
+  // Camera Spherical Coordinates
+  private cameraSpherical = {
+    radius: 54.0,
+    theta: Math.PI / 4.2,
+    phi: Math.PI / 3.4,
+  };
+  private targetSpherical = {
+    radius: 54.0,
+    theta: Math.PI / 4.2,
+    phi: Math.PI / 3.4,
+  };
 
   /**
-   * Lifecycle hook invoked after view initialization to start Three.js setup and render loop.
-   *
-   * @returns {void}
+   * Escape key handler: Closes info bubble if open, otherwise returns to the hub.
+   * Note: Keyboard WASD controls have been intentionally removed in favor of pure mouse navigation.
    */
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.showInfoBubble()) {
+      this.closeInfoBubble();
+    } else {
+      this.router.navigate(['/'], { fragment: 'bubble-hub' });
+    }
+  }
+
   ngAfterViewInit(): void {
     this.initThree();
-    this.createCosmicScene();
+    this.createCosmicEnvironment();
+    this.initStarterSolarSystem();
     this.animate();
   }
 
-  /**
-   * Lifecycle hook invoked upon destruction to clean up WebGL contexts and window event listeners.
-   *
-   * @returns {void}
-   */
   ngOnDestroy(): void {
     if (this.animationId !== null) {
       cancelAnimationFrame(this.animationId);
+      this.animationId = null;
     }
+
+    if (this.closingBubbleTimeout) {
+      clearTimeout(this.closingBubbleTimeout);
+    }
+
     window.removeEventListener('resize', this.onWindowResize);
 
-    // Clean up Three.js resources
+    // Clean up Three.js WebGL resources
+    this.physicsEngine.dispose();
+    this.harpSystem.clear();
+    this.textureFactory.dispose();
+
+    if (this.starfieldPoints) {
+      this.starfieldPoints.geometry.dispose();
+      (this.starfieldPoints.material as THREE.Material).dispose();
+    }
+
+    if (this.milkyWayGroup) {
+      this.milkyWayGroup.traverse((obj) => {
+        if (obj instanceof THREE.Mesh) {
+          obj.geometry.dispose();
+          if (Array.isArray(obj.material)) {
+            obj.material.forEach((m) => m.dispose());
+          } else {
+            obj.material.dispose();
+          }
+        } else if (obj instanceof THREE.Points) {
+          obj.geometry.dispose();
+          (obj.material as THREE.Material).dispose();
+        }
+      });
+    }
+
     if (this.renderer) {
       this.renderer.dispose();
       this.renderer.forceContextLoss();
@@ -156,361 +154,407 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Initializes Three.js WebGL renderer, perspective camera, lights, and resize listeners.
-   *
-   * @returns {void}
+   * Sets up WebGL renderer, perspective camera, and luminous, welcoming celestial illumination.
    */
   private initThree(): void {
     const container = this.containerRef.nativeElement;
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+    const width = container.clientWidth || window.innerWidth;
+    const height = container.clientHeight || window.innerHeight;
 
-    // Scene & Fog
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.FogExp2(0x070913, 0.012);
+    // Ultra-light atmospheric depth for the solar plane without obscuring the deep cosmic night sky
+    this.scene.fog = new THREE.FogExp2(0x0c102a, 0.0004);
 
-    // Camera
-    this.camera = new THREE.PerspectiveCamera(55, width / height, 0.1, 1000);
-    this.updateCameraPosition();
+    this.camera = new THREE.PerspectiveCamera(52, width / height, 0.1, 1200);
+    this.updateCameraTransform();
 
-    // Renderer
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.2;
+    // Brighter, radiant exposure
+    this.renderer.toneMappingExposure = 1.55;
     container.appendChild(this.renderer.domElement);
 
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0x221a36, 1.2);
-    this.scene.add(ambientLight);
+    // Warm, welcoming solar point light
+    const starCoreLight = new THREE.PointLight(0xfff5db, 5.2, 350, 0.45);
+    starCoreLight.position.set(0, 0, 0);
+    this.scene.add(starCoreLight);
 
-    const coreLight = new THREE.PointLight(0xffeedd, 3.5, 120);
-    this.scene.add(coreLight);
+    // Radiant celestial ambient fill light (bright and gentle)
+    const cosmicAmbientLight = new THREE.AmbientLight(0x4a5d85, 2.4);
+    this.scene.add(cosmicAmbientLight);
+
+    // Soft dimensional directional light for velvety shading
+    const rimFillLight = new THREE.DirectionalLight(0x8ba6d4, 1.3);
+    rimFillLight.position.set(30, 45, 25);
+    this.scene.add(rimFillLight);
+
+    // Mount subsystem groups into the scene
+    this.scene.add(this.harpSystem.getGroup());
+    this.scene.add(this.physicsEngine.getGroup());
 
     window.addEventListener('resize', this.onWindowResize);
   }
 
   /**
-   * Constructs the central glowing star, surrounding corona, background starfield particles, and initial planets.
-   *
-   * @returns {void}
+   * Creates the magnificent, tranquil deep cosmic night sky:
+   * 1. The Milky Way: A smooth, glowing ethereal galactic ribbon with soft dust nebulae and stardust core.
+   * 2. Distant Starfield: Delicate, quiet pinprick background stars placed strictly on the far celestial dome.
+   * NOTE: All celestial sky elements are placed at r >= 780 to completely prevent any foreground noise or jitter.
    */
-  private createCosmicScene(): void {
-    // 1. Central Glowing Star
-    const starGeo = new THREE.SphereGeometry(3.5, 32, 32);
-    const starMat = new THREE.MeshBasicMaterial({
-      color: 0xfff2d6,
-    });
-    this.centralStar = new THREE.Mesh(starGeo, starMat);
-    this.scene.add(this.centralStar);
+  private createCosmicEnvironment(): void {
+    const particleTexture = this.textureFactory.getParticleGlowTexture();
+    const nebulaTexture = this.textureFactory.createMilkyWayNebulaTexture();
+    const coreTexture = this.textureFactory.createGalacticCoreTexture();
 
-    // Corona Glow
-    const coronaGeo = new THREE.SphereGeometry(4.8, 32, 32);
-    const coronaMat = new THREE.MeshBasicMaterial({
-      color: 0xc084fc,
+    // -------------------------------------------------------------------------
+    // 1. The Milky Way Band (Die Milchstraße: Smooth Luminous Galactic Nebula)
+    // -------------------------------------------------------------------------
+    this.milkyWayGroup = new THREE.Group();
+    // Majestic celestial angle across the cosmic sphere
+    this.milkyWayGroup.rotation.x = 0.62;
+    this.milkyWayGroup.rotation.z = -0.42;
+
+    const cloudSegments = 36;
+    const bandRadius = 800.0;
+    const cloudGeo = new THREE.PlaneGeometry(240, 130);
+
+    for (let k = 0; k < cloudSegments; k++) {
+      const alpha = (k / cloudSegments) * Math.PI * 2;
+      const x = Math.cos(alpha) * bandRadius;
+      const z = Math.sin(alpha) * bandRadius;
+      const y = (Math.sin(alpha * 2.0) * 0.08) * bandRadius;
+
+      // Distance to galactic core (Sagittarius region near alpha = 0 or 2pi)
+      const distToCore = Math.min(alpha, Math.PI * 2 - alpha);
+      const isCore = distToCore < 0.65;
+
+      const mat = new THREE.MeshBasicMaterial({
+        map: isCore ? coreTexture : nebulaTexture,
+        transparent: true,
+        opacity: isCore ? 0.28 : 0.19,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+        fog: false,
+      });
+
+      const mesh = new THREE.Mesh(cloudGeo, mat);
+      mesh.position.set(x, y, z);
+      mesh.lookAt(0, 0, 0); // Always face inward toward the solar system
+      this.milkyWayGroup.add(mesh);
+    }
+
+    // Embedded delicate stardust along the galactic lane
+    const mwStarCount = 750;
+    const mwStarPositions = new Float32Array(mwStarCount * 3);
+    const mwStarColors = new Float32Array(mwStarCount * 3);
+
+    const colCoreGold = new THREE.Color(0xfde68a);
+    const colDiamond = new THREE.Color(0xffffff);
+    const colIceBlue = new THREE.Color(0xbae6fd);
+    const colLavender = new THREE.Color(0xc084fc);
+
+    for (let i = 0; i < mwStarCount; i++) {
+      const alpha = Math.random() * Math.PI * 2;
+      const r = 780.0 + Math.random() * 50.0;
+      const dispY = (Math.random() + Math.random() + Math.random() - 1.5) * 36.0;
+
+      mwStarPositions[i * 3] = Math.cos(alpha) * r;
+      mwStarPositions[i * 3 + 1] = dispY;
+      mwStarPositions[i * 3 + 2] = Math.sin(alpha) * r;
+
+      const mix = Math.random();
+      const col = mix < 0.4 ? colDiamond : mix < 0.7 ? colIceBlue : mix < 0.88 ? colCoreGold : colLavender;
+      const brightness = 0.4 + Math.random() * 0.5;
+
+      mwStarColors[i * 3] = col.r * brightness;
+      mwStarColors[i * 3 + 1] = col.g * brightness;
+      mwStarColors[i * 3 + 2] = col.b * brightness;
+    }
+
+    const mwStarGeo = new THREE.BufferGeometry();
+    mwStarGeo.setAttribute('position', new THREE.BufferAttribute(mwStarPositions, 3));
+    mwStarGeo.setAttribute('color', new THREE.BufferAttribute(mwStarColors, 3));
+
+    const mwStarMat = new THREE.PointsMaterial({
+      size: 1.4,
+      sizeAttenuation: false, // Prevents close-up scaling or foreground noise
+      vertexColors: true,
+      map: particleTexture,
       transparent: true,
-      opacity: 0.35,
+      opacity: 0.65,
       blending: THREE.AdditiveBlending,
-      side: THREE.BackSide,
+      depthWrite: false,
+      fog: false,
     });
-    this.centralCorona = new THREE.Mesh(coronaGeo, coronaMat);
-    this.scene.add(this.centralCorona);
 
-    // 2. Starfield Particles
-    const particleCount = 2500;
-    const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-    const colors = new Float32Array(particleCount * 3);
+    this.milkyWayPoints = new THREE.Points(mwStarGeo, mwStarMat);
+    this.milkyWayPoints.frustumCulled = false;
+    this.milkyWayGroup.add(this.milkyWayPoints);
+    this.scene.add(this.milkyWayGroup);
 
-    for (let i = 0; i < particleCount * 3; i += 3) {
-      // Sphere spread
-      const r = 40 + Math.random() * 120;
+    // -------------------------------------------------------------------------
+    // 2. Surrounding Deep Celestial Starfield (~1,200 delicate pinprick stars)
+    // -------------------------------------------------------------------------
+    const starCount = 1200;
+    const positions = new Float32Array(starCount * 3);
+    const colors = new Float32Array(starCount * 3);
+
+    for (let i = 0; i < starCount; i++) {
+      // Placed strictly on the distant cosmic sphere (r = 820 to 880)
+      const r = 820.0 + Math.random() * 60.0;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
 
-      positions[i] = r * Math.sin(phi) * Math.cos(theta);
-      positions[i + 1] = r * Math.sin(phi) * Math.sin(theta);
-      positions[i + 2] = r * Math.cos(phi);
+      positions[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = r * Math.cos(phi);
 
-      // Random pastel tint
-      const col = new THREE.Color(this.pastelColors[Math.floor(Math.random() * this.pastelColors.length)]);
-      colors[i] = col.r;
-      colors[i + 1] = col.g;
-      colors[i + 2] = col.b;
+      const mix = Math.random();
+      const col = mix < 0.6 ? colDiamond : mix < 0.85 ? colIceBlue : colCoreGold;
+      const brightness = 0.35 + Math.random() * 0.55;
+
+      colors[i * 3] = col.r * brightness;
+      colors[i * 3 + 1] = col.g * brightness;
+      colors[i * 3 + 2] = col.b * brightness;
     }
 
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    const starGeo = new THREE.BufferGeometry();
+    starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-    const material = new THREE.PointsMaterial({
-      size: 0.65,
+    const starMat = new THREE.PointsMaterial({
+      size: 1.2,
+      sizeAttenuation: false, // Delicate, calm pinprick starlight, zero noise
       vertexColors: true,
+      map: particleTexture,
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.68,
       blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      fog: false,
     });
 
-    this.starParticles = new THREE.Points(geometry, material);
-    this.scene.add(this.starParticles);
-
-    // 3. Spawn Initial Peaceful System (3 planets)
-    this.spawnPlanet(12, 0.012, 1.4, 0x38bdf8);
-    this.spawnPlanet(20, 0.008, 2.0, 0xa78bfa, true);
-    this.spawnPlanet(30, 0.005, 1.7, 0xf472b6);
+    this.starfieldPoints = new THREE.Points(starGeo, starMat);
+    this.starfieldPoints.frustumCulled = false;
+    this.scene.add(this.starfieldPoints);
   }
 
   /**
-   * Spawns an orbiting planet mesh with customizable or randomized orbital parameters, optional rings, and trails.
-   *
-   * @param {number} [orbitRadius] - Distance from central star in units.
-   * @param {number} [speed] - Orbital speed factor.
-   * @param {number} [size] - Sphere radius of the planet.
-   * @param {number} [hexColor] - Hex color integer.
-   * @param {boolean} [hasRings=false] - Whether to render planetary ring geometry.
-   * @returns {void}
+   * Initializes the central glowing Sun and three peaceful starter planets on separate orbits.
    */
-  spawnPlanet(
-    orbitRadius?: number,
-    speed?: number,
-    size?: number,
-    hexColor?: number,
-    hasRings = false
-  ): void {
-    const radius = orbitRadius ?? (10 + Math.random() * 26);
-    const orbitSpeed = speed ?? (0.005 + Math.random() * 0.01);
-    const planetSize = size ?? (0.8 + Math.random() * 1.5);
-    const colorHex = hexColor ?? this.pastelColors[Math.floor(Math.random() * this.pastelColors.length)];
-    const color = new THREE.Color(colorHex);
-
-    // Planet Mesh
-    const geo = new THREE.SphereGeometry(planetSize, 32, 32);
-    const mat = new THREE.MeshStandardMaterial({
-      color: color,
-      roughness: 0.35,
-      metalness: 0.1,
-      emissive: color,
-      emissiveIntensity: 0.25,
-    });
-    const mesh = new THREE.Mesh(geo, mat);
-
-    // Optional Planetary Rings
-    if (hasRings || Math.random() > 0.6) {
-      const ringGeo = new THREE.RingGeometry(planetSize * 1.4, planetSize * 2.3, 32);
-      const ringMat = new THREE.MeshBasicMaterial({
-        color: color,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.45,
-      });
-      const ring = new THREE.Mesh(ringGeo, ringMat);
-      ring.rotation.x = Math.PI / 2.5;
-      mesh.add(ring);
-    }
-
-    this.scene.add(mesh);
-
-    // Orbit Trail Line
-    const maxTrailPoints = 80;
-    const trailPoints: THREE.Vector3[] = [];
-    const trailGeo = new THREE.BufferGeometry().setFromPoints(
-      new Array(maxTrailPoints).fill(new THREE.Vector3())
-    );
-    const trailMat = new THREE.LineBasicMaterial({
-      color: color,
-      transparent: true,
-      opacity: 0.4,
-      blending: THREE.AdditiveBlending,
-    });
-    const trailLine = new THREE.Line(trailGeo, trailMat);
-    this.scene.add(trailLine);
-
-    const planet: PlanetBody = {
-      mesh,
-      orbitRadius: radius,
-      orbitSpeed,
-      angle: Math.random() * Math.PI * 2,
-      yOffset: (Math.random() - 0.5) * 4,
-      rotationSpeed: 0.01 + Math.random() * 0.02,
-      trailPoints,
-      trailLine,
-      color,
-    };
-
-    this.planets.push(planet);
-    this.planetCount.set(this.planets.length);
-
-    // Play chime based on orbit radius
-    const noteIndex = Math.floor((radius / 36) * 8);
-    this.audioService.playChime(noteIndex, 0.2);
+  private initStarterSolarSystem(): void {
+    this.physicsEngine.initSun();
+    this.physicsEngine.spawnPlanet('terrestrial');
+    this.physicsEngine.spawnPlanet('gas-giant');
+    this.physicsEngine.spawnPlanet('ice-giant');
+    this.syncCounts();
   }
 
   /**
-   * Spawns an additional planet with randomized orbital characteristics and audio effect.
-   *
-   * @returns {void}
-   */
-  addRandomPlanet(): void {
-    this.spawnPlanet();
-    this.audioService.playBubblePop(1.2);
-  }
-
-  /**
-   * Clears all existing planets and trails, resetting the solar system to the initial peaceful 3-planet configuration.
-   *
-   * @returns {void}
-   */
-  resetCosmos(): void {
-    for (const p of this.planets) {
-      this.scene.remove(p.mesh);
-      this.scene.remove(p.trailLine);
-      p.mesh.geometry.dispose();
-      p.trailLine.geometry.dispose();
-    }
-    this.planets = [];
-    this.planetCount.set(0);
-
-    // Recreate peaceful starter system
-    this.spawnPlanet(12, 0.012, 1.4, 0x38bdf8);
-    this.spawnPlanet(20, 0.008, 2.0, 0xa78bfa, true);
-    this.spawnPlanet(30, 0.005, 1.7, 0xf472b6);
-  }
-
-  /**
-   * Adjusts the global simulation time speed multiplier.
-   *
-   * @param {number} speed - The new speed multiplier (e.g. 0.5, 1, 2).
-   * @returns {void}
-   */
-  setTimeSpeed(speed: number): void {
-    this.timeSpeed.set(speed);
-    this.audioService.playChime(speed > 1 ? 5 : 2, 0.15);
-  }
-
-  /**
-   * Toggles the visibility of planetary orbit trail lines.
-   *
-   * @returns {void}
-   */
-  toggleTrails(): void {
-    const nextVal = !this.trailsEnabled();
-    this.trailsEnabled.set(nextVal);
-    for (const p of this.planets) {
-      p.trailLine.visible = nextVal;
-    }
-  }
-
-  /**
-   * Continuous animation loop updating planetary orbits, self-rotation, starfield drifting, and rendering.
-   *
-   * @returns {void}
+   * Continuous animation and physics loop with serene N-body gravitation and harp string dynamics.
    */
   private animate = (): void => {
     this.animationId = requestAnimationFrame(this.animate);
 
-    const speedMultiplier = this.timeSpeed();
+    const now = performance.now();
+    const rawDt = Math.min((now - this.lastFrameTime) / 1000, 0.05);
+    this.lastFrameTime = now;
 
-    // Rotate central star and corona
-    if (this.centralStar) {
-      this.centralStar.rotation.y += 0.004 * speedMultiplier;
+    const dt = rawDt * this.timeSpeed();
+    const nowSeconds = now / 1000;
+
+    // Smooth camera inertia interpolation
+    this.cameraSpherical.theta += (this.targetSpherical.theta - this.cameraSpherical.theta) * 0.12;
+    this.cameraSpherical.phi += (this.targetSpherical.phi - this.cameraSpherical.phi) * 0.12;
+    this.cameraSpherical.radius += (this.targetSpherical.radius - this.cameraSpherical.radius) * 0.12;
+    this.updateCameraTransform();
+
+    // Rotate night sky and Milky Way very slowly and majestically
+    if (this.starfieldPoints) {
+      this.starfieldPoints.rotation.y += 0.000018 * this.timeSpeed();
     }
-    if (this.centralCorona) {
-      this.centralCorona.rotation.z -= 0.002 * speedMultiplier;
-      const scale = 1 + Math.sin(Date.now() * 0.002) * 0.06;
-      this.centralCorona.scale.set(scale, scale, scale);
-    }
-
-    // Slowly drift starfield
-    if (this.starParticles) {
-      this.starParticles.rotation.y += 0.0003 * speedMultiplier;
-    }
-
-    // Update planets
-    for (const p of this.planets) {
-      p.angle += p.orbitSpeed * speedMultiplier;
-      const x = Math.cos(p.angle) * p.orbitRadius;
-      const z = Math.sin(p.angle) * p.orbitRadius;
-      const y = Math.sin(p.angle * 2) * p.yOffset;
-
-      p.mesh.position.set(x, y, z);
-      p.mesh.rotation.y += p.rotationSpeed * speedMultiplier;
-
-      // Update trail points
-      if (this.trailsEnabled()) {
-        p.trailPoints.unshift(new THREE.Vector3(x, y, z));
-        if (p.trailPoints.length > 70) {
-          p.trailPoints.pop();
-        }
-        p.trailLine.geometry.setFromPoints(p.trailPoints);
-      }
+    if (this.milkyWayGroup) {
+      this.milkyWayGroup.rotation.y += 0.000025 * this.timeSpeed();
     }
 
+    // Advance serene N-body gravitational physics
+    this.physicsEngine.update(dt, (collisionPos, isBlackHole) => {
+      const note = isBlackHole ? 1 : 5;
+      this.audioService.playChime(note, 0.28);
+    });
+
+    // Update harp string standing wave displacements
+    this.harpSystem.update(nowSeconds);
+
+    this.syncCounts();
     this.renderer.render(this.scene, this.camera);
   };
 
-  /**
-   * Handles pointer down to begin camera orbital drag rotation.
-   *
-   * @param {MouseEvent} e - The mouse event.
-   * @returns {void}
-   */
-  onMouseDown(e: MouseEvent): void {
-    this.isDragging = true;
-    this.previousMousePosition = { x: e.clientX, y: e.clientY };
+  private syncCounts(): void {
+    this.planetCount.set(this.physicsEngine.getPlanetCount());
+    this.blackHoleCount.set(this.physicsEngine.getBlackHoleCount());
+    this.collisionCount.set(this.physicsEngine.getCollisionCount());
   }
 
-  /**
-   * Handles pointer motion to rotate camera spherical coordinates around origin.
-   *
-   * @param {MouseEvent} e - The mouse event.
-   * @returns {void}
-   */
-  onMouseMove(e: MouseEvent): void {
-    if (!this.isDragging) return;
+  // ---------------------------------------------------------------------------
+  // User Actions (Dock & Controls)
+  // ---------------------------------------------------------------------------
 
-    const deltaX = e.clientX - this.previousMousePosition.x;
-    const deltaY = e.clientY - this.previousMousePosition.y;
+  onSpawnPlanet(): void {
+    this.physicsEngine.spawnPlanet();
+    this.syncCounts();
+    this.audioService.playChime(Math.floor(Math.random() * 8), 0.22);
+  }
 
-    this.cameraSpherical.theta -= deltaX * 0.008;
-    this.cameraSpherical.phi = Math.max(
-      0.1,
-      Math.min(Math.PI - 0.1, this.cameraSpherical.phi - deltaY * 0.008)
+  onSpawnBlackHole(): void {
+    this.physicsEngine.spawnBlackHole();
+    this.syncCounts();
+    this.audioService.playChime(0, 0.35);
+  }
+
+  setTimeSpeed(speed: number): void {
+    this.timeSpeed.set(speed);
+    this.audioService.playChime(speed > 1 ? 6 : 3, 0.16);
+  }
+
+  toggleOrbitStrings(): void {
+    const nextVal = !this.orbitStringsVisible();
+    this.orbitStringsVisible.set(nextVal);
+    this.harpSystem.setVisibility(nextVal);
+  }
+
+  resetCameraView(): void {
+    this.targetSpherical.radius = 54.0;
+    this.targetSpherical.theta = Math.PI / 4.2;
+    this.targetSpherical.phi = Math.PI / 3.4;
+  }
+
+  resetCosmos(): void {
+    this.physicsEngine.resetSystem();
+    this.syncCounts();
+    this.audioService.playChime(2, 0.25);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Info Bubble Interaction
+  // ---------------------------------------------------------------------------
+
+  toggleInfoBubble(event?: Event): void {
+    event?.stopPropagation();
+    if (this.showInfoBubble()) {
+      this.closeInfoBubble();
+    } else {
+      this.openInfoBubble();
+    }
+  }
+
+  openInfoBubble(): void {
+    if (this.closingBubbleTimeout) {
+      clearTimeout(this.closingBubbleTimeout);
+      this.closingBubbleTimeout = null;
+    }
+    this.closingInfoBubble.set(false);
+    this.showInfoBubble.set(true);
+    this.audioService.playWaterdropToneOn(0.35);
+  }
+
+  closeInfoBubble(): void {
+    if (this.closingBubbleTimeout) {
+      clearTimeout(this.closingBubbleTimeout);
+    }
+    this.closingInfoBubble.set(true);
+    this.closingBubbleTimeout = setTimeout(() => {
+      this.showInfoBubble.set(false);
+      this.closingInfoBubble.set(false);
+      this.closingBubbleTimeout = null;
+    }, 320);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Pure Mouse & Pointer Interaction (NO WASD!)
+  // ---------------------------------------------------------------------------
+
+  onPointerDown(event: PointerEvent): void {
+    this.isPointerDown = true;
+    this.pointerStartX = event.clientX;
+    this.pointerStartY = event.clientY;
+
+    const target = event.currentTarget as HTMLElement;
+    if (target?.setPointerCapture) {
+      try {
+        target.setPointerCapture(event.pointerId);
+      } catch {}
+    }
+  }
+
+  onPointerMove(event: PointerEvent): void {
+    const container = this.containerRef?.nativeElement;
+    if (container) {
+      const rect = container.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0) {
+        this.mouseNDC.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        this.mouseNDC.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+        // Raycast against thin orbital lines to pluck harp strings
+        this.raycaster.setFromCamera(this.mouseNDC, this.camera);
+        const nowSeconds = performance.now() / 1000;
+        const plucked = this.harpSystem.checkHarpPluck(this.raycaster, nowSeconds);
+        if (plucked) {
+          this.audioService.playChime(plucked.noteIndex, 0.24);
+        }
+      }
+    }
+
+    if (!this.isPointerDown) return;
+
+    const deltaX = event.clientX - this.pointerStartX;
+    const deltaY = event.clientY - this.pointerStartY;
+
+    const rotSpeed = 0.007;
+    this.targetSpherical.theta -= deltaX * rotSpeed;
+    this.targetSpherical.phi = Math.max(
+      0.15,
+      Math.min(Math.PI / 2 - 0.05, this.targetSpherical.phi - deltaY * rotSpeed)
     );
 
-    this.updateCameraPosition();
-    this.previousMousePosition = { x: e.clientX, y: e.clientY };
+    this.pointerStartX = event.clientX;
+    this.pointerStartY = event.clientY;
   }
 
-  /**
-   * Handles mouse release to stop orbital camera drag.
-   *
-   * @returns {void}
-   */
-  onMouseUp(): void {
-    this.isDragging = false;
+  onPointerUp(event?: PointerEvent): void {
+    this.isPointerDown = false;
+    if (event?.currentTarget) {
+      const target = event.currentTarget as HTMLElement;
+      if (target?.releasePointerCapture) {
+        try {
+          target.releasePointerCapture(event.pointerId);
+        } catch {}
+      }
+    }
   }
 
-  /**
-   * Handles mouse wheel scrolling to zoom the camera closer or further from the star.
-   *
-   * @param {WheelEvent} e - The mouse wheel event.
-   * @returns {void}
-   */
-  onWheel(e: WheelEvent): void {
-    e.preventDefault();
-    this.cameraSpherical.radius = Math.max(
-      15,
-      Math.min(90, this.cameraSpherical.radius + e.deltaY * 0.05)
+  onPointerLeave(): void {
+    this.isPointerDown = false;
+    this.mouseNDC.set(-9999, -9999);
+  }
+
+  onWheel(event: WheelEvent): void {
+    event.preventDefault();
+    const zoomSpeed = 0.055;
+    this.targetSpherical.radius = Math.max(
+      18.0,
+      Math.min(130.0, this.targetSpherical.radius + event.deltaY * zoomSpeed)
     );
-    this.updateCameraPosition();
   }
 
-  /**
-   * Converts spherical coordinates (radius, theta, phi) to Cartesian 3D camera coordinates.
-   *
-   * @returns {void}
-   */
-  private updateCameraPosition(): void {
+  onDoubleClick(): void {
+    this.resetCameraView();
+  }
+
+  private updateCameraTransform(): void {
     const { radius, theta, phi } = this.cameraSpherical;
     this.camera.position.x = radius * Math.sin(phi) * Math.cos(theta);
     this.camera.position.y = radius * Math.cos(phi);
@@ -518,11 +562,6 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     this.camera.lookAt(0, 0, 0);
   }
 
-  /**
-   * Resizes WebGL renderer and updates perspective camera aspect ratio upon container resize.
-   *
-   * @returns {void}
-   */
   private onWindowResize = (): void => {
     if (!this.containerRef?.nativeElement) return;
     const width = this.containerRef.nativeElement.clientWidth;

@@ -1,0 +1,116 @@
+<nav class="game-controls-dock" aria-label="Kosmos-Steuerung">
+  <div class="dock-panel" role="toolbar" aria-label="Kosmische Aktionen">
+    <!-- Action: Spawn Planet (Primary) - NO ICONS -->
+    <button 
+      type="button" 
+      class="dock-btn dock-btn--primary"
+      (click)="spawnPlanet.emit()"
+      aria-label="Planet erschaffen – Neuen Himmelskörper in die Umlaufbahn schicken"
+      title="Neuen fotorealistischen Planeten auf sicherer Umlaufbahn erschaffen"
+    >
+      <span>Planet erschaffen</span>
+    </button>
+
+    <!-- Action: Spawn Black Hole (Next to Planet erschaffen) - NO ICONS -->
+    <button 
+      type="button" 
+      class="dock-btn dock-btn--black-hole"
+      (click)="spawnBlackHole.emit()"
+      aria-label="Schwarzes Loch erschaffen – Gravitative Singularität erzeugen"
+      title="Schwarzes Loch mit gravitativer Akkretionsscheibe erschaffen"
+    >
+      <span>Schwarzes Loch</span>
+    </button>
+
+    <div class="dock-divider" aria-hidden="true"></div>
+
+    <!-- Speed Toggles -->
+    <fieldset class="speed-group" role="radiogroup" aria-label="Simulationsgeschwindigkeit">
+      <legend class="sr-only">Simulationsgeschwindigkeit</legend>
+      <span class="group-label" aria-hidden="true">Zeit:</span>
+      <button 
+        type="button" 
+        role="radio"
+        class="speed-pill" 
+        [class.active]="timeSpeed === 0.5"
+        [attr.aria-checked]="timeSpeed === 0.5"
+        aria-label="Geschwindigkeit 0.5x"
+        (click)="setSpeed.emit(0.5)"
+      >
+        0.5x
+      </button>
+      <button 
+        type="button" 
+        role="radio"
+        class="speed-pill" 
+        [class.active]="timeSpeed === 1"
+        [attr.aria-checked]="timeSpeed === 1"
+        aria-label="Geschwindigkeit 1x"
+        (click)="setSpeed.emit(1)"
+      >
+        1x
+      </button>
+      <button 
+        type="button" 
+        role="radio"
+        class="speed-pill" 
+        [class.active]="timeSpeed === 2"
+        [attr.aria-checked]="timeSpeed === 2"
+        aria-label="Geschwindigkeit 2x"
+        (click)="setSpeed.emit(2)"
+      >
+        2x
+      </button>
+    </fieldset>
+
+    <div class="dock-divider" aria-hidden="true"></div>
+
+    <!-- Action: Orbit Harp Strings Toggle - NO ICONS -->
+    <button 
+      type="button" 
+      class="dock-btn dock-btn--secondary"
+      [class.active]="orbitStringsVisible"
+      [attr.aria-pressed]="orbitStringsVisible"
+      (click)="toggleOrbitStrings.emit()"
+      aria-label="Harfensaiten {{ orbitStringsVisible ? 'ausblenden' : 'einblenden' }}"
+      title="Umlaufbahn-Harfensaiten an/aus"
+    >
+      <span>Harfensaiten</span>
+    </button>
+
+    <!-- Action: Center View - NO ICONS -->
+    <button 
+      type="button" 
+      class="dock-btn dock-btn--secondary"
+      (click)="resetCamera.emit()"
+      aria-label="Ansicht zentrieren"
+      title="Kamera auf das Zentrum ausrichten"
+    >
+      <span>Zentrieren</span>
+    </button>
+
+    <div class="dock-divider" aria-hidden="true"></div>
+
+    <!-- Action: Reset Cosmos - NO ICONS -->
+    <button 
+      type="button" 
+      class="dock-btn dock-btn--ghost"
+      (click)="resetSystem.emit()"
+      aria-label="Kosmos neu starten"
+      title="Planetensystem auf Anfangszustand zurücksetzen"
+    >
+      <span>Neustart</span>
+    </button>
+  </div>
+
+  <!-- Instruction Hint -->
+  <aside class="interaction-hint" aria-label="Bedienungshinweise">
+    <span>Maus ziehen: 3D-Drehen</span>
+    <span aria-hidden="true">•</span>
+    <span>Mausrad: Zoomen</span>
+    <span aria-hidden="true">•</span>
+    <span>Umlaufbahn berühren: Harfensaite schwingen</span>
+    <span aria-hidden="true">•</span>
+    <span>ESC: Menü</span>
+  </aside>
+</nav>
