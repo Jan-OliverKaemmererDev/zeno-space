@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
+import * as THREE from 'three';
 import { CosmicSculptorComponent } from './cosmic-sculptor.component';
 import { AudioService } from '../../../core/services/audio.service';
 
@@ -89,11 +90,44 @@ describe('CosmicSculptorComponent', () => {
     expect(mockAudioService.playChime).toHaveBeenCalled();
   });
 
-  it('should spawn a black hole and update stability', () => {
+  it('should spawn a black hole and increment count', () => {
     expect(component.blackHoleCount()).toBe(0);
     component.onSpawnBlackHole();
     expect(component.blackHoleCount()).toBe(1);
-    expect(component.systemStability()).toBe('Singulär verzerrt');
+    expect(component.isPlacingBlackHole()).toBe(false);
+  });
+
+  it('should enter black hole placement mode and cancel on escape', () => {
+    expect(component.isPlacingBlackHole()).toBe(false);
+    component.onStartPlacingBlackHole();
+    expect(component.isPlacingBlackHole()).toBe(true);
+    expect(mockAudioService.playWaterdropToneOn).toHaveBeenCalled();
+
+    component.onEscape();
+    expect(component.isPlacingBlackHole()).toBe(false);
+  });
+
+  it('should place black hole at custom position and reset placing state', () => {
+    component.onStartPlacingBlackHole();
+    expect(component.isPlacingBlackHole()).toBe(true);
+
+    const customPos = new THREE.Vector3(25, 0, 15);
+    component.onSpawnBlackHole(customPos);
+
+    expect(component.isPlacingBlackHole()).toBe(false);
+    expect(component.blackHoleCount()).toBe(1);
+  });
+
+  it('should close info bubble when clicking outside .stat-pill-wrapper', () => {
+    component.openInfoBubble();
+    expect(component.showInfoBubble()).toBe(true);
+
+    const outsideEl = document.createElement('div');
+    const pointerEvent = new PointerEvent('pointerdown');
+    Object.defineProperty(pointerEvent, 'target', { value: outsideEl });
+    component.onDocumentPointerDown(pointerEvent);
+
+    expect(component.closingInfoBubble()).toBe(true);
   });
 
   it('should reset cosmic system to starter planets', () => {
@@ -116,5 +150,21 @@ describe('CosmicSculptorComponent', () => {
     component.onPointerMove(event);
 
     expect(mockAudioService.playChime).not.toHaveBeenCalled();
+  });
+
+  it('should clamp zoom-in to 18.0 near the sun and allow infinite zoom-out', () => {
+    // Zoom in heavily
+    const zoomInEvent = new WheelEvent('wheel', { deltaY: -5000 });
+    component.onWheel(zoomInEvent);
+    expect((component as any).targetSpherical.radius).toBe(18.0);
+
+    // Zoom out deeply into space
+    const zoomOutEvent = new WheelEvent('wheel', { deltaY: 2000 });
+    component.onWheel(zoomOutEvent);
+    expect((component as any).targetSpherical.radius).toBeGreaterThan(160.0);
+
+    const zoomOutMore = new WheelEvent('wheel', { deltaY: 3000 });
+    component.onWheel(zoomOutMore);
+    expect((component as any).targetSpherical.radius).toBeGreaterThan(1000.0);
   });
 });

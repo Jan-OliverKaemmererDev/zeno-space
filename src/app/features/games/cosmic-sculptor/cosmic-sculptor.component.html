@@ -3,6 +3,7 @@
   <div 
     #canvasContainer 
     class="three-canvas-container"
+    [class.is-placing-black-hole]="isPlacingBlackHole()"
     role="img"
     aria-label="3D Ansicht des Sonnensystems mit schwingenden Harfen-Umlaufbahnen"
     (pointerdown)="onPointerDown($event)"
@@ -19,7 +20,6 @@
     [planetCount]="planetCount()"
     [blackHoleCount]="blackHoleCount()"
     [collisionCount]="collisionCount()"
-    [systemStability]="systemStability()"
     [showBubble]="showInfoBubble()"
     [closingBubble]="closingInfoBubble()"
     (toggleBubble)="toggleInfoBubble($event)"
@@ -30,8 +30,9 @@
   <app-cosmic-controls
     [timeSpeed]="timeSpeed()"
     [orbitStringsVisible]="orbitStringsVisible()"
+    [isPlacingBlackHole]="isPlacingBlackHole()"
     (spawnPlanet)="onSpawnPlanet()"
-    (spawnBlackHole)="onSpawnBlackHole()"
+    (spawnBlackHole)="onStartPlacingBlackHole()"
     (setSpeed)="setTimeSpeed($event)"
     (toggleOrbitStrings)="toggleOrbitStrings()"
     (resetCamera)="resetCameraView()"

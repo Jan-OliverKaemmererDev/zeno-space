@@ -20,6 +20,7 @@ import {
 export class CosmicControlsComponent {
   @Input() timeSpeed = 1;
   @Input() orbitStringsVisible = true;
+  @Input() isPlacingBlackHole = false;
 
   @Output() spawnPlanet = new EventEmitter<void>();
   @Output() spawnBlackHole = new EventEmitter<void>();

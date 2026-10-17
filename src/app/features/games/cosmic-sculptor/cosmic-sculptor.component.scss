@@ -6,7 +6,7 @@
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background: radial-gradient(circle at 50% 50%, #12183a 0%, #0c102a 65%, #070a1a 100%);
+  background: radial-gradient(circle at 50% 50%, #090a10 0%, #05060a 65%, #020204 100%);
   user-select: none;
   touch-action: none;
 }
@@ -15,6 +15,10 @@
   width: 100%;
   height: 100%;
   cursor: grab;
+
+  &.is-placing-black-hole {
+    cursor: crosshair !important;
+  }
 
   &:active {
     cursor: grabbing;

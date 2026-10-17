@@ -21,7 +21,6 @@ export class CosmicInfoBubbleComponent {
   @Input() planetCount = 0;
   @Input() blackHoleCount = 0;
   @Input() collisionCount = 0;
-  @Input() systemStability = 'Harmonisch';
   @Input() isClosing = false;
 
   @Output() close = new EventEmitter<void>();

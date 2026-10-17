@@ -28,16 +28,10 @@
           [planetCount]="planetCount"
           [blackHoleCount]="blackHoleCount"
           [collisionCount]="collisionCount"
-          [systemStability]="systemStability"
           [isClosing]="closingBubble"
           (close)="onBubbleClose()"
         ></app-cosmic-info-bubble>
       }
-    </div>
-
-    <div class="stat-bubble" title="System-Stabilität">
-      <span class="stat-dot" [class.is-danger]="blackHoleCount > 0" aria-hidden="true"></span>
-      <span class="stat-text">{{ systemStability }}</span>
     </div>
   </div>
 </header>

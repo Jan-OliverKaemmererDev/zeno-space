@@ -10,10 +10,10 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 .speech-bubble.cosmic-speech-bubble {
   position: absolute;
   top: calc(100% + 18px);
-  left: 50%;
-  transform: translateX(-50%);
+  right: 0;
+  left: auto;
   width: 350px;
-  max-width: min(370px, calc(100vw - 32px));
+  max-width: min(350px, calc(100vw - 28px));
   max-height: min(490px, 75vh);
   display: flex;
   flex-direction: column;
@@ -34,15 +34,15 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
     inset 0 1px 0 rgba(255, 255, 255, 0.18);
   color: #f1f5f9;
 
-  transform-origin: top center;
+  transform-origin: top right;
   animation: balloon-inflate 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
 
   &::before {
     content: '';
     position: absolute;
     top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
+    right: 50px;
+    left: auto;
     border-width: 0 10px 10px 10px;
     border-style: solid;
     border-color: transparent transparent rgba(15, 23, 42, 0.86) transparent;
@@ -53,8 +53,8 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
     content: '';
     position: absolute;
     top: -11px;
-    left: 50%;
-    transform: translateX(-50%);
+    right: 49px;
+    left: auto;
     border-width: 0 11px 11px 11px;
     border-style: solid;
     border-color: transparent transparent rgba(147, 197, 253, 0.35) transparent;
@@ -116,41 +116,6 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
         &:hover {
           color: #f8fafc;
           background: rgba(255, 255, 255, 0.1);
-        }
-      }
-    }
-  }
-
-  .bubble-meta {
-    margin-bottom: 10px;
-
-    .meta-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.76rem;
-      padding: 3px 10px;
-      border-radius: 999px;
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.28);
-      color: #7dd3fc;
-
-      .meta-dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background: #38bdf8;
-        box-shadow: 0 0 6px #38bdf8;
-      }
-
-      &.is-danger {
-        background: rgba(245, 158, 11, 0.16);
-        border-color: rgba(245, 158, 11, 0.4);
-        color: #fcd34d;
-
-        .meta-dot {
-          background: #f59e0b;
-          box-shadow: 0 0 6px #f59e0b;
         }
       }
     }
@@ -244,24 +209,24 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 @keyframes balloon-inflate {
   0% {
     opacity: 0;
-    transform: translateX(-50%) scale(0.65) translateY(-8px);
+    transform: scale(0.65) translateY(-8px);
   }
   70% {
-    transform: translateX(-50%) scale(1.04) translateY(2px);
+    transform: scale(1.04) translateY(2px);
   }
   100% {
     opacity: 1;
-    transform: translateX(-50%) scale(1) translateY(0);
+    transform: scale(1) translateY(0);
   }
 }
 
 @keyframes balloon-deflate {
   0% {
     opacity: 1;
-    transform: translateX(-50%) scale(1) translateY(0);
+    transform: scale(1) translateY(0);
   }
   100% {
     opacity: 0;
-    transform: translateX(-50%) scale(0.55) translateY(-14px);
+    transform: scale(0.55) translateY(-14px);
   }
 }

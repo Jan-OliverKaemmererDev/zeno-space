@@ -15,11 +15,13 @@
     <button 
       type="button" 
       class="dock-btn dock-btn--black-hole"
+      [class.is-placing]="isPlacingBlackHole"
+      [disabled]="isPlacingBlackHole"
       (click)="spawnBlackHole.emit()"
-      aria-label="Schwarzes Loch erschaffen – Gravitative Singularität erzeugen"
-      title="Schwarzes Loch mit gravitativer Akkretionsscheibe erschaffen"
+      aria-label="Schwarzes Loch frei im Raum platzieren"
+      title="Schwarzes Loch mit Mausklick frei im Raum platzieren"
     >
-      <span>Schwarzes Loch</span>
+      <span>{{ isPlacingBlackHole ? 'Klicke zum Platzieren...' : 'Schwarzes Loch' }}</span>
     </button>
 
     <div class="dock-divider" aria-hidden="true"></div>
@@ -65,17 +67,17 @@
 
     <div class="dock-divider" aria-hidden="true"></div>
 
-    <!-- Action: Orbit Harp Strings Toggle - NO ICONS -->
+    <!-- Action: Orbit Lines Toggle - NO ICONS -->
     <button 
       type="button" 
       class="dock-btn dock-btn--secondary"
       [class.active]="orbitStringsVisible"
       [attr.aria-pressed]="orbitStringsVisible"
       (click)="toggleOrbitStrings.emit()"
-      aria-label="Harfensaiten {{ orbitStringsVisible ? 'ausblenden' : 'einblenden' }}"
-      title="Umlaufbahn-Harfensaiten an/aus"
+      aria-label="Umlaufbahnen {{ orbitStringsVisible ? 'ausblenden' : 'einblenden' }}"
+      title="Umlaufbahnen an/aus"
     >
-      <span>Harfensaiten</span>
+      <span>Umlaufbahnen</span>
     </button>
 
     <!-- Action: Center View - NO ICONS -->

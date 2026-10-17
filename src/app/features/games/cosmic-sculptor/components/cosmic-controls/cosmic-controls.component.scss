@@ -173,6 +173,24 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
     &:active {
       transform: scale(0.98);
     }
+
+    &.is-placing,
+    &:disabled {
+      background: linear-gradient(
+        135deg,
+        rgba(245, 158, 11, 0.40) 0%,
+        rgba(217, 119, 6, 0.48) 50%,
+        rgba(15, 23, 42, 0.85) 100%
+      );
+      border-color: rgba(253, 230, 138, 0.85);
+      color: #fef3c7;
+      box-shadow: 
+        0 0 20px rgba(245, 158, 11, 0.45),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      cursor: crosshair;
+      pointer-events: none;
+      transform: none;
+    }
   }
 
   &--secondary {

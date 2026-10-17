@@ -378,14 +378,27 @@ export class CosmicPhysicsEngine {
 
   /**
    * Spawns a mystical Black Hole with an event horizon and calming amber-violet accretion disk.
+   * Can be placed freely at customPosition or placed automatically on the next safe orbit.
    */
-  spawnBlackHole(): CelestialBody {
+  spawnBlackHole(customPosition?: THREE.Vector3): CelestialBody {
     this.bodyCounter++;
     const currentRadii = this.bodies
-      .filter((b) => b.type !== 'sun')
-      .map((b) => Math.hypot(b.position.x, b.position.z));
+      .filter((b) => b.type === 'planet')
+      .map((b) => b.orbitRadius ?? Math.hypot(b.position.x, b.position.z));
 
-    const orbitRadius = findNextSafeOrbitRadius(currentRadii, 32.0, 7.5);
+    let posX: number;
+    let posZ: number;
+
+    if (customPosition) {
+      posX = customPosition.x;
+      posZ = customPosition.z;
+    } else {
+      const orbitRadius = findNextSafeOrbitRadius(currentRadii, 32.0, 7.5);
+      const angle = Math.random() * Math.PI * 2;
+      posX = Math.cos(angle) * orbitRadius;
+      posZ = Math.sin(angle) * orbitRadius;
+    }
+
     const radius = 1.8;
     const mass = 1200.0; // High gravitational attraction
 
@@ -423,26 +436,11 @@ export class CosmicPhysicsEngine {
     diskMesh.rotation.x = Math.PI / 2.2;
     mesh.add(diskMesh);
 
-    const angle = Math.random() * Math.PI * 2;
-    const posX = Math.cos(angle) * orbitRadius;
-    const posZ = Math.sin(angle) * orbitRadius;
     mesh.position.set(posX, 0, posZ);
-
-    const speed = computeCircularOrbitVelocity(this.sunMass, orbitRadius);
-    const velX = -Math.sin(angle) * speed;
-    const velZ = Math.cos(angle) * speed;
 
     this.sceneGroup.add(mesh);
 
-    const trackId = `track-bh-${Date.now()}-${this.bodyCounter}`;
-    this.harpSystem.createOrbitTrack(
-      trackId,
-      `blackhole-${this.bodyCounter}`,
-      orbitRadius,
-      new THREE.Color(0xf59e0b),
-      1
-    );
-
+    // Stationary black hole firmly fixed at placement location without orbit track
     const blackHole: CelestialBody = {
       id: `blackhole-${this.bodyCounter}`,
       type: 'black-hole',
@@ -452,10 +450,10 @@ export class CosmicPhysicsEngine {
       mass,
       radius,
       position: new THREE.Vector3(posX, 0, posZ),
-      velocity: new THREE.Vector3(velX, 0, velZ),
+      velocity: new THREE.Vector3(0, 0, 0),
       color: new THREE.Color(0xf59e0b),
       rotationSpeed: 0.003, // Serene, gentle accretion spin
-      orbitTrackId: trackId,
+      orbitTrackId: '',
     };
 
     this.bodies.push(blackHole);
@@ -468,7 +466,7 @@ export class CosmicPhysicsEngine {
    * @param dt Delta time in seconds.
    * @param onCollision Callback triggered when two celestial bodies collide or merge.
    */
-  update(dt: number, onCollision?: (pos: THREE.Vector3, isBlackHole: boolean) => void): void {
+  update(dt: number, onCollision?: (pos: THREE.Vector3, isBlackHole: boolean, bothBlackHoles?: boolean) => void): void {
     const hasBlackHole = this.bodies.some((b) => b.type === 'black-hole');
 
     // Case 1: Peaceful state without Black Holes.
@@ -536,27 +534,28 @@ export class CosmicPhysicsEngine {
       return;
     }
 
-    // Case 2: A Black Hole has formed!
-    // The Black Hole's immense gravitation curves space-time and pulls the planets.
-    // Crucial Rule: Planets NEVER attract each other with gravity! Only the Black Hole (and the central Sun) pull them.
+    // Case 2: One or more Black Holes have formed!
+    // - Black Holes pull all planets with immense gravity.
+    // - If multiple Black Holes exist, they also attract each other with mutual gravitation.
+    // - The central Sun stays firmly anchored at (0, 0, 0).
     const n = this.bodies.length;
     const accelerations: THREE.Vector3[] = Array.from({ length: n }, () => new THREE.Vector3());
 
     for (let i = 0; i < n; i++) {
       const b1 = this.bodies[i];
-      if (b1.type === 'sun') continue; // Sol Harmonia is the fixed central star at (0, 0, 0)
+      if (b1.type === 'sun') continue; // Sol Harmonia stays firmly anchored at (0, 0, 0)
 
       for (let j = 0; j < n; j++) {
         if (i === j) continue;
         const b2 = this.bodies[j];
 
-        // 1. Planets do NOT attract each other:
+        // 1. Planets do NOT attract each other (keeps solar system stable until perturbed by black holes):
         if (b1.type === 'planet' && b2.type === 'planet') {
           continue;
         }
 
-        // 2. Planets have negligible mass and do not pull the Black Hole:
-        if (b1.type === 'black-hole' && b2.type === 'planet') {
+        // 2. Black holes are ONLY attracted by other black holes (not by the sun or planets):
+        if (b1.type === 'black-hole' && b2.type !== 'black-hole') {
           continue;
         }
 
@@ -609,19 +608,21 @@ export class CosmicPhysicsEngine {
       b.mesh.position.copy(b.position);
       b.mesh.rotation.y += b.rotationSpeed;
 
-      if (b.cloudsMesh) {
-        b.cloudsMesh.rotation.y += b.rotationSpeed * 0.35;
-      }
+      if (b.type === 'black-hole') {
+        if (b.glowMesh) {
+          b.glowMesh.rotation.z += b.rotationSpeed;
+        }
+      } else {
+        if (b.cloudsMesh) {
+          b.cloudsMesh.rotation.y += b.rotationSpeed * 0.35;
+        }
 
-      if (b.type === 'black-hole' && b.glowMesh) {
-        b.glowMesh.rotation.z += b.rotationSpeed;
-      }
-
-      if (b.orbitTrackId) {
-        const currentDist = Math.hypot(b.position.x, b.position.z);
-        this.harpSystem.updateOrbitRadius(b.orbitTrackId, currentDist);
-        b.orbitRadius = currentDist;
-        b.orbitalAngle = Math.atan2(b.position.z, b.position.x);
+        if (b.orbitTrackId) {
+          const currentDist = Math.hypot(b.position.x, b.position.z);
+          this.harpSystem.updateOrbitRadius(b.orbitTrackId, currentDist);
+          b.orbitRadius = currentDist;
+          b.orbitalAngle = Math.atan2(b.position.z, b.position.x);
+        }
       }
     }
 
@@ -642,23 +643,48 @@ export class CosmicPhysicsEngine {
           this.collisionCounter++;
           const collisionPos = new THREE.Vector3().addVectors(b1.position, b2.position).multiplyScalar(0.5);
           const hasBlackHole = b1.type === 'black-hole' || b2.type === 'black-hole';
+          const bothBlackHoles = b1.type === 'black-hole' && b2.type === 'black-hole';
 
-          this.spawnShockwave(collisionPos, hasBlackHole ? new THREE.Color(0xf59e0b) : new THREE.Color(0x38bdf8));
-          this.spawnStardustBurst(collisionPos, 50);
+          this.spawnShockwave(
+            collisionPos,
+            bothBlackHoles ? new THREE.Color(0xfbbf24) : hasBlackHole ? new THREE.Color(0xf59e0b) : new THREE.Color(0x38bdf8)
+          );
+          this.spawnStardustBurst(collisionPos, bothBlackHoles ? 100 : 50);
 
           if (onCollision) {
-            onCollision(collisionPos, hasBlackHole);
+            onCollision(collisionPos, hasBlackHole, bothBlackHoles);
           }
 
           if (b1.type === 'sun') {
             toRemoveIndices.add(j);
           } else if (b2.type === 'sun') {
             toRemoveIndices.add(i);
+          } else if (bothBlackHoles) {
+            // Two black holes merge into a larger, more massive singularity with higher attraction!
+            const [survivor, absorbed, removeIdx] = b1.mass >= b2.mass ? [b1, b2, j] : [b2, b1, i];
+            const totalMass = survivor.mass + absorbed.mass;
+            survivor.mass = totalMass;
+
+            // Weighted midpoint position and settled stationary state
+            survivor.position.lerp(absorbed.position, absorbed.mass / totalMass);
+            survivor.position.y = 0;
+            survivor.velocity.set(0, 0, 0);
+            survivor.mesh.position.copy(survivor.position);
+
+            // Visibly grow the black hole: event horizon, photon ring and accretion disk expand
+            survivor.radius = Math.pow(Math.pow(survivor.radius, 2.5) + Math.pow(absorbed.radius, 2.5), 1 / 2.5);
+            survivor.mesh.scale.setScalar(survivor.radius / 1.8);
+
+            toRemoveIndices.add(removeIdx);
           } else if (b1.type === 'black-hole') {
             b1.mass += b2.mass;
+            b1.radius = Math.min(b1.radius * 1.05, Math.cbrt(Math.pow(b1.radius, 3) + Math.pow(b2.radius, 3)));
+            b1.mesh.scale.setScalar(b1.radius / 1.8);
             toRemoveIndices.add(j);
           } else if (b2.type === 'black-hole') {
             b2.mass += b1.mass;
+            b2.radius = Math.min(b2.radius * 1.05, Math.cbrt(Math.pow(b2.radius, 3) + Math.pow(b1.radius, 3)));
+            b2.mesh.scale.setScalar(b2.radius / 1.8);
             toRemoveIndices.add(i);
           } else {
             const [survivor, absorbed, removeIdx] = b1.mass >= b2.mass ? [b1, b2, j] : [b2, b1, i];

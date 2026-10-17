@@ -24,7 +24,6 @@ export class CosmicHeaderComponent {
   @Input() planetCount = 0;
   @Input() blackHoleCount = 0;
   @Input() collisionCount = 0;
-  @Input() systemStability = 'Harmonisch';
   @Input() showBubble = false;
   @Input() closingBubble = false;
 

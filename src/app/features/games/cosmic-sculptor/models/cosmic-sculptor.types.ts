@@ -92,10 +92,14 @@ export interface OrbitTrack {
   harpPluckAmplitude: number;
   /** Resonant musical frequency of the string (higher for tight orbits, deeper for distant orbits). */
   frequency: number;
-  /** Pentatonic note index (0-9) used for AudioService chimes. */
+  /** Note index within the active melody sequence. */
   noteIndex: number;
+  /** Exact pitch frequency (Hz) for the melody note (e.g. Interstellar theme). */
+  noteFrequency: number;
   /** Whether the cursor is currently hovering over this orbit line. */
   isHovered: boolean;
+  /** Timestamp when sound was last triggered for this track to enforce clean cooldowns. */
+  lastPluckTime?: number;
 }
 
 /**
@@ -140,8 +144,6 @@ export interface CosmicSimulationStats {
   blackHoleCount: number;
   /** Total cumulative collisions and mergers observed. */
   collisionCount: number;
-  /** Current stability status description. */
-  systemStability: 'Harmonisch' | 'Gravitativ aktiv' | 'Singulär verzerrt';
   /** Simulation speed multiplier (0.5x, 1x, 2x). */
   timeSpeed: number;
   /** Whether orbital harp string lines are visible. */

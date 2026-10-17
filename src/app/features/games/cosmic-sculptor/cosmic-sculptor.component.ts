@@ -49,14 +49,9 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
   readonly orbitStringsVisible = signal<boolean>(true);
   readonly showInfoBubble = signal<boolean>(false);
   readonly closingInfoBubble = signal<boolean>(false);
+  readonly isPlacingBlackHole = signal<boolean>(false);
 
   private closingBubbleTimeout: ReturnType<typeof setTimeout> | null = null;
-
-  readonly systemStability = computed<'Harmonisch' | 'Gravitativ aktiv' | 'Singulär verzerrt'>(() => {
-    if (this.blackHoleCount() > 0) return 'Singulär verzerrt';
-    if (this.collisionCount() > 0 || this.planetCount() > 5) return 'Gravitativ aktiv';
-    return 'Harmonisch';
-  });
 
   // Three.js Core Instances
   private scene!: THREE.Scene;
@@ -65,15 +60,17 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
   private animationId: number | null = null;
   private lastFrameTime = performance.now();
 
-  // Celestial Night Sky Particle & Skydome Systems
+  // Celestial Night Sky Starfield Particle System
   private starfieldPoints!: THREE.Points;
-  private milkyWayPoints!: THREE.Points;
-  private celestialSkydome!: THREE.Mesh;
+  private blackHolePlacementMarker!: THREE.Mesh;
 
   // Pure Mouse Interaction State (No WASD!)
   private isPointerDown = false;
   private pointerStartX = 0;
   private pointerStartY = 0;
+  private pointerInitialX = 0;
+  private pointerInitialY = 0;
+  private pointerMoved = false;
   private readonly raycaster = new THREE.Raycaster();
   private readonly mouseNDC = new THREE.Vector2(-9999, -9999);
 
@@ -90,11 +87,29 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
   };
 
   /**
-   * Escape key handler: Closes info bubble if open, otherwise returns to the hub.
+   * Closes the info/speech bubble when clicking anywhere outside the bubble wrapper.
+   */
+  @HostListener('document:pointerdown', ['$event'])
+  onDocumentPointerDown(event: PointerEvent): void {
+    if (!this.showInfoBubble()) return;
+    const target = event.target as HTMLElement | null;
+    if (target?.closest('.stat-pill-wrapper')) return;
+    this.closeInfoBubble();
+  }
+
+  /**
+   * Escape key handler: Cancels black hole placement mode, closes info bubble if open, or returns to the hub.
    * Note: Keyboard WASD controls have been intentionally removed in favor of pure mouse navigation.
    */
   @HostListener('document:keydown.escape')
   onEscape(): void {
+    if (this.isPlacingBlackHole()) {
+      this.isPlacingBlackHole.set(false);
+      if (this.blackHolePlacementMarker) {
+        this.blackHolePlacementMarker.visible = false;
+      }
+      return;
+    }
     if (this.showInfoBubble()) {
       this.closeInfoBubble();
     } else {
@@ -126,19 +141,14 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     this.harpSystem.clear();
     this.textureFactory.dispose();
 
-    if (this.celestialSkydome) {
-      this.celestialSkydome.geometry.dispose();
-      (this.celestialSkydome.material as THREE.Material).dispose();
-    }
-
-    if (this.milkyWayPoints) {
-      this.milkyWayPoints.geometry.dispose();
-      (this.milkyWayPoints.material as THREE.Material).dispose();
-    }
-
     if (this.starfieldPoints) {
       this.starfieldPoints.geometry.dispose();
       (this.starfieldPoints.material as THREE.Material).dispose();
+    }
+
+    if (this.blackHolePlacementMarker) {
+      this.blackHolePlacementMarker.geometry.dispose();
+      (this.blackHolePlacementMarker.material as THREE.Material).dispose();
     }
 
     if (this.renderer) {
@@ -156,18 +166,21 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     const height = container.clientHeight || window.innerHeight;
 
     this.scene = new THREE.Scene();
-    // Ultra-light atmospheric depth for the solar plane without obscuring the deep cosmic night sky
-    this.scene.fog = new THREE.FogExp2(0x0c102a, 0.0004);
-
-    this.camera = new THREE.PerspectiveCamera(52, width / height, 0.1, 1200);
+    // Deep crystal-clear space void without fog so solar system stays visible at any zoom distance
+    this.camera = new THREE.PerspectiveCamera(52, width / height, 0.5, 10_000_000);
     this.updateCameraTransform();
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+    this.renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance',
+      logarithmicDepthBuffer: true,
+    });
     this.renderer.setSize(width, height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     // Balanced celestial exposure
-    this.renderer.toneMappingExposure = 1.18;
+    this.renderer.toneMappingExposure = 1.15;
     container.appendChild(this.renderer.domElement);
 
     // Warm, welcoming solar point light
@@ -175,12 +188,12 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     starCoreLight.position.set(0, 0, 0);
     this.scene.add(starCoreLight);
 
-    // Radiant celestial ambient fill light (bright and gentle)
-    const cosmicAmbientLight = new THREE.AmbientLight(0x4a5d85, 2.4);
+    // Subtle, neutral cosmic ambient light (preserves deep darkness without blue wash)
+    const cosmicAmbientLight = new THREE.AmbientLight(0x2d303a, 1.8);
     this.scene.add(cosmicAmbientLight);
 
-    // Soft dimensional directional light for velvety shading
-    const rimFillLight = new THREE.DirectionalLight(0x8ba6d4, 1.3);
+    // Soft neutral starlight rim fill for velvety planetary shading
+    const rimFillLight = new THREE.DirectionalLight(0xcfd4e2, 0.95);
     rimFillLight.position.set(30, 45, 25);
     this.scene.add(rimFillLight);
 
@@ -192,104 +205,38 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
-   * Creates the magnificent, deep cosmic night sky:
-   * 1. 360° Celestial Skydome: Seamless, photorealistic Milky Way panorama with Great Rift dust lanes
-   *    and luminous golden Sagittarius core on an expansive celestial sphere (R = 960).
-   * 2. Galactic Stardust Lane: Fine micro-particles along the galactic stream providing realistic subtle depth.
-   * 3. Deep Celestial Starfield: Layer A prominent alpha stars + Layer B pinprick field stars (R >= 940).
-   * NOTE: All celestial sky elements are placed at r >= 920 to completely prevent any foreground noise or jitter.
+   * Creates an expansive, deep cosmic starfield:
+   * Multi-magnitude spherical distribution of over 5,500 particle stars across cosmic distances (R >= 930).
+   * Features luminary alpha stars, shimmering field stars, and fine deep stellar dust.
+   * NOTE: All celestial sky elements are placed at r >= 930 to completely prevent any foreground interference.
    */
   private createCosmicEnvironment(): void {
     const particleTexture = this.textureFactory.getParticleGlowTexture();
 
     // -------------------------------------------------------------------------
-    // 1. The 360-Degree Photorealistic Milky Way Celestial Skydome (R = 960)
+    // Deep Celestial Particle Starfield (320 Alpha Stars + 2,700 Field Stars + 2,500 Stellar Dust)
     // -------------------------------------------------------------------------
-    const skyGeo = new THREE.SphereGeometry(960, 64, 48);
-    const skyTex = this.textureFactory.createMilkyWaySkyPanoramaTexture();
-    const skyMat = new THREE.MeshBasicMaterial({
-      map: skyTex,
-      side: THREE.BackSide,
-      depthWrite: false,
-      fog: false,
-      transparent: true,
-      opacity: 0.82,
-    });
-    this.celestialSkydome = new THREE.Mesh(skyGeo, skyMat);
-    // Authentic celestial tilt across the cosmic sphere
-    this.celestialSkydome.rotation.x = 0.52;
-    this.celestialSkydome.rotation.z = -0.38;
-    this.scene.add(this.celestialSkydome);
-
-    // -------------------------------------------------------------------------
-    // 2. Galactic Stardust Particles Along The Milky Way Stream (R = 930)
-    // -------------------------------------------------------------------------
-    const mwStarCount = 360;
-    const mwStarPositions = new Float32Array(mwStarCount * 3);
-    const mwStarColors = new Float32Array(mwStarCount * 3);
-
-    const colCoreGold = new THREE.Color(0xfef08a);
-    const colDiamond = new THREE.Color(0xffffff);
-    const colIceBlue = new THREE.Color(0xbae6fd);
-    const colLavender = new THREE.Color(0xc084fc);
-
-    for (let i = 0; i < mwStarCount; i++) {
-      const alpha = Math.random() * Math.PI * 2;
-      const r = 930.0 + Math.random() * 25.0;
-      const dispY = (Math.random() + Math.random() - 1.0) * 8.5;
-
-      mwStarPositions[i * 3] = Math.cos(alpha) * r;
-      mwStarPositions[i * 3 + 1] = dispY;
-      mwStarPositions[i * 3 + 2] = Math.sin(alpha) * r;
-
-      const mix = Math.random();
-      const col = mix < 0.4 ? colDiamond : mix < 0.7 ? colIceBlue : mix < 0.88 ? colCoreGold : colLavender;
-      const brightness = 0.20 + Math.random() * 0.28;
-
-      mwStarColors[i * 3] = col.r * brightness;
-      mwStarColors[i * 3 + 1] = col.g * brightness;
-      mwStarColors[i * 3 + 2] = col.b * brightness;
-    }
-
-    const mwStarGeo = new THREE.BufferGeometry();
-    mwStarGeo.setAttribute('position', new THREE.BufferAttribute(mwStarPositions, 3));
-    mwStarGeo.setAttribute('color', new THREE.BufferAttribute(mwStarColors, 3));
-
-    const mwStarMat = new THREE.PointsMaterial({
-      size: 0.85,
-      sizeAttenuation: false,
-      vertexColors: true,
-      map: particleTexture,
-      transparent: true,
-      opacity: 0.35,
-      blending: THREE.AdditiveBlending,
-      depthWrite: false,
-      fog: false,
-    });
-
-    this.milkyWayPoints = new THREE.Points(mwStarGeo, mwStarMat);
-    this.milkyWayPoints.rotation.x = 0.52;
-    this.milkyWayPoints.rotation.z = -0.38;
-    this.milkyWayPoints.frustumCulled = false;
-    this.scene.add(this.milkyWayPoints);
-
-    // -------------------------------------------------------------------------
-    // 3. Deep Celestial Starfield (180 Alpha Stars + 1,600 Field Stars, R >= 940)
-    // -------------------------------------------------------------------------
-    const alphaCount = 180;
-    const fieldCount = 1600;
-    const totalStars = alphaCount + fieldCount;
+    const alphaCount = 320;
+    const fieldCount = 2700;
+    const dustCount = 2500;
+    const totalStars = alphaCount + fieldCount + dustCount;
     const positions = new Float32Array(totalStars * 3);
     const colors = new Float32Array(totalStars * 3);
 
-    const colSirius = new THREE.Color(0xf0fdfa);
-    const colVega = new THREE.Color(0xe0f2fe);
-    const colArcturus = new THREE.Color(0xfde68a);
-    const colBetelgeuse = new THREE.Color(0xfca5a5);
+    // Harmonious, scientifically inspired stellar color spectrum
+    const colSirius = new THREE.Color(0xf8fafc);     // Brilliant pure diamond white (Class A)
+    const colVega = new THREE.Color(0xe0f2fe);       // Crisp ice topaz blue (Class B)
+    const colCapella = new THREE.Color(0xfef3c7);    // Radiant warm sunlight (Class G)
+    const colArcturus = new THREE.Color(0xfde68a);   // Luminous golden amber (Class K)
+    const colBetelgeuse = new THREE.Color(0xfecaca); // Gentle pastel ruby rose (Class M)
+    const colLavender = new THREE.Color(0xede9fe);   // Subtle celestial violet (Nebular starlight)
 
     for (let i = 0; i < totalStars; i++) {
       const isAlpha = i < alphaCount;
-      const r = 940.0 + Math.random() * 30.0;
+      const isDust = i >= alphaCount + fieldCount;
+
+      // Uniform spherical shell distribution at vast cosmic radius (R >= 930)
+      const r = 930.0 + Math.random() * 45.0;
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(Math.random() * 2 - 1);
 
@@ -301,12 +248,19 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
       let brightness: number;
 
       if (isAlpha) {
-        const type = Math.random();
-        col = type < 0.45 ? colVega : type < 0.7 ? colSirius : type < 0.88 ? colArcturus : colBetelgeuse;
-        brightness = 0.85 + Math.random() * 0.15;
+        // Prominent luminary stars anchoring celestial constellations
+        const pick = Math.random();
+        col = pick < 0.40 ? colSirius : pick < 0.65 ? colVega : pick < 0.85 ? colCapella : pick < 0.94 ? colArcturus : colBetelgeuse;
+        brightness = 0.80 + Math.random() * 0.20;
+      } else if (isDust) {
+        // Faint distant micro-stardust adding incredible depth to the cosmic void
+        const pick = Math.random();
+        col = pick < 0.50 ? colSirius : pick < 0.80 ? colVega : colLavender;
+        brightness = 0.12 + Math.random() * 0.22;
       } else {
-        const type = Math.random();
-        col = type < 0.5 ? colSirius : type < 0.8 ? colVega : colArcturus;
+        // Crisp intermediate field stars of 2nd - 4th magnitude
+        const pick = Math.random();
+        col = pick < 0.45 ? colSirius : pick < 0.75 ? colVega : pick < 0.90 ? colCapella : colLavender;
         brightness = 0.35 + Math.random() * 0.45;
       }
 
@@ -320,20 +274,38 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     starGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
     const starMat = new THREE.PointsMaterial({
-      size: 1.4,
+      size: 1.25,
       sizeAttenuation: false,
       vertexColors: true,
       map: particleTexture,
       transparent: true,
-      opacity: 0.85,
+      opacity: 0.90,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       fog: false,
     });
 
     this.starfieldPoints = new THREE.Points(starGeo, starMat);
+    this.starfieldPoints.renderOrder = -1000;
     this.starfieldPoints.frustumCulled = false;
     this.scene.add(this.starfieldPoints);
+
+    // -------------------------------------------------------------------------
+    // Holographic Black Hole Placement Marker Ring on Ecliptic Plane (y = 0)
+    // -------------------------------------------------------------------------
+    const markerGeo = new THREE.RingGeometry(1.6, 2.5, 48);
+    const markerMat = new THREE.MeshBasicMaterial({
+      color: 0xf59e0b,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    this.blackHolePlacementMarker = new THREE.Mesh(markerGeo, markerMat);
+    this.blackHolePlacementMarker.rotation.x = Math.PI / 2;
+    this.blackHolePlacementMarker.visible = false;
+    this.scene.add(this.blackHolePlacementMarker);
   }
 
   /**
@@ -366,21 +338,21 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     this.cameraSpherical.radius += (this.targetSpherical.radius - this.cameraSpherical.radius) * 0.12;
     this.updateCameraTransform();
 
-    // Rotate night sky and Milky Way very slowly and majestically
+    // Center celestial starfield on camera so it forms an infinite cosmic dome, and rotate gently
     if (this.starfieldPoints) {
+      this.starfieldPoints.position.copy(this.camera.position);
       this.starfieldPoints.rotation.y += 0.000018 * this.timeSpeed();
     }
-    if (this.milkyWayPoints) {
-      this.milkyWayPoints.rotation.y += 0.000022 * this.timeSpeed();
-    }
-    if (this.celestialSkydome) {
-      this.celestialSkydome.rotation.y += 0.000020 * this.timeSpeed();
+
+    // Spin placement marker ring when active
+    if (this.blackHolePlacementMarker && this.blackHolePlacementMarker.visible) {
+      this.blackHolePlacementMarker.rotation.z += 0.03;
     }
 
     // Advance serene N-body gravitational physics
-    this.physicsEngine.update(dt, (collisionPos, isBlackHole) => {
-      const note = isBlackHole ? 1 : 5;
-      this.audioService.playChime(note, 0.28);
+    this.physicsEngine.update(dt, (collisionPos, isBlackHole, bothBlackHoles) => {
+      const note = bothBlackHoles ? 0 : isBlackHole ? 1 : 5;
+      this.audioService.playChime(note, bothBlackHoles ? 0.38 : 0.28);
     });
 
     // Update harp string standing wave displacements
@@ -406,10 +378,19 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     this.audioService.playChime(Math.floor(Math.random() * 8), 0.22);
   }
 
-  onSpawnBlackHole(): void {
-    this.physicsEngine.spawnBlackHole();
+  onStartPlacingBlackHole(): void {
+    this.isPlacingBlackHole.set(true);
+    this.audioService.playWaterdropToneOn(0.35);
+  }
+
+  onSpawnBlackHole(customPosition?: THREE.Vector3): void {
+    this.physicsEngine.spawnBlackHole(customPosition);
     this.syncCounts();
-    this.audioService.playChime(0, 0.35);
+    this.audioService.playChime(0, 0.45);
+    this.isPlacingBlackHole.set(false);
+    if (this.blackHolePlacementMarker) {
+      this.blackHolePlacementMarker.visible = false;
+    }
   }
 
   setTimeSpeed(speed: number): void {
@@ -430,6 +411,10 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
   }
 
   resetCosmos(): void {
+    this.isPlacingBlackHole.set(false);
+    if (this.blackHolePlacementMarker) {
+      this.blackHolePlacementMarker.visible = false;
+    }
     this.physicsEngine.resetSystem();
     this.syncCounts();
     this.audioService.playChime(2, 0.25);
@@ -478,6 +463,9 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     this.isPointerDown = true;
     this.pointerStartX = event.clientX;
     this.pointerStartY = event.clientY;
+    this.pointerInitialX = event.clientX;
+    this.pointerInitialY = event.clientY;
+    this.pointerMoved = false;
 
     const target = event.currentTarget as HTMLElement;
     if (target?.setPointerCapture) {
@@ -495,19 +483,54 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
         this.mouseNDC.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         this.mouseNDC.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
+        // In black hole placement mode, update holographic placement marker position on ecliptic plane y = 0
+        if (this.isPlacingBlackHole() && this.blackHolePlacementMarker) {
+          this.raycaster.setFromCamera(this.mouseNDC, this.camera);
+          const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+          const hitPos = new THREE.Vector3();
+          if (this.raycaster.ray.intersectPlane(plane, hitPos)) {
+            let dist = Math.hypot(hitPos.x, hitPos.z);
+            if (dist < 10.0) {
+              const a = Math.atan2(hitPos.z, hitPos.x) || 0;
+              hitPos.x = Math.cos(a) * 10.0;
+              hitPos.z = Math.sin(a) * 10.0;
+            }
+            this.blackHolePlacementMarker.position.set(hitPos.x, 0.05, hitPos.z);
+            const markerScale = Math.max(1.0, this.cameraSpherical.radius / 55.0);
+            this.blackHolePlacementMarker.scale.set(markerScale, markerScale, markerScale);
+            this.blackHolePlacementMarker.visible = true;
+          }
+        } else if (this.blackHolePlacementMarker) {
+          this.blackHolePlacementMarker.visible = false;
+        }
+
         // Raycast against thin orbital lines to pluck harp strings only when strings are enabled
-        if (this.orbitStringsVisible()) {
+        if (this.orbitStringsVisible() && !this.isPlacingBlackHole()) {
           this.raycaster.setFromCamera(this.mouseNDC, this.camera);
           const nowSeconds = performance.now() / 1000;
-          const plucked = this.harpSystem.checkHarpPluck(this.raycaster, nowSeconds);
-          if (plucked) {
-            this.audioService.playChime(plucked.noteIndex, 0.24);
+          const pluckedList = this.harpSystem.checkHarpPlucks(this.raycaster, nowSeconds);
+          for (let p = 0; p < pluckedList.length; p++) {
+            const track = pluckedList[p];
+            const noteFreq = track.noteFrequency || track.noteIndex;
+            if (p === 0) {
+              this.audioService.playChime(noteFreq, 0.28);
+            } else {
+              setTimeout(() => {
+                if (this.orbitStringsVisible()) {
+                  this.audioService.playChime(noteFreq, 0.28);
+                }
+              }, p * 36);
+            }
           }
         }
       }
     }
 
     if (!this.isPointerDown) return;
+
+    if (Math.hypot(event.clientX - this.pointerInitialX, event.clientY - this.pointerInitialY) > 5) {
+      this.pointerMoved = true;
+    }
 
     const deltaX = event.clientX - this.pointerStartX;
     const deltaY = event.clientY - this.pointerStartY;
@@ -524,6 +547,22 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
   }
 
   onPointerUp(event?: PointerEvent): void {
+    if (this.isPlacingBlackHole() && !this.pointerMoved && event) {
+      this.raycaster.setFromCamera(this.mouseNDC, this.camera);
+      const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+      const targetPos = new THREE.Vector3();
+      if (this.raycaster.ray.intersectPlane(plane, targetPos)) {
+        let dist = Math.hypot(targetPos.x, targetPos.z);
+        if (dist < 10.0) {
+          const a = Math.atan2(targetPos.z, targetPos.x) || 0;
+          targetPos.x = Math.cos(a) * 10.0;
+          targetPos.z = Math.sin(a) * 10.0;
+        }
+        targetPos.y = 0;
+        this.onSpawnBlackHole(targetPos);
+      }
+    }
+
     this.isPointerDown = false;
     if (event?.currentTarget) {
       const target = event.currentTarget as HTMLElement;
@@ -538,15 +577,17 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
   onPointerLeave(): void {
     this.isPointerDown = false;
     this.mouseNDC.set(-9999, -9999);
+    if (this.blackHolePlacementMarker) {
+      this.blackHolePlacementMarker.visible = false;
+    }
+    this.harpSystem.resetPointerTracking();
   }
 
   onWheel(event: WheelEvent): void {
     event.preventDefault();
-    const zoomSpeed = 0.055;
-    this.targetSpherical.radius = Math.max(
-      18.0,
-      Math.min(160.0, this.targetSpherical.radius + event.deltaY * zoomSpeed)
-    );
+    // Smooth geometric zoom scaling with wheel delta for natural zooming at any cosmic scale
+    const zoomFactor = Math.pow(1.0016, event.deltaY);
+    this.targetSpherical.radius = Math.max(18.0, this.targetSpherical.radius * zoomFactor);
   }
 
   onDoubleClick(): void {
@@ -559,6 +600,12 @@ export class CosmicSculptorComponent implements AfterViewInit, OnDestroy {
     this.camera.position.y = radius * Math.cos(phi);
     this.camera.position.z = radius * Math.sin(phi) * Math.sin(theta);
     this.camera.lookAt(0, 0, 0);
+
+    // Expand camera far clipping plane dynamically if user zooms into deep cosmic distances
+    if (radius * 4.0 > this.camera.far) {
+      this.camera.far = radius * 8.0;
+      this.camera.updateProjectionMatrix();
+    }
   }
 
   private onWindowResize = (): void => {

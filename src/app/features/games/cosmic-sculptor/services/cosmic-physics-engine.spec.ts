@@ -135,4 +135,52 @@ describe('CosmicPhysicsEngine', () => {
     expect(sun.position.y).toBe(0);
     expect(sun.position.z).toBe(0);
   });
+
+  it('should keep black hole firmly stationary at its placed position and not create an orbit track', () => {
+    physicsEngine.initSun();
+    const placedPos = new THREE.Vector3(35, 0, 20);
+    const bh = physicsEngine.spawnBlackHole(placedPos);
+
+    expect(bh.velocity.x).toBe(0);
+    expect(bh.velocity.y).toBe(0);
+    expect(bh.velocity.z).toBe(0);
+    expect(bh.orbitTrackId).toBe('');
+
+    for (let i = 0; i < 20; i++) {
+      physicsEngine.update(0.1);
+    }
+
+    expect(bh.position.x).toBe(35);
+    expect(bh.position.y).toBe(0);
+    expect(bh.position.z).toBe(20);
+  });
+
+  it('should attract multiple black holes toward each other and merge them on collision into a larger, more massive black hole', () => {
+    physicsEngine.initSun();
+    const bh1 = physicsEngine.spawnBlackHole(new THREE.Vector3(20, 0, 0));
+    const bh2 = physicsEngine.spawnBlackHole(new THREE.Vector3(26, 0, 0));
+
+    expect(physicsEngine.getBlackHoleCount()).toBe(2);
+
+    const initialDistance = bh1.position.distanceTo(bh2.position);
+
+    // Step physics to verify mutual gravitational attraction
+    physicsEngine.update(0.1);
+    const midDistance = bh1.position.distanceTo(bh2.position);
+    expect(midDistance).toBeLessThan(initialDistance);
+    expect(bh1.velocity.x).toBeGreaterThan(0);
+    expect(bh2.velocity.x).toBeLessThan(0);
+
+    // Step physics until they collide and merge
+    for (let i = 0; i < 60; i++) {
+      physicsEngine.update(0.1);
+    }
+
+    expect(physicsEngine.getBlackHoleCount()).toBe(1);
+    const remaining = physicsEngine.getBodies().find((b) => b.type === 'black-hole')!;
+    expect(remaining).toBeDefined();
+    expect(remaining.mass).toBe(2400);
+    expect(remaining.radius).toBeGreaterThan(1.8);
+    expect(remaining.mesh.scale.x).toBeGreaterThan(1.0);
+  });
 });

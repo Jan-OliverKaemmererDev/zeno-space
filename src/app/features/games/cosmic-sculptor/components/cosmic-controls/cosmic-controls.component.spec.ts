@@ -39,4 +39,21 @@ describe('CosmicControlsComponent', () => {
     component.setSpeed.emit(2);
     expect(emitSpy).toHaveBeenCalledWith(2);
   });
+
+  it('should emit toggleOrbitStrings when Umlaufbahnen button is clicked', () => {
+    const emitSpy = vi.spyOn(component.toggleOrbitStrings, 'emit');
+    const buttons = fixture.nativeElement.querySelectorAll('.dock-btn--secondary');
+    const orbitBtn = Array.from(buttons).find((b: any) => b.textContent?.includes('Umlaufbahnen')) as HTMLElement;
+    expect(orbitBtn).toBeTruthy();
+    orbitBtn.click();
+    expect(emitSpy).toHaveBeenCalled();
+  });
+
+  it('should disable black hole button and show placement text when isPlacingBlackHole is true', () => {
+    fixture.componentRef.setInput('isPlacingBlackHole', true);
+    fixture.detectChanges();
+    const btn = fixture.nativeElement.querySelector('.dock-btn--black-hole') as HTMLButtonElement;
+    expect(btn.disabled).toBe(true);
+    expect(btn.textContent).toContain('Klicke zum Platzieren...');
+  });
 });

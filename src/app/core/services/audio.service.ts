@@ -26,18 +26,38 @@ export class AudioService {
   readonly isAmbientPlaying = signal<boolean>(false);
   readonly isAwaitingUserGesture = signal<boolean>(false);
 
-  // Pentatonic Celestial Scale (Hz)
+  // Pentatonic Celestial Scale (Hz) covering 5 octaves (C4 to A8)
   private readonly pentatonicScale = [
-    261.63, // C4
-    293.66, // D4
-    329.63, // E4
-    392.00, // G4
-    440.00, // A4
-    523.25, // C5
-    587.33, // D5
-    659.25, // E5
-    783.99, // G5
-    880.00, // A5
+    // Octave 4 (Warm fundamental bells)
+    261.63, // 0: C4
+    293.66, // 1: D4
+    329.63, // 2: E4
+    392.00, // 3: G4
+    440.00, // 4: A4
+    // Octave 5 (Bright, sparkling celestial chimes)
+    523.25, // 5: C5
+    587.33, // 6: D5
+    659.25, // 7: E5
+    783.99, // 8: G5
+    880.00, // 9: A5
+    // Octave 6 (Crystal starlight tones)
+    1046.50, // 10: C6
+    1174.66, // 11: D6
+    1318.51, // 12: E6
+    1567.98, // 13: G6
+    1760.00, // 14: A6
+    // Octave 7 (High ethereal harp bells)
+    2093.00, // 15: C7
+    2349.32, // 16: D7
+    2637.02, // 17: E7
+    3135.96, // 18: G7
+    3520.00, // 19: A7
+    // Octave 8 (Fine shimmering upper harmonics)
+    4186.01, // 20: C8
+    4698.64, // 21: D8
+    5274.04, // 22: E8
+    6271.93, // 23: G8
+    7040.00, // 24: A8
   ];
 
   // Waterdrop scroll-down sound buffer & preloading
@@ -600,19 +620,27 @@ export class AudioService {
   }
 
   /**
-   * Play a gentle bell / chime note.
+   * Play a gentle bell / chime note. Supports both pentatonic scale indices and direct Hz frequencies (>= 50).
    *
-   * @param {number} scaleIndex - The index in the pentatonic scale array.
+   * @param {number} scaleIndexOrFreq - The index in the pentatonic scale array, or direct Hz frequency (>= 50).
    * @param {number} volume - Target volume for the chime.
    * @returns {void}
    */
-  playChime(scaleIndex = 0, volume = 0.25): void {
+  playChime(scaleIndexOrFreq = 0, volume = 0.25): void {
     if (this.isMuted()) return;
     this.initContext();
     if (!this.ctx || !this.sfxGain) return;
 
     const now = this.ctx.currentTime;
-    const freq = this.pentatonicScale[scaleIndex % this.pentatonicScale.length];
+    let freq: number;
+    if (scaleIndexOrFreq >= 50) {
+      freq = scaleIndexOrFreq;
+    } else {
+      const safeIndex = Math.max(0, Math.floor(scaleIndexOrFreq));
+      freq = safeIndex < this.pentatonicScale.length
+        ? this.pentatonicScale[safeIndex]
+        : this.pentatonicScale[this.pentatonicScale.length - 1];
+    }
 
     const osc = this.ctx.createOscillator();
     const gain = this.ctx.createGain();
@@ -620,16 +648,54 @@ export class AudioService {
     osc.type = 'sine';
     osc.frequency.setValueAtTime(freq, now);
 
-    // Bell envelope: instant attack, exponential decay
+    // Warm, singing bell envelope: instant gentle attack, silky exponential decay
     gain.gain.setValueAtTime(0.0001, now);
-    gain.gain.linearRampToValueAtTime(volume, now + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.6);
+    gain.gain.linearRampToValueAtTime(volume, now + 0.018);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
 
     osc.connect(gain);
     gain.connect(this.sfxGain);
 
     osc.start(now);
-    osc.stop(now + 1.7);
+    osc.stop(now + 1.85);
+
+    // Deep celestial resonance (adds Hans Zimmer space organ presence for fundamental notes)
+    if (freq >= 200 && freq < 900) {
+      const warmthOsc = this.ctx.createOscillator();
+      const warmthGain = this.ctx.createGain();
+
+      warmthOsc.type = 'sine';
+      warmthOsc.frequency.setValueAtTime(freq * 0.5, now);
+
+      warmthGain.gain.setValueAtTime(0.0001, now);
+      warmthGain.gain.linearRampToValueAtTime(volume * 0.16, now + 0.022);
+      warmthGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.4);
+
+      warmthOsc.connect(warmthGain);
+      warmthGain.connect(this.sfxGain);
+
+      warmthOsc.start(now);
+      warmthOsc.stop(now + 1.45);
+    }
+
+    // Crystalline upper harmonic sparkle (gives genuine glass/celestial chime timbre)
+    if (freq < 2800) {
+      const overtoneOsc = this.ctx.createOscillator();
+      const overtoneGain = this.ctx.createGain();
+
+      overtoneOsc.type = 'sine';
+      overtoneOsc.frequency.setValueAtTime(freq * 2.0, now);
+
+      overtoneGain.gain.setValueAtTime(0.0001, now);
+      overtoneGain.gain.linearRampToValueAtTime(volume * 0.22, now + 0.015);
+      overtoneGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.7);
+
+      overtoneOsc.connect(overtoneGain);
+      overtoneGain.connect(this.sfxGain);
+
+      overtoneOsc.start(now);
+      overtoneOsc.stop(now + 0.75);
+    }
   }
 
   /**
