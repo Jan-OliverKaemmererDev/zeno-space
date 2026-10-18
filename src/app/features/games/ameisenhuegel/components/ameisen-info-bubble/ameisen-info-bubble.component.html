@@ -1,0 +1,65 @@
+<div
+  class="speech-bubble ameisen-speech-bubble"
+  [class.is-closing]="isClosing"
+  (click)="$event.stopPropagation()"
+  (pointerdown)="$event.stopPropagation()"
+  (pointerup)="$event.stopPropagation()"
+  (wheel)="onBubbleWheel($event)"
+  role="dialog"
+  aria-label="Ameisenkolonie-Telemetrie und Biologie-Wissen"
+>
+  <div class="bubble-header">
+    <div class="bubble-title-group">
+      <span class="bubble-sparkle" aria-hidden="true">✦</span>
+      <h4>Kolonie-Chronik</h4>
+    </div>
+    <div class="bubble-header-actions">
+      <button
+        type="button"
+        class="bubble-close-btn"
+        (click)="handleClose($event)"
+        aria-label="Schließen"
+        title="Schließen"
+      >
+        ×
+      </button>
+    </div>
+  </div>
+
+  <div class="bubble-body" tabindex="0" role="region" aria-label="System-Telemetrie">
+    <div class="telemetry-grid">
+      <div class="telemetry-card">
+        <span class="card-label">Ameisen</span>
+        <span class="card-value">{{ antCount }}</span>
+      </div>
+      <div class="telemetry-card is-highlight">
+        <span class="card-label">Vorrat</span>
+        <span class="card-value">{{ foodStock }}</span>
+      </div>
+      <div class="telemetry-card">
+        <span class="card-label">Hügel-Stufe</span>
+        <span class="card-value">{{ hillLevel }}</span>
+      </div>
+      <div class="telemetry-card" [class.is-danger]="defeatedEnemies > 0">
+        <span class="card-label">Feinde besiegt</span>
+        <span class="card-value">{{ defeatedEnemies }}</span>
+      </div>
+    </div>
+
+    <div class="nature-lore-text">
+      <h5>Faszinierender Superorganismus</h5>
+      <p>
+        <strong>Pheromonstraßen & Teamwork:</strong> Jede Ameise kommuniziert über feine Duftstoffe.
+        Sobald eine Nahrungsquelle wie ein Apfel oder eine Birne entdeckt wird, verstärkt jede
+        Arbeiterin die Duftspur auf dem Rückweg zum Hügel. So entsteht eine emsige Ameisenstraße,
+        auf der Futterkrümel für Futterkrümel abgebaut wird.
+      </p>
+      <p>
+        <strong>Schwarmintelligenz & Verteidigung:</strong> Bedrohliche Großinsekten wie Käfer oder
+        Wespen versuchen, die reifen Früchte zu fressen. Mit einem gezielten Klick setzt die Kolonie
+        Alarm-Pheromone frei: Die Ameisen schließen sich zu einem kraftvollen Schwarm zusammen,
+        umzingeln den Eindringling und beschützen gemeinsam die Ernte.
+      </p>
+    </div>
+  </div>
+</div>

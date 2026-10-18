@@ -1,0 +1,240 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+:host {
+  display: block;
+}
+
+.speech-bubble.ameisen-speech-bubble {
+  position: absolute;
+  top: calc(100% + 18px);
+  right: 0;
+  left: auto;
+  width: 360px;
+  max-width: min(360px, calc(100vw - 28px));
+  max-height: min(510px, 75vh);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 18px;
+  border-radius: 20px;
+  cursor: default;
+  z-index: 100;
+  pointer-events: auto;
+  overscroll-behavior: contain;
+
+  background: rgba(18, 30, 22, 0.88);
+  backdrop-filter: blur(28px) saturate(1.45);
+  -webkit-backdrop-filter: blur(28px) saturate(1.45);
+  border: 1px solid rgba(134, 239, 172, 0.35);
+  box-shadow:
+    0 16px 40px rgba(0, 0, 0, 0.65),
+    0 0 24px rgba(74, 222, 128, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  color: #f1f5f9;
+
+  transform-origin: top right;
+  animation: balloon-inflate 500ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: 50px;
+    left: auto;
+    border-width: 0 10px 10px 10px;
+    border-style: solid;
+    border-color: transparent transparent rgba(18, 30, 22, 0.88) transparent;
+    filter: drop-shadow(0 -2px 4px rgba(0, 0, 0, 0.3));
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: -11px;
+    right: 49px;
+    left: auto;
+    border-width: 0 11px 11px 11px;
+    border-style: solid;
+    border-color: transparent transparent rgba(134, 239, 172, 0.35) transparent;
+    z-index: -1;
+  }
+
+  &.is-closing {
+    animation: balloon-deflate 350ms cubic-bezier(0.55, 0.085, 0.68, 0.53) both;
+    pointer-events: none;
+  }
+
+  .bubble-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    border-bottom: 1px solid rgba(134, 239, 172, 0.16);
+    padding-bottom: 8px;
+    flex-shrink: 0;
+
+    .bubble-title-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      .bubble-sparkle {
+        font-size: 1.15rem;
+        font-weight: 700;
+        color: #fde047;
+        line-height: 1;
+        text-shadow: 0 0 10px rgba(253, 224, 71, 0.8);
+      }
+
+      h4 {
+        margin: 0;
+        color: #f0fdf4;
+        font-size: 1.12rem;
+        font-family: $font-sniglet;
+        letter-spacing: 0.02em;
+      }
+    }
+
+    .bubble-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .bubble-close-btn {
+        background: none;
+        border: none;
+        color: #94a3b8;
+        font-size: 1.35rem;
+        cursor: pointer;
+        line-height: 1;
+        padding: 2px 6px;
+        border-radius: 6px;
+        transition:
+          color 0.15s,
+          background 0.15s;
+
+        &:hover {
+          color: #f8fafc;
+          background: rgba(255, 255, 255, 0.1);
+        }
+      }
+    }
+  }
+
+  .bubble-body {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(74, 222, 128, 0.3) transparent;
+    padding-right: 4px;
+
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(74, 222, 128, 0.3);
+      border-radius: 4px;
+    }
+  }
+
+  .telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 12px;
+
+    .telemetry-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 4px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+
+      .card-label {
+        font-size: 0.64rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 2px;
+        text-align: center;
+      }
+
+      .card-value {
+        font-size: 1.12rem;
+        font-weight: 700;
+        color: #f0fdf4;
+        font-family: $font-sniglet;
+      }
+
+      &.is-highlight {
+        background: rgba(245, 158, 11, 0.14);
+        border-color: rgba(245, 158, 11, 0.35);
+
+        .card-value {
+          color: #fef08a;
+          text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+      }
+
+      &.is-danger {
+        background: rgba(239, 68, 68, 0.14);
+        border-color: rgba(239, 68, 68, 0.35);
+
+        .card-value {
+          color: #fca5a5;
+          text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+      }
+    }
+  }
+
+  .nature-lore-text {
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: #cbd5e1;
+
+    h5 {
+      margin: 0 0 6px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #bbf7d0;
+      font-family: $font-sniglet;
+    }
+
+    p {
+      margin: 0 0 8px;
+
+      strong {
+        color: #f8fafc;
+      }
+    }
+  }
+}
+
+@keyframes balloon-inflate {
+  0% {
+    opacity: 0;
+    transform: scale(0.65) translateY(-8px);
+  }
+  70% {
+    transform: scale(1.04) translateY(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes balloon-deflate {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.55) translateY(-14px);
+  }
+}

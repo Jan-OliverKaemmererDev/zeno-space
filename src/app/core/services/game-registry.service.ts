@@ -28,7 +28,8 @@ export class GameRegistryService {
       id: 'cosmic-sculptor',
       title: 'Cosmic Zen Sculptor',
       subtitle: '3D Gravitations-Kosmos',
-      description: 'Erschaffe leuchtende Planeten und resonante Umlaufbahnen in einem meditativen 3D-Universum. Zupfe die Orbit-Harfensaiten und beobachte den Einfluss von Schwarzen Löchern.',
+      description:
+        'Erschaffe leuchtende Planeten und resonante Umlaufbahnen in einem meditativen 3D-Universum. Zupfe die Orbit-Harfensaiten und beobachte den Einfluss von Schwarzen Löchern.',
       badge: '3D WebGL',
       category: 'astronomie',
       route: '/game/cosmic-sculptor',
@@ -53,14 +54,16 @@ export class GameRegistryService {
           wheel: true,
           label: 'Maus ziehen zum Drehen, Scrollen zum Zoomen & Hover über Orbits für Harfenklänge',
         },
-        objective: 'Erschaffe Planeten und Schwarze Löcher, bringe Orbit-Harfensaiten zum Klingen und beobachte kosmische Resonanzen.',
+        objective:
+          'Erschaffe Planeten und Schwarze Löcher, bringe Orbit-Harfensaiten zum Klingen und beobachte kosmische Resonanzen.',
       },
     },
     {
       id: 'bubble-harmony',
       title: 'Bubble Harmony',
       subtitle: 'Pentatonisches Seifenblasen-Popping',
-      description: 'Puste schimmernde Seifenblasen in den Raum, lass sie sanft kollidieren und zum Klingen bringen mit harmonischen pentatonischen Akkorden.',
+      description:
+        'Puste schimmernde Seifenblasen in den Raum, lass sie sanft kollidieren und zum Klingen bringen mit harmonischen pentatonischen Akkorden.',
       badge: 'Zen Audio',
       category: 'relax',
       route: '/game/bubble-harmony',
@@ -96,7 +99,8 @@ export class GameRegistryService {
       id: 'pi-spiral',
       title: 'Pi Spiral Horizon',
       subtitle: 'Mathematische Mosaik-Meditation',
-      description: 'Erwecke die unendlichen Ziffern der Kreiszahl Pi in einer schwebenden 3D-Mosaik-Spirale mit sanften Laola-Wellen und harmonischen Pastellklängen.',
+      description:
+        'Erwecke die unendlichen Ziffern der Kreiszahl Pi in einer schwebenden 3D-Mosaik-Spirale mit sanften Laola-Wellen und harmonischen Pastellklängen.',
       badge: '3D WebGL',
       category: 'mathematik',
       route: '/game/pi-spiral',
@@ -131,14 +135,16 @@ export class GameRegistryService {
           wheel: true,
           label: 'Klicken für +5 Ziffern, Ziehen zum Neigen, Mausrad zum Zoomen',
         },
-        objective: 'Entdecke die unendliche Spirale der Kreiszahl Pi mit tanzenden Mosaiksteinen und Laola-Wellen.',
+        objective:
+          'Entdecke die unendliche Spirale der Kreiszahl Pi mit tanzenden Mosaiksteinen und Laola-Wellen.',
       },
     },
     {
       id: 'goldener-schnitt',
       title: 'Goldener Schnitt',
       subtitle: 'Phyllotaxis-Meditation',
-      description: 'Entfalte die göttliche Proportion in einer schwebenden 3D-Sonnenblumen-Phyllotaxis mit leuchtenden goldenen Ziffern und wachsenden Fibonacci-Spiralen.',
+      description:
+        'Entfalte die göttliche Proportion in einer schwebenden 3D-Sonnenblumen-Phyllotaxis mit leuchtenden goldenen Ziffern und wachsenden Fibonacci-Spiralen.',
       badge: '3D WebGL',
       category: 'mathematik',
       route: '/game/goldener-schnitt',
@@ -178,14 +184,16 @@ export class GameRegistryService {
           wheel: true,
           label: 'Klicken für +5 Ziffern, Ziehen zum Neigen, Mausrad zum Zoomen',
         },
-        objective: 'Erschaffe harmonische Sonnenblumen-Muster im goldenen Winkel (137,5°) und beobachte Fibonacci-Konvergenzen.',
+        objective:
+          'Erschaffe harmonische Sonnenblumen-Muster im goldenen Winkel (137,5°) und beobachte Fibonacci-Konvergenzen.',
       },
     },
     {
       id: 'mandelbrot-fraktal',
       title: 'Mandelbrot Fraktal',
       subtitle: '3D Tiefen-Meditation',
-      description: 'Reise in die unendliche Tiefe der Mandelbrot-Menge mit flüssigen 3D-Zooms in warme, bernsteingoldene Spiralen und beruhigenden Sphärenklängen.',
+      description:
+        'Reise in die unendliche Tiefe der Mandelbrot-Menge mit flüssigen 3D-Zooms in warme, bernsteingoldene Spiralen und beruhigenden Sphärenklängen.',
       badge: '3D WebGL',
       category: 'mathematik',
       route: '/game/mandelbrot-fraktal',
@@ -219,14 +227,16 @@ export class GameRegistryService {
           wheel: true,
           label: 'Mausrad zum Zoomen dorthin wo die Maus zeigt',
         },
-        objective: 'Tauche ein in unendliche fraktale Verästelungen und entdecke legendäre Orte wie das Seepferdchen- und Scepter-Tal.',
+        objective:
+          'Tauche ein in unendliche fraktale Verästelungen und entdecke legendäre Orte wie das Seepferdchen- und Scepter-Tal.',
       },
     },
     {
       id: 'soundscape-mixer',
       title: 'Cozy Soundscape',
       subtitle: 'Binauraler Ambient-Raum',
-      description: 'Kombiniere sanften Weltraumregen, Kaminfeuer, sanfte Synths und Sommernachtslüfte zu deinem persönlichen Einschlaf- und Fokus-Soundtrack.',
+      description:
+        'Kombiniere sanften Weltraumregen, Kaminfeuer, sanfte Synths und Sommernachtslüfte zu deinem persönlichen Einschlaf- und Fokus-Soundtrack.',
       badge: 'Creative',
       category: 'geraeusche',
       route: '/game/soundscape-mixer',
@@ -260,14 +270,16 @@ export class GameRegistryService {
           drag: true,
           label: 'Kanäle per Klick aktivieren & Lautstärke regeln',
         },
-        objective: 'Mische Regen, Knisterfeuer und Sphärenklänge zu deiner persönlichen Traumkulisse.',
+        objective:
+          'Mische Regen, Knisterfeuer und Sphärenklänge zu deiner persönlichen Traumkulisse.',
       },
     },
     {
       id: 'glueckskarte',
       title: 'Zen Glückskarte',
       subtitle: 'Tägliche Weisheits-Meditation',
-      description: 'Ziehe täglich eine von 100 tiefsinnigen Karten aus Stoa, Buddhismus, Birkenbihl und Genies. Jede Weisheit genau einmal pro 100-Tage-Zyklus.',
+      description:
+        'Ziehe täglich eine von 100 tiefsinnigen Karten aus Stoa, Buddhismus, Birkenbihl und Genies. Jede Weisheit genau einmal pro 100-Tage-Zyklus.',
       badge: 'Chill Sandbox',
       category: 'relax',
       route: '/game/glueckskarte',
@@ -302,7 +314,8 @@ export class GameRegistryService {
       id: 'gras-harmonie',
       title: 'Gras-Harmonie',
       subtitle: 'Interaktive Wind- & Gras-Oase',
-      description: 'Sei der Wind über einem endlosen saftigen Grasmeer. Bringe die Grashalme mit deinen Mausbewegungen zum Tanzen und lausche harmonischen Klängen unter majestätischen Kumulus-Wolken.',
+      description:
+        'Sei der Wind über einem endlosen saftigen Grasmeer. Bringe die Grashalme mit deinen Mausbewegungen zum Tanzen und lausche harmonischen Klängen unter majestätischen Kumulus-Wolken.',
       badge: '3D WebGL',
       category: 'natur',
       route: '/game/gras-harmonie',
@@ -336,14 +349,16 @@ export class GameRegistryService {
           drag: true,
           label: 'Maus bewegen = Wind streicht durchs Gras, Klicken = Wirbelwind',
         },
-        objective: 'Streiche mit der Maus sanft oder schwungvoll durch das hohe Gras und lausche den beruhigenden Harmonien.',
+        objective:
+          'Streiche mit der Maus sanft oder schwungvoll durch das hohe Gras und lausche den beruhigenden Harmonien.',
       },
     },
     {
       id: 'origami',
       title: 'Zen Origami',
       subtitle: 'Traditionelle Papierfalt-Kunst',
-      description: 'Blicke aus der Vogelperspektive auf einen warmen Holztisch und falte Schritt für Schritt Kranich, Eule oder Schildkröte mit sanften Papierklängen und Achtsamkeit.',
+      description:
+        'Blicke aus der Vogelperspektive auf einen warmen Holztisch und falte Schritt für Schritt Kranich, Eule oder Schildkröte mit sanften Papierklängen und Achtsamkeit.',
       badge: 'Chill Sandbox',
       category: 'relax',
       route: '/game/origami',
@@ -381,7 +396,48 @@ export class GameRegistryService {
           leftClick: true,
           label: 'Klicke auf das Papier oder die leuchtende Ecke zum Falten',
         },
-        objective: 'Wähle dein Motiv und deine Papierfarbe und falte das Origami Schritt für Schritt originalgetreu nach.',
+        objective:
+          'Wähle dein Motiv und deine Papierfarbe und falte das Origami Schritt für Schritt originalgetreu nach.',
+      },
+    },
+    {
+      id: 'ameisenhuegel',
+      title: 'Ameisenhügel',
+      subtitle: '3D Ameisen-Kolonie & Waldlichtung',
+      description:
+        'Beobachte und leite einen florierenden Ameisenstaat. Schicke deine Arbeiterinnen auf Pheromonstraßen zum Früchteabbau und verteidige die Kolonie im Schwarm gegen hungrige Großinsekten.',
+      badge: '3D WebGL',
+      category: 'natur',
+      route: '/game/ameisenhuegel',
+      icon: 'ant',
+      primaryColor: '#4ade80',
+      glowColor: 'rgba(74, 222, 128, 0.32)',
+      tags: ['Natur'],
+      floatDelay: '1.7s',
+      floatDuration: '9.3s',
+      sizeClass: 'bubble--lg',
+      controls: {
+        keyboard: [
+          {
+            type: 'wasd',
+            keys: ['W', 'A', 'S', 'D'],
+            label: 'Kamera über die Waldlichtung bewegen',
+          },
+          {
+            type: 'inline',
+            keys: ['ESC'],
+            label: 'Zurück zur Übersicht',
+          },
+        ],
+        mouse: {
+          leftClick: true,
+          drag: true,
+          wheel: true,
+          label:
+            'Klick auf Frucht: Ernten • Klick auf Insekt: Angreifen • Ziehen: Drehen • Rad: Zoomen',
+        },
+        objective:
+          'Ernte reife Früchte mit deiner Ameisenstraße, lass die Kolonie wachsen und schütze die Nahrung vor gefräßigen Großinsekten.',
       },
     },
   ]);

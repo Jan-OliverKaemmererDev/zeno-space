@@ -1,0 +1,42 @@
+<div
+  class="ameisen-wrapper"
+  role="application"
+  aria-label="Ameisenhügel – 3D Ameisen-Kolonie & Waldlichtung"
+>
+  <!-- Interactive 3D WebGL Canvas Container -->
+  <div
+    #canvasContainer
+    class="three-canvas-container"
+    role="img"
+    aria-label="3D Ansicht des Ameisenhügels mit Früchten und Ameisenstraßen"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerUp($event)"
+    (pointerleave)="onPointerLeave()"
+    (wheel)="onWheel($event)"
+    (dblclick)="onDoubleClick()"
+  ></div>
+
+  <!-- Top Glass HUD Header with Info Bubble -->
+  <app-ameisen-header
+    [antCount]="antCount()"
+    [foodStock]="foodStock()"
+    [hillLevel]="hillLevel()"
+    [defeatedEnemies]="defeatedEnemies()"
+    [showBubble]="showInfoBubble()"
+    [closingBubble]="closingInfoBubble()"
+    (toggleBubble)="toggleInfoBubble($event)"
+    (closeBubble)="closeInfoBubble()"
+  ></app-ameisen-header>
+
+  <!-- Bottom Floating Glass Control Dock -->
+  <app-ameisen-controls
+    [timeSpeed]="timeSpeed()"
+    (spawnFruit)="onSpawnFruit()"
+    (alarmSwarm)="onAlarmSwarm()"
+    (setSpeed)="setTimeSpeed($event)"
+    (resetCamera)="resetCameraView()"
+    (resetColony)="resetColony()"
+  ></app-ameisen-controls>
+</div>

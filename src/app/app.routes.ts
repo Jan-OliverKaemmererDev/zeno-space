@@ -14,14 +14,14 @@ export const routes: Routes = [
     path: 'game/cosmic-sculptor',
     loadComponent: () =>
       import('./features/games/cosmic-sculptor/cosmic-sculptor.component').then(
-        (m) => m.CosmicSculptorComponent
+        (m) => m.CosmicSculptorComponent,
       ),
   },
   {
     path: 'game/bubble-harmony',
     loadComponent: () =>
       import('./features/games/bubble-harmony/bubble-harmony.component').then(
-        (m) => m.BubbleHarmonyComponent
+        (m) => m.BubbleHarmonyComponent,
       ),
   },
   {
@@ -33,41 +33,48 @@ export const routes: Routes = [
     path: 'game/goldener-schnitt',
     loadComponent: () =>
       import('./features/games/goldener-schnitt/goldener-schnitt.component').then(
-        (m) => m.GoldenerSchnittComponent
+        (m) => m.GoldenerSchnittComponent,
       ),
   },
   {
     path: 'game/soundscape-mixer',
     loadComponent: () =>
       import('./features/games/soundscape-mixer/soundscape-mixer.component').then(
-        (m) => m.SoundscapeMixerComponent
+        (m) => m.SoundscapeMixerComponent,
       ),
   },
   {
     path: 'game/mandelbrot-fraktal',
     loadComponent: () =>
       import('./features/games/mandelbrot-fraktal/mandelbrot-fraktal.component').then(
-        (m) => m.MandelbrotFraktalComponent
+        (m) => m.MandelbrotFraktalComponent,
       ),
   },
   {
     path: 'game/glueckskarte',
     loadComponent: () =>
       import('./features/games/glueckskarte/glueckskarte.component').then(
-        (m) => m.GlueckskarteComponent
+        (m) => m.GlueckskarteComponent,
       ),
   },
   {
     path: 'game/gras-harmonie',
     loadComponent: () =>
       import('./features/games/gras-harmonie/gras-harmonie.component').then(
-        (m) => m.GrasHarmonieComponent
+        (m) => m.GrasHarmonieComponent,
       ),
   },
   {
     path: 'game/origami',
     loadComponent: () =>
       import('./features/games/origami/origami.component').then((m) => m.OrigamiComponent),
+  },
+  {
+    path: 'game/ameisenhuegel',
+    loadComponent: () =>
+      import('./features/games/ameisenhuegel/ameisenhuegel.component').then(
+        (m) => m.AmeisenhuegelComponent,
+      ),
   },
   {
     path: '**',

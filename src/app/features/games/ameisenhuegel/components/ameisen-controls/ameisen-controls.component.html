@@ -1,0 +1,105 @@
+<nav class="game-controls-dock" aria-label="Ameisenhügel-Steuerung">
+  <div class="dock-panel" role="toolbar" aria-label="Kolonie-Aktionen">
+    <!-- Action: Spawn Fruit (Primary) -->
+    <button
+      type="button"
+      class="dock-btn dock-btn--primary"
+      (click)="spawnFruit.emit()"
+      aria-label="Frucht anlocken – Frische reife Frucht auf der Waldlichtung platzieren"
+      title="Frische Frucht auf der Lichtung platzieren"
+    >
+      <span>Frucht anlocken</span>
+    </button>
+
+    <!-- Action: Sound Alarm / Swarm (Secondary Active) -->
+    <button
+      type="button"
+      class="dock-btn dock-btn--alarm"
+      (click)="alarmSwarm.emit()"
+      aria-label="Alarm-Schwarm ausrufen – Ameisen zur Verteidigung oder Ernte rufen"
+      title="Ameisenschwarm mobilisieren"
+    >
+      <span>Alarm-Schwarm</span>
+    </button>
+
+    <div class="dock-divider" aria-hidden="true"></div>
+
+    <!-- Speed Toggles -->
+    <fieldset class="speed-group" role="radiogroup" aria-label="Simulationsgeschwindigkeit">
+      <legend class="sr-only">Simulationsgeschwindigkeit</legend>
+      <span class="group-label" aria-hidden="true">Zeit:</span>
+      <button
+        type="button"
+        role="radio"
+        class="speed-pill"
+        [class.active]="timeSpeed === 0.5"
+        [attr.aria-checked]="timeSpeed === 0.5"
+        aria-label="Geschwindigkeit 0.5x"
+        (click)="setSpeed.emit(0.5)"
+      >
+        0.5x
+      </button>
+      <button
+        type="button"
+        role="radio"
+        class="speed-pill"
+        [class.active]="timeSpeed === 1"
+        [attr.aria-checked]="timeSpeed === 1"
+        aria-label="Geschwindigkeit 1x"
+        (click)="setSpeed.emit(1)"
+      >
+        1x
+      </button>
+      <button
+        type="button"
+        role="radio"
+        class="speed-pill"
+        [class.active]="timeSpeed === 2"
+        [attr.aria-checked]="timeSpeed === 2"
+        aria-label="Geschwindigkeit 2x"
+        (click)="setSpeed.emit(2)"
+      >
+        2x
+      </button>
+    </fieldset>
+
+    <div class="dock-divider" aria-hidden="true"></div>
+
+    <!-- Action: Center Camera View on Ant Hill -->
+    <button
+      type="button"
+      class="dock-btn dock-btn--secondary"
+      (click)="resetCamera.emit()"
+      aria-label="Ansicht auf Ameisenhügel zentrieren"
+      title="Kamera auf den Ameisenhügel ausrichten"
+    >
+      <span>Zentrieren</span>
+    </button>
+
+    <div class="dock-divider" aria-hidden="true"></div>
+
+    <!-- Action: Reset Colony -->
+    <button
+      type="button"
+      class="dock-btn dock-btn--ghost"
+      (click)="resetColony.emit()"
+      aria-label="Kolonie neu starten"
+      title="Ameisenstaat auf Anfangszustand zurücksetzen"
+    >
+      <span>Neustart</span>
+    </button>
+  </div>
+
+  <!-- Instruction Hint -->
+  <aside class="interaction-hint" aria-label="Bedienungshinweise">
+    <span>WASD: Bewegen</span>
+    <span aria-hidden="true">•</span>
+    <span>Maus ziehen: Drehen</span>
+    <span aria-hidden="true">•</span>
+    <span>Mausrad: Zoomen</span>
+    <span aria-hidden="true">•</span>
+    <span>Klick auf Frucht: Ernten</span>
+    <span aria-hidden="true">•</span>
+    <span>Klick auf Insekt: Angreifen</span>
+  </aside>
+</nav>

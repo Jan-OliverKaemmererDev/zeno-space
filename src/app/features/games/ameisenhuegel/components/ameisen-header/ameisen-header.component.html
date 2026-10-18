@@ -1,0 +1,39 @@
+<header class="game-hud-header">
+  <a routerLink="/" fragment="bubble-hub" class="back-link" aria-label="Zurückkehren">
+    <span class="back-icon" aria-hidden="true">←</span>
+    <span>Zurückkehren</span>
+  </a>
+
+  <!-- Live Stats Pill & Info Bubble Trigger -->
+  <div class="hud-stats" aria-live="polite">
+    <div class="stat-pill-wrapper">
+      <button
+        type="button"
+        class="stat-pill nature-pill"
+        [class.is-active]="showBubble"
+        (click)="onStatPillClick($event)"
+        title="Kolonie-Telemetrie und Ameisen-Wissen anzeigen"
+        aria-haspopup="dialog"
+        [attr.aria-expanded]="showBubble"
+      >
+        <span class="nature-sparkle" aria-hidden="true">✦</span>
+        <span class="nature-text">{{ antCount }} Ameisen</span>
+        <span class="stock-badge" title="Gesammelte Nahrung">• {{ foodStock }} Vorrat</span>
+        @if (hillLevel > 1) {
+          <span class="level-badge" title="Hügel-Stufe">• Stufe {{ hillLevel }}</span>
+        }
+      </button>
+
+      @if (showBubble) {
+        <app-ameisen-info-bubble
+          [antCount]="antCount"
+          [foodStock]="foodStock"
+          [hillLevel]="hillLevel"
+          [defeatedEnemies]="defeatedEnemies"
+          [isClosing]="closingBubble"
+          (close)="onBubbleClose()"
+        ></app-ameisen-info-bubble>
+      }
+    </div>
+  </div>
+</header>
