@@ -1,0 +1,228 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+.game-controls-dock {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+  z-index: 20;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+
+  @media (max-width: 600px) {
+    bottom: 8px;
+    gap: 6px;
+    max-width: calc(100vw - 16px);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Sub-Dock Panel (Category / State / Species / Molecule selector)
+// ---------------------------------------------------------------------------
+.sub-dock-panel {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(15, 23, 42, 0.65) 100%
+  );
+  backdrop-filter: blur(20px) saturate(130%);
+  -webkit-backdrop-filter: blur(20px) saturate(130%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  font-family: $font-sniglet;
+  max-width: 100%;
+
+  &--scrollable {
+    max-width: min(92vw, 1100px);
+    overflow-x: auto;
+    overflow-y: hidden;
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: pan-x;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+}
+
+.molecules-scroll-strip,
+.species-picker-strip {
+  padding: 5px 16px;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, black 16px, black calc(100% - 16px), transparent 100%);
+}
+
+.sub-dock-label {
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.55);
+  margin-right: 2px;
+  white-space: nowrap;
+}
+
+.dock-pill-btn {
+  font-family: $font-sniglet;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.16);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+
+  &--active {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.28) 0%, rgba(14, 165, 233, 0.38) 100%);
+    border-color: rgba(56, 189, 248, 0.65);
+    color: #ffffff;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+  }
+
+  .pill-formula {
+    font-weight: 700;
+    color: #38bdf8;
+  }
+  .pill-name {
+    font-size: 0.74rem;
+  }
+
+  .pill-spec-icon {
+    font-size: 0.92rem;
+  }
+  .pill-spec-name {
+    font-size: 0.76rem;
+    font-weight: 600;
+  }
+}
+
+.species-picker-strip {
+  max-width: 90vw;
+  padding: 4px 10px;
+}
+
+// ---------------------------------------------------------------------------
+// Main Bottom Dock Panel (Glassmorphism & Pill Shape)
+// ---------------------------------------------------------------------------
+.main-dock-panel {
+  font-family: $font-sniglet;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.14) 0%,
+    rgba(18, 25, 42, 0.6) 45%,
+    rgba(10, 14, 25, 0.75) 100%
+  );
+  backdrop-filter: blur(26px) saturate(135%);
+  -webkit-backdrop-filter: blur(26px) saturate(135%);
+  border: 1px solid rgba(56, 189, 248, 0.32);
+  border-radius: 999px;
+  box-shadow:
+    0 20px 48px -10px rgba(0, 0, 0, 0.65),
+    0 0 35px -4px rgba(56, 189, 248, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  max-width: 100%;
+  white-space: nowrap;
+
+  @media (max-width: 600px) {
+    padding: 5px 10px;
+    gap: 4px;
+  }
+}
+
+.mode-switch-btn {
+  font-family: $font-sniglet;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  @media (max-width: 600px) {
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    gap: 4px;
+  }
+
+  .mode-icon {
+    font-size: 1.15rem;
+  }
+
+  &:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+  }
+
+  &--active {
+    background: linear-gradient(
+      135deg,
+      rgba(56, 189, 248, 0.32) 0%,
+      rgba(14, 165, 233, 0.45) 50%,
+      rgba(2, 132, 199, 0.5) 100%
+    );
+    border: 1px solid rgba(56, 189, 248, 0.65);
+    color: #ffffff;
+    box-shadow:
+      0 4px 14px rgba(2, 132, 199, 0.3),
+      0 0 20px rgba(56, 189, 248, 0.35),
+      inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  }
+}
+
+.dock-divider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.18);
+  margin: 0 2px;
+}
+

@@ -1,0 +1,216 @@
+<aside class="detail-glass-drawer" role="dialog" aria-labelledby="modal-title">
+  <!-- Close Button -->
+  <button class="drawer-close-btn" (click)="close.emit()" aria-label="Schließen" title="Schließen">✕</button>
+
+  <!-- =========================================================================
+       1. ELEMENT DETAIL VIEW
+       ========================================================================= -->
+  @if (activeMode() === 'periodic' && selectedElement(); as elem) {
+    <div class="drawer-content">
+      <!-- Element Hero Header -->
+      <div class="hero-block">
+        <div class="element-symbol-box" [style.border-color]="elem.color" [style.box-shadow]="'0 0 24px ' + elem.color + '40'">
+          <span class="elem-number">{{ elem.number }}</span>
+          <span class="elem-symbol" [style.color]="elem.color">{{ elem.symbol }}</span>
+          <span class="elem-mass">{{ elem.atomicMass }}</span>
+        </div>
+
+        <div class="hero-info">
+          <h2 id="modal-title" class="hero-name">{{ elem.name }}</h2>
+          <span class="hero-latin">{{ elem.nameEn }}</span>
+          <div class="badge-row">
+            <span class="category-pill" [style.background-color]="elem.color + '30'" [style.color]="elem.color">
+              {{ elem.categoryName }}
+            </span>
+            <span class="state-pill">
+              @if (elem.state === 'gas') { 💨 Gasförmig }
+              @else if (elem.state === 'liquid') { 💧 Flüssig }
+              @else { 🪨 Fest }
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action: 3D Bohr Atom Simulation -->
+      <div class="action-box">
+        <button 
+          class="bohr-toggle-btn" 
+          [class.bohr-toggle-btn--active]="isBohrActive()"
+          (click)="toggleBohrAtom.emit()"
+        >
+          <span class="bohr-icon">⚛</span>
+          <span>{{ isBohrActive() ? '3D-Atommodell ausblenden' : '3D-Bohr-Atommodell animieren' }}</span>
+        </button>
+      </div>
+
+      <!-- Didactic Explanation (Google Arts & Culture style) -->
+      <div class="info-section">
+        <h3 class="section-title">Erklärung & Bedeutung</h3>
+        <p class="section-text">{{ elem.description }}</p>
+      </div>
+
+      <!-- Trivia / Fun Fact -->
+      <div class="trivia-box">
+        <div class="trivia-header">
+          <span class="trivia-icon">💡</span>
+          <strong>Wusstest du schon?</strong>
+        </div>
+        <p class="trivia-text">{{ elem.trivia }}</p>
+      </div>
+
+      <!-- Scientific Specs Grid -->
+      <div class="specs-grid">
+        <div class="spec-card">
+          <span class="spec-label">Elektronenkonfiguration</span>
+          <span class="spec-value">{{ elem.electronConfig }}</span>
+        </div>
+        <div class="spec-card">
+          <span class="spec-label">Elektronen pro Schale</span>
+          <span class="spec-value">{{ getHumanReadableShells(elem.electronsPerShell) }}</span>
+        </div>
+        <div class="spec-card">
+          <span class="spec-label">Periode & Gruppe</span>
+          <span class="spec-value">Periode {{ elem.period }}, Gruppe {{ elem.group }}</span>
+        </div>
+        <div class="spec-card">
+          <span class="spec-label">Entdeckung</span>
+          <span class="spec-value">{{ elem.discoveryYear }} ({{ elem.discoveredBy || 'Unbekannt' }})</span>
+        </div>
+        @if (elem.meltingPoint) {
+          <div class="spec-card">
+            <span class="spec-label">Schmelzpunkt</span>
+            <span class="spec-value">{{ elem.meltingPoint }}</span>
+          </div>
+        }
+        @if (elem.boilingPoint) {
+          <div class="spec-card">
+            <span class="spec-label">Siedepunkt</span>
+            <span class="spec-value">{{ elem.boilingPoint }}</span>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       2. MOLECULE DETAIL VIEW
+       ========================================================================= -->
+  @else if (activeMode() === 'molecules' && selectedMolecule(); as mol) {
+    <div class="drawer-content">
+      <div class="hero-block">
+        <div class="molecule-badge-box">
+          <span class="formula-large">{{ mol.formula }}</span>
+        </div>
+        <div class="hero-info">
+          <h2 id="modal-title" class="hero-name">{{ mol.name }}</h2>
+          <span class="category-pill" style="background: rgba(52, 211, 153, 0.25); color: #34d399;">
+            {{ mol.categoryLabel }}
+          </span>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h3 class="section-title">Chemische Zusammensetzung</h3>
+        <p class="section-text">{{ mol.description }}</p>
+      </div>
+
+      <div class="trivia-box">
+        <div class="trivia-header">
+          <span class="trivia-icon">⚗</span>
+          <strong>Faszinierender Fakt</strong>
+        </div>
+        <p class="trivia-text">{{ mol.trivia }}</p>
+      </div>
+
+      <div class="specs-grid">
+        <div class="spec-card">
+          <span class="spec-label">Molare Masse</span>
+          <span class="spec-value">{{ mol.molarMass }}</span>
+        </div>
+        <div class="spec-card">
+          <span class="spec-label">Atom-Kugeln</span>
+          <span class="spec-value">{{ mol.atoms.length }} Atome</span>
+        </div>
+        <div class="spec-card">
+          <span class="spec-label">Bindungs-Stäbe</span>
+          <span class="spec-value">{{ mol.bonds.length }} Bindungen</span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- =========================================================================
+       3. GENOME DETAIL VIEW
+       ========================================================================= -->
+  @else if (activeMode() === 'genomes' && selectedSpecies(); as spec) {
+    <div class="drawer-content">
+      <!-- Species Quick Cycler -->
+      <div class="species-nav-row">
+        <button class="species-nav-btn" (click)="prevSpecies.emit()" title="Vorherige Art">
+          ← Vorherige
+        </button>
+        <span class="species-nav-counter">Spezies entdecken</span>
+        <button class="species-nav-btn" (click)="nextSpecies.emit()" title="Nächste Art">
+          Nächste →
+        </button>
+      </div>
+
+      <div class="hero-block">
+        <div class="species-icon-box" [style.border-color]="spec.color">
+          <span class="spec-icon">{{ spec.icon }}</span>
+        </div>
+        <div class="hero-info">
+          <h2 id="modal-title" class="hero-name">{{ spec.commonName }}</h2>
+          <span class="hero-latin"><em>{{ spec.scientificName }}</em></span>
+          <span class="category-pill" [style.background-color]="spec.color + '30'" [style.color]="spec.color">
+            {{ spec.groupLabel }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Genom-Vergleichsbalken -->
+      <div class="genome-bar-container">
+        <div class="bar-header">
+          <span>Genomgröße: <strong>{{ spec.genomeSizeDisplay }}</strong></span>
+          <span class="bar-legend">Relativ zu Mensch (3,2 Mrd.)</span>
+        </div>
+        <div class="bar-track">
+          <div 
+            class="bar-fill" 
+            [style.width.%]="spec.genomeSizeBp > 3200000000 ? 100 : (spec.genomeSizeBp / 3200000000 * 100)"
+            [style.background-color]="spec.color"
+          ></div>
+        </div>
+      </div>
+
+      <div class="info-section">
+        <h3 class="section-title">Genetische Besonderheiten</h3>
+        <p class="section-text">{{ spec.description }}</p>
+      </div>
+
+      <div class="trivia-box">
+        <div class="trivia-header">
+          <span class="trivia-icon">🧬</span>
+          <strong>Genom-Geheimnis</strong>
+        </div>
+        <p class="trivia-text">{{ spec.funFact }}</p>
+      </div>
+
+      <div class="specs-grid">
+        <div class="spec-card">
+          <span class="spec-label">Chromosomensatz</span>
+          <span class="spec-value">{{ spec.chromosomes }}</span>
+        </div>
+        <div class="spec-card">
+          <span class="spec-label">Geschätzte Gene</span>
+          <span class="spec-value">{{ spec.estimatedGenes }}</span>
+        </div>
+        <div class="spec-card full-width">
+          <span class="spec-label">DNA-Basensequenz-Motiv (5' → 3')</span>
+          <span class="spec-value sequence-code">{{ spec.dnaSequenceSample }}</span>
+        </div>
+      </div>
+    </div>
+  }
+</aside>
+

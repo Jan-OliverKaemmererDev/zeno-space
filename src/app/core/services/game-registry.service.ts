@@ -400,6 +400,41 @@ export class GameRegistryService {
           'Wähle dein Motiv und deine Papierfarbe und falte das Origami Schritt für Schritt originalgetreu nach.',
       },
     },
+    {
+      id: 'kosmos-der-elemente',
+      title: 'Kosmos der Elemente',
+      subtitle: '3D-Periodensystem, Moleküle & Genome',
+      description:
+        'Erkunde das dreidimensionale Periodensystem im gekrümmten Holo-Zylinder, entdecke 3D-Kugel-Stab-Moleküle wie Wasser und Koffein und erforsche den genetischen Code von 50 Tier- und Pflanzenarten in einer interaktiven DNA-Helix.',
+      badge: '3D WebGL',
+      category: 'natur',
+      route: '/game/kosmos-der-elemente',
+      icon: 'atom',
+      primaryColor: '#38bdf8',
+      glowColor: 'rgba(56, 189, 248, 0.32)',
+      tags: ['Natur', 'Wissenschaft', '3D WebGL'],
+      floatDelay: '0.5s',
+      floatDuration: '9.5s',
+      sizeClass: 'bubble--lg',
+      controls: {
+        keyboard: [
+          {
+            type: 'inline',
+            keys: ['ESC'],
+            label: 'Zurück zur Übersicht',
+          },
+        ],
+        mouse: {
+          leftClick: true,
+          drag: true,
+          wheel: true,
+          label:
+            'Ziehen zum Rotieren, Scrollen zum Zoomen, Klick zum Untersuchen von Elementen, Molekülen & Genomen',
+        },
+        objective:
+          'Erforsche die Bausteine des Universums von der atomaren Ebene über chemische Moleküle bis zum Bauplan des Lebens.',
+      },
+    },
   ]);
 
   /**

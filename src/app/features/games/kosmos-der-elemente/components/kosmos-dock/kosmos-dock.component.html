@@ -1,0 +1,154 @@
+<nav class="game-controls-dock" aria-label="Hauptsteuerung">
+  <!-- Mode Sub-Panels (Scrollable secondary pills) -->
+  @if (activeMode() === 'periodic') {
+    <div class="sub-dock-panel">
+      <span class="sub-dock-label">Aggregat:</span>
+      <button 
+        class="dock-pill-btn" 
+        [class.dock-pill-btn--active]="activeState() === null" 
+        (click)="filterState.emit(null)"
+      >Alle</button>
+      <button 
+        class="dock-pill-btn" 
+        [class.dock-pill-btn--active]="activeState() === 'solid'" 
+        (click)="filterState.emit('solid')"
+      >Fest 🪨</button>
+      <button 
+        class="dock-pill-btn" 
+        [class.dock-pill-btn--active]="activeState() === 'liquid'" 
+        (click)="filterState.emit('liquid')"
+      >Flüssig 💧</button>
+      <button 
+        class="dock-pill-btn" 
+        [class.dock-pill-btn--active]="activeState() === 'gas'" 
+        (click)="filterState.emit('gas')"
+      >Gasförmig 💨</button>
+    </div>
+  } @else if (activeMode() === 'molecules') {
+    <div 
+      class="sub-dock-panel sub-dock-panel--scrollable molecules-scroll-strip"
+      (pointerdown)="onStripPointerDown($event)"
+      (pointermove)="onStripPointerMove($event)"
+      (pointerup)="onStripPointerUp()"
+      (pointercancel)="onStripPointerUp()"
+      (wheel)="onStripWheel($event)"
+      title="Mit gedrückter Maustaste zur Seite ziehen oder Mausrad nutzen"
+    >
+      <span class="sub-dock-label">Stoff wählen ⇄</span>
+      @for (mol of moleculesList(); track mol.id) {
+        <button 
+          class="dock-pill-btn" 
+          [class.dock-pill-btn--active]="selectedMolecule()?.id === mol.id"
+          (click)="onMoleculeClick(mol)"
+        >
+          <span class="pill-formula">{{ mol.formula }}</span>
+          <span class="pill-name">{{ mol.name }}</span>
+        </button>
+      }
+    </div>
+  } @else if (activeMode() === 'genomes') {
+    <!-- Row 1: Species Group Filter Tabs -->
+    <div class="sub-dock-panel sub-dock-panel--scrollable">
+      <span class="sub-dock-label">Gruppe:</span>
+      <button 
+        class="dock-pill-btn" 
+        [class.dock-pill-btn--active]="activeSpeciesGroup() === null"
+        (click)="filterSpeciesGroup.emit(null)"
+      >Alle (50)</button>
+      <button 
+        class="dock-pill-btn" 
+        [class.dock-pill-btn--active]="activeSpeciesGroup() === 'mammal'"
+        (click)="filterSpeciesGroup.emit('mammal')"
+      >Säuger 🐘</button>
+      <button 
+        class="dock-pill-btn" 
+        [class.dock-pill-btn--active]="activeSpeciesGroup() === 'bird'"
+        (click)="filterSpeciesGroup.emit('bird')"
+      >Vögel 🦅</button>
+      <button 
+        class="dock-pill-btn" 
+        [class.dock-pill-btn--active]="activeSpeciesGroup() === 'reptile-amphibian'"
+        (click)="filterSpeciesGroup.emit('reptile-amphibian')"
+      >Reptilien/Lurche 🦎</button>
+      <button 
+        class="dock-pill-btn" 
+        [class.dock-pill-btn--active]="activeSpeciesGroup() === 'fish-marine'"
+        (click)="filterSpeciesGroup.emit('fish-marine')"
+      >Meere 🦈</button>
+      <button 
+        class="dock-pill-btn" 
+        [class.dock-pill-btn--active]="activeSpeciesGroup() === 'arthropod'"
+        (click)="filterSpeciesGroup.emit('arthropod')"
+      >Gliederfüßer 🐝</button>
+      <button 
+        class="dock-pill-btn" 
+        [class.dock-pill-btn--active]="activeSpeciesGroup() === 'plant-tree'"
+        (click)="filterSpeciesGroup.emit('plant-tree')"
+      >Pflanzen & Bäume 🌲</button>
+    </div>
+
+    <!-- Row 2: Species Selection Strip (All Clickable Species Pills) -->
+    <div 
+      class="sub-dock-panel sub-dock-panel--scrollable species-picker-strip"
+      (pointerdown)="onStripPointerDown($event)"
+      (pointermove)="onStripPointerMove($event)"
+      (pointerup)="onStripPointerUp()"
+      (pointercancel)="onStripPointerUp()"
+      (wheel)="onStripWheel($event)"
+      title="Mit gedrückter Maustaste zur Seite ziehen oder Mausrad nutzen"
+    >
+      <span class="sub-dock-label">Art wählen ⇄</span>
+      @for (spec of speciesList(); track spec.id) {
+        <button 
+          class="dock-pill-btn species-pill-btn" 
+          [class.dock-pill-btn--active]="selectedSpecies()?.id === spec.id"
+          (click)="onSpeciesClick(spec)"
+          [title]="spec.commonName + ' (' + spec.scientificName + ')'"
+        >
+          <span class="pill-spec-icon">{{ spec.icon }}</span>
+          <span class="pill-spec-name">{{ spec.commonName }}</span>
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Main Bottom Dock Panel (Primary 3D Mode Selector & Utilities) -->
+  <div class="main-dock-panel">
+    <!-- Mode 1: Periodensystem -->
+    <button 
+      class="mode-switch-btn" 
+      [class.mode-switch-btn--active]="activeMode() === 'periodic'"
+      (click)="changeMode.emit('periodic')"
+      title="3D-Periodensystem der Elemente (118 Atome)"
+    >
+      <span class="mode-icon">⚛</span>
+      <span class="mode-text">Periodensystem</span>
+    </button>
+
+    <div class="dock-divider"></div>
+
+    <!-- Mode 2: Moleküle -->
+    <button 
+      class="mode-switch-btn" 
+      [class.mode-switch-btn--active]="activeMode() === 'molecules'"
+      (click)="changeMode.emit('molecules')"
+      title="Molekül-Kosmos (Kugeln und Stäbe)"
+    >
+      <span class="mode-icon">⚗</span>
+      <span class="mode-text">3D-Moleküle</span>
+    </button>
+
+    <div class="dock-divider"></div>
+
+    <!-- Mode 3: Genome -->
+    <button 
+      class="mode-switch-btn" 
+      [class.mode-switch-btn--active]="activeMode() === 'genomes'"
+      (click)="changeMode.emit('genomes')"
+      title="Genom-Observatorium (50 Tier- und Pflanzenarten)"
+    >
+      <span class="mode-icon">🧬</span>
+      <span class="mode-text">50 Genome</span>
+    </button>
+  </div>
+</nav>

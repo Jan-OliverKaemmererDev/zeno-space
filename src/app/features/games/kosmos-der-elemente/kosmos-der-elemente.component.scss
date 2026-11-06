@@ -1,0 +1,34 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+:host {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.kosmos-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #07080d;
+  overflow: hidden;
+}
+
+.canvas-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+

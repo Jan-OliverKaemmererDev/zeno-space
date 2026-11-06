@@ -1,0 +1,75 @@
+<header class="kosmos-header-container" role="banner">
+  <!-- Left: Brand Title & Active Mode Pill -->
+  <div class="header-branding">
+    <button class="pill-btn pill-btn--back" (click)="leaveGame.emit()" title="Zurück zur Übersicht" aria-label="Zurück">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 19l-7-7 7-7"/>
+      </svg>
+      <span>Zeno-Space</span>
+    </button>
+
+    <div class="header-titles">
+      <h1 class="main-title">
+        <span class="title-gradient">Kosmos der Elemente</span>
+      </h1>
+      <span class="mode-badge" [attr.data-mode]="activeMode()">
+        @if (activeMode() === 'periodic') {
+          ⚛ 3D-Periodensystem (118 Atome)
+        } @else if (activeMode() === 'molecules') {
+          ⚗ Molekül-Baukasten (Kugeln & Stäbe)
+        } @else {
+          🧬 Genom-Atlas (50 Arten)
+        }
+      </span>
+    </div>
+  </div>
+
+  <!-- Center: Search Pill Bar -->
+  <div class="header-search">
+    <div class="search-pill">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="m21 21-4.3-4.3"/>
+      </svg>
+      <input
+        type="text"
+        [value]="searchQuery()"
+        (input)="onSearchInput($event)"
+        [placeholder]="activeMode() === 'periodic' ? 'Element suchen (z.B. Gold, H, 79)...' : activeMode() === 'molecules' ? 'Stoff suchen (z.B. Wasser, Koffein)...' : 'Spezies suchen (z.B. Axolotl, Blauwal)...'"
+        aria-label="Suchen"
+      />
+      @if (searchQuery()) {
+        <button class="clear-btn" (click)="clearSearch()" aria-label="Suche leeren">✕</button>
+      }
+    </div>
+    @if (itemCountLabel()) {
+      <span class="count-pill">{{ itemCountLabel() }}</span>
+    }
+  </div>
+
+  <!-- Right: Actions (Sound & Info) -->
+  <div class="header-actions">
+    <button 
+      class="pill-btn pill-btn--icon" 
+      [class.pill-btn--active]="isSoundEnabled()"
+      (click)="toggleSound.emit()" 
+      [title]="isSoundEnabled() ? 'Ton stummschalten' : 'Ton einschalten'"
+      aria-label="Sound umschalten"
+    >
+      @if (isSoundEnabled()) {
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+        </svg>
+      } @else {
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <line x1="23" y1="9" x2="17" y2="15"/>
+          <line x1="17" y1="9" x2="23" y2="15"/>
+        </svg>
+      }
+    </button>
+  </div>
+</header>
+

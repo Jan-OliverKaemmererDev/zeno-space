@@ -1,0 +1,60 @@
+<div class="kosmos-wrapper" role="application" aria-label="Kosmos der Elemente & des Lebens">
+  <!-- Interactive 3D WebGL Canvas Container -->
+  <div 
+    #canvasContainer
+    class="canvas-container"
+    role="img"
+    aria-label="3D-Ansicht des Periodensystems, der Moleküle und Genome"
+    (pointerdown)="onPointerDown($event)"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerUp($event)"
+    (wheel)="onWheel($event)"
+    (dblclick)="resetCamera()"
+  ></div>
+
+  <!-- Top Glass HUD Header -->
+  <app-kosmos-header
+    [activeMode]="activeMode()"
+    [searchQuery]="searchQuery()"
+    [isSoundEnabled]="isSoundEnabled()"
+    [itemCountLabel]="itemCountLabel()"
+    (searchChange)="onSearchChange($event)"
+    (toggleSound)="toggleSound()"
+    (leaveGame)="leaveGame()"
+  ></app-kosmos-header>
+
+  <!-- Right Frosted-Glass Detail Drawer -->
+  @if (isDetailModalOpen()) {
+    <app-kosmos-detail-modal
+      [activeMode]="activeMode()"
+      [selectedElement]="selectedElement()"
+      [selectedMolecule]="selectedMolecule()"
+      [selectedSpecies]="selectedSpecies()"
+      [isBohrActive]="isBohrActive()"
+      (close)="closeDetailModal()"
+      (toggleBohrAtom)="toggleBohrAtom()"
+      (prevSpecies)="onPrevSpecies()"
+      (nextSpecies)="onNextSpecies()"
+    ></app-kosmos-detail-modal>
+  }
+
+  <!-- Bottom Floating Glass Control Dock -->
+  <app-kosmos-dock
+    [activeMode]="activeMode()"
+    [activeCategory]="activeCategory()"
+    [activeState]="activeState()"
+    [activeSpeciesGroup]="activeSpeciesGroup()"
+    [moleculesList]="filteredMolecules()"
+    [selectedMolecule]="selectedMolecule()"
+    [speciesList]="filteredSpecies()"
+    [selectedSpecies]="selectedSpecies()"
+    (changeMode)="setMode($event)"
+    (filterCategory)="onFilterCategory($event)"
+    (filterState)="onFilterState($event)"
+    (filterSpeciesGroup)="onFilterSpeciesGroup($event)"
+    (selectMolecule)="onSelectMolecule($event)"
+    (selectSpecies)="onSelectSpecies($event)"
+  ></app-kosmos-dock>
+</div>
+

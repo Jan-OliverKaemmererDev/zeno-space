@@ -70,6 +70,13 @@ export const routes: Routes = [
       import('./features/games/origami/origami.component').then((m) => m.OrigamiComponent),
   },
   {
+    path: 'game/kosmos-der-elemente',
+    loadComponent: () =>
+      import('./features/games/kosmos-der-elemente/kosmos-der-elemente.component').then(
+        (m) => m.KosmosDerElementeComponent,
+      ),
+  },
+  {
     path: '**',
     redirectTo: '',
   },

@@ -1,0 +1,398 @@
+@use 'styles/variables' as v;
+@use 'styles/mixins' as m;
+
+$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+
+.detail-glass-drawer {
+  position: absolute;
+  top: 76px;
+  right: 18px;
+  width: 420px;
+  max-width: calc(100% - 36px);
+  max-height: calc(100vh - 170px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+  background: linear-gradient(
+    165deg,
+    rgba(255, 255, 255, 0.12) 0%,
+    rgba(18, 24, 38, 0.72) 40%,
+    rgba(10, 14, 25, 0.88) 100%
+  );
+  backdrop-filter: blur(28px) saturate(140%);
+  -webkit-backdrop-filter: blur(28px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 28px;
+  box-shadow:
+    0 24px 60px -12px rgba(0, 0, 0, 0.8),
+    0 0 35px -6px rgba(56, 189, 248, 0.25),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  padding: 22px;
+  z-index: 25;
+  font-family: $font-sniglet;
+  color: #ffffff;
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  @media (max-width: 600px) {
+    top: 64px;
+    right: 10px;
+    width: calc(100% - 20px);
+    max-height: calc(100vh - 145px);
+    padding: 16px;
+    border-radius: 22px;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(40px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.drawer-close-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.1);
+  }
+}
+
+.drawer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.species-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 4px 8px;
+  margin-bottom: -4px;
+}
+
+.species-nav-btn {
+  font-family: $font-sniglet;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  color: #ffffff;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(56, 189, 248, 0.3);
+    border-color: rgba(56, 189, 248, 0.6);
+    transform: scale(1.04);
+  }
+}
+
+.species-nav-counter {
+  font-size: 0.74rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+// ---------------------------------------------------------------------------
+// Hero Block
+// ---------------------------------------------------------------------------
+.hero-block {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.element-symbol-box {
+  width: 80px;
+  height: 96px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 2px solid #38bdf8;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px;
+  flex-shrink: 0;
+
+  .elem-number {
+    font-size: 0.8rem;
+    font-weight: 700;
+    align-self: flex-start;
+  }
+  .elem-symbol {
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+  .elem-mass {
+    font-size: 0.68rem;
+    color: rgba(255, 255, 255, 0.65);
+  }
+}
+
+.molecule-badge-box {
+  width: fit-content;
+  min-width: 80px;
+  max-width: 240px;
+  height: 80px;
+  padding: 0 16px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 2px solid rgba(56, 189, 248, 0.4);
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-sizing: border-box;
+
+  .formula-large {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #38bdf8;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+  }
+}
+
+.species-icon-box {
+  width: 80px;
+  height: 80px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  .spec-icon {
+    font-size: 2.4rem;
+  }
+}
+
+.hero-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.hero-name {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.hero-latin {
+  font-size: 0.86rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.badge-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.category-pill,
+.state-pill {
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.state-pill {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+// ---------------------------------------------------------------------------
+// 3D Bohr Atom Action
+// ---------------------------------------------------------------------------
+.action-box {
+  display: flex;
+  width: 100%;
+}
+
+.bohr-toggle-btn {
+  font-family: $font-sniglet;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.22) 0%, rgba(14, 165, 233, 0.35) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.55);
+  color: #ffffff;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.35) 0%, rgba(14, 165, 233, 0.5) 100%);
+    box-shadow: 0 0 16px rgba(56, 189, 248, 0.4);
+    transform: translateY(-1px);
+  }
+
+  &--active {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25) 0%, rgba(220, 38, 38, 0.4) 100%);
+    border-color: rgba(239, 68, 68, 0.6);
+  }
+
+  .bohr-icon {
+    font-size: 1.2rem;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Info Sections & Trivia
+// ---------------------------------------------------------------------------
+.info-section {
+  .section-title {
+    margin: 0 0 6px 0;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.7);
+  }
+  .section-text {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+.trivia-box {
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 16px;
+  padding: 12px 14px;
+
+  .trivia-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.84rem;
+    color: #fde047;
+    margin-bottom: 4px;
+  }
+  .trivia-text {
+    margin: 0;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    color: rgba(255, 255, 255, 0.9);
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Genome Comparison Bar
+// ---------------------------------------------------------------------------
+.genome-bar-container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(15, 23, 42, 0.55);
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  .bar-header {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+  }
+  .bar-legend {
+    color: rgba(255, 255, 255, 0.55);
+  }
+
+  .bar-track {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.4s ease;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Scientific Specs Grid
+// ---------------------------------------------------------------------------
+.specs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+
+  .full-width {
+    grid-column: span 2;
+  }
+}
+
+.spec-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .spec-label {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.55);
+  }
+  .spec-value {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #ffffff;
+  }
+  .sequence-code {
+    font-family: monospace;
+    letter-spacing: 0.12em;
+    color: #38bdf8;
+    word-break: break-all;
+  }
+}
+
