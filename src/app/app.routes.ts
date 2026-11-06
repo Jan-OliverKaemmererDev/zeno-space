@@ -70,13 +70,6 @@ export const routes: Routes = [
       import('./features/games/origami/origami.component').then((m) => m.OrigamiComponent),
   },
   {
-    path: 'game/ameisenhuegel',
-    loadComponent: () =>
-      import('./features/games/ameisenhuegel/ameisenhuegel.component').then(
-        (m) => m.AmeisenhuegelComponent,
-      ),
-  },
-  {
     path: '**',
     redirectTo: '',
   },

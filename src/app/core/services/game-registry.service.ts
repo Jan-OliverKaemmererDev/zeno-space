@@ -400,46 +400,6 @@ export class GameRegistryService {
           'Wähle dein Motiv und deine Papierfarbe und falte das Origami Schritt für Schritt originalgetreu nach.',
       },
     },
-    {
-      id: 'ameisenhuegel',
-      title: 'Ameisenhügel',
-      subtitle: '3D Ameisen-Kolonie & Waldlichtung',
-      description:
-        'Beobachte und leite einen florierenden Ameisenstaat. Schicke deine Arbeiterinnen auf Pheromonstraßen zum Früchteabbau und verteidige die Kolonie im Schwarm gegen hungrige Großinsekten.',
-      badge: '3D WebGL',
-      category: 'natur',
-      route: '/game/ameisenhuegel',
-      icon: 'ant',
-      primaryColor: '#4ade80',
-      glowColor: 'rgba(74, 222, 128, 0.32)',
-      tags: ['Natur'],
-      floatDelay: '1.7s',
-      floatDuration: '9.3s',
-      sizeClass: 'bubble--lg',
-      controls: {
-        keyboard: [
-          {
-            type: 'wasd',
-            keys: ['W', 'A', 'S', 'D'],
-            label: 'Kamera über die Waldlichtung bewegen',
-          },
-          {
-            type: 'inline',
-            keys: ['ESC'],
-            label: 'Zurück zur Übersicht',
-          },
-        ],
-        mouse: {
-          leftClick: true,
-          drag: true,
-          wheel: true,
-          label:
-            'Klick auf Frucht: Ernten • Klick auf Insekt: Angreifen • Ziehen: Drehen • Rad: Zoomen',
-        },
-        objective:
-          'Ernte reife Früchte mit deiner Ameisenstraße, lass die Kolonie wachsen und schütze die Nahrung vor gefräßigen Großinsekten.',
-      },
-    },
   ]);
 
   /**
