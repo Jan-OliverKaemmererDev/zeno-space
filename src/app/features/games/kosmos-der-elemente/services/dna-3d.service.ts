@@ -8,6 +8,7 @@ import { GenomeSpecies } from '../models/elemente.types';
  */
 export class Dna3DService {
   readonly group = new THREE.Group();
+  private currentSpecies: GenomeSpecies | null = null;
 
   private backboneSpheres: THREE.Mesh[] = [];
   private baseMeshes: THREE.Mesh[] = [];
@@ -37,6 +38,7 @@ export class Dna3DService {
    */
   buildHelix(species: GenomeSpecies): void {
     this.clear();
+    this.currentSpecies = species;
 
     // Adapt the backbone color to the species' signature color
     if (species.color) {
@@ -141,6 +143,28 @@ export class Dna3DService {
   }
 
   /**
+   * Raycasts against all meshes in the DNA double helix.
+   *
+   * @param raycaster - The THREE.Raycaster instance.
+   * @returns The active GenomeSpecies if hit, or null if no part was hit.
+   */
+  raycast(raycaster: THREE.Raycaster): GenomeSpecies | null {
+    if (!this.group.visible || this.group.children.length === 0) {
+      return null;
+    }
+    this.group.updateMatrixWorld(true);
+    const intersects = raycaster.intersectObjects(this.group.children, true);
+    if (intersects.length > 0) {
+      return this.currentSpecies;
+    }
+    return null;
+  }
+
+  getCurrentSpecies(): GenomeSpecies | null {
+    return this.currentSpecies;
+  }
+
+  /**
    * Clears all meshes from the DNA group.
    */
   clear(): void {
@@ -150,6 +174,7 @@ export class Dna3DService {
     this.backboneSpheres = [];
     this.baseMeshes = [];
     this.hydrogenBonds = [];
+    this.currentSpecies = null;
   }
 }
 

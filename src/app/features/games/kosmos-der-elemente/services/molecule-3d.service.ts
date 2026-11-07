@@ -116,6 +116,28 @@ export class Molecule3DService {
   }
 
   /**
+   * Raycasts against all atom and bond meshes in the active molecule.
+   *
+   * @param raycaster - The THREE.Raycaster instance.
+   * @returns The active MoleculeDef if hit, or null if no part was hit.
+   */
+  raycast(raycaster: THREE.Raycaster): MoleculeDef | null {
+    if (!this.group.visible || this.group.children.length === 0) {
+      return null;
+    }
+    this.group.updateMatrixWorld(true);
+    const intersects = raycaster.intersectObjects(this.group.children, true);
+    if (intersects.length > 0) {
+      return this.currentMolecule;
+    }
+    return null;
+  }
+
+  getCurrentMolecule(): MoleculeDef | null {
+    return this.currentMolecule;
+  }
+
+  /**
    * Clears all meshes from the molecule group.
    */
   clear(): void {

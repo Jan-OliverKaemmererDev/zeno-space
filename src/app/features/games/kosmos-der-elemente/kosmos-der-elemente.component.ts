@@ -530,12 +530,45 @@ export class KosmosDerElementeComponent implements AfterViewInit, OnDestroy {
   }
 
   private handleClickAtPointer(): void {
-    if (this.activeMode() === 'periodic') {
+    if (this.camera) {
       this.raycaster.setFromCamera(this.mouseNDC, this.camera);
-      const hitElement = this.periodicTableService.raycast(this.raycaster);
+    }
+
+    if (this.activeMode() === 'periodic') {
+      const hitElement = this.camera ? this.periodicTableService.raycast(this.raycaster) : null;
       if (hitElement) {
         this.onSelectElement(hitElement);
+      } else if (this.isDetailModalOpen()) {
+        this.closeDetailModal();
       }
+    } else if (this.activeMode() === 'molecules') {
+      const hitMolecule = this.camera ? this.moleculeService.raycast(this.raycaster) : null;
+      if (hitMolecule) {
+        if (!this.selectedMolecule()) {
+          this.selectedMolecule.set(hitMolecule);
+        }
+        this.isDetailModalOpen.set(true);
+        if (this.isSoundEnabled()) {
+          this.audioService.playWaterdropToneOn(0.9);
+        }
+      } else if (this.isDetailModalOpen()) {
+        this.closeDetailModal();
+      }
+    } else if (this.activeMode() === 'genomes') {
+      const hitSpecies = this.camera ? this.dnaService.raycast(this.raycaster) : null;
+      if (hitSpecies) {
+        if (!this.selectedSpecies()) {
+          this.selectedSpecies.set(hitSpecies);
+        }
+        this.isDetailModalOpen.set(true);
+        if (this.isSoundEnabled()) {
+          this.audioService.playWaterdropToneOn(0.9);
+        }
+      } else if (this.isDetailModalOpen()) {
+        this.closeDetailModal();
+      }
+    } else if (this.isDetailModalOpen()) {
+      this.closeDetailModal();
     }
   }
 
@@ -601,6 +634,14 @@ export class KosmosDerElementeComponent implements AfterViewInit, OnDestroy {
     ) {
       this.activeKeys.clear();
       return;
+    }
+
+    if (event.key === 'Escape' || event.code === 'Escape') {
+      if (this.isDetailModalOpen()) {
+        this.closeDetailModal();
+        event.preventDefault();
+        return;
+      }
     }
 
     const key = event.key.toLowerCase();

@@ -23,6 +23,7 @@ export class PeriodicTable3DService {
   // 3D Bohr Atom simulation group (shown when an element is focused)
   private atomGroup = new THREE.Group();
   private nucleusMesh: THREE.Mesh | null = null;
+  private currentBohrElement: PeriodicElement | null = null;
   private atomShells: {
     group: THREE.Group;
     electrons: { mesh: THREE.Mesh; ringRadius: number; speed: number; angle: number }[];
@@ -192,9 +193,17 @@ export class PeriodicTable3DService {
   }
 
   /**
-   * Performs raycasting against all element tiles.
+   * Performs raycasting against all element tiles and Bohr atom simulation.
    */
   raycast(raycaster: THREE.Raycaster): PeriodicElement | null {
+    if (this.atomGroup.visible && this.currentBohrElement) {
+      this.atomGroup.updateMatrixWorld(true);
+      const bohrIntersects = raycaster.intersectObjects(this.atomGroup.children, true);
+      if (bohrIntersects.length > 0) {
+        return this.currentBohrElement;
+      }
+    }
+
     const intersects = raycaster.intersectObjects(this.tiles, false);
 
     if (intersects.length > 0) {
@@ -262,6 +271,7 @@ export class PeriodicTable3DService {
    */
   showBohrAtom(elem: PeriodicElement): void {
     this.clearAtomSimulation();
+    this.currentBohrElement = elem;
     this.atomGroup.visible = true;
 
     // 1. Pulsing Nucleus
@@ -358,6 +368,7 @@ export class PeriodicTable3DService {
    */
   hideBohrAtom(): void {
     this.atomGroup.visible = false;
+    this.currentBohrElement = null;
     this.clearAtomSimulation();
   }
 
