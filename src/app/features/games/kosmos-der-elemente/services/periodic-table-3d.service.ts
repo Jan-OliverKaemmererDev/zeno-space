@@ -23,8 +23,10 @@ export class PeriodicTable3DService {
   // 3D Bohr Atom simulation group (shown when an element is focused)
   private atomGroup = new THREE.Group();
   private nucleusMesh: THREE.Mesh | null = null;
-  private electronMeshes: { mesh: THREE.Mesh; ringRadius: number; speed: number; angle: number; tiltAxis: THREE.Vector3 }[] = [];
-  private shellRings: THREE.LineLoop[] = [];
+  private atomShells: {
+    group: THREE.Group;
+    electrons: { mesh: THREE.Mesh; ringRadius: number; speed: number; angle: number }[];
+  }[] = [];
 
   // Material caches
   private textures: THREE.CanvasTexture[] = [];
@@ -131,19 +133,19 @@ export class PeriodicTable3DService {
 
     // Atomic number (top left)
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 26px "Sniglet", sans-serif';
+    ctx.font = '500 26px "Singlet", "Singlet-Regular", "Sniglet", "Sniglet-Regular", sans-serif';
     ctx.textAlign = 'left';
     ctx.fillText(`${elem.number}`, 20, 42);
 
     // Atomic mass (top right)
     ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
-    ctx.font = '16px "Sniglet", sans-serif';
+    ctx.font = '500 16px "Singlet", "Singlet-Regular", "Sniglet", "Sniglet-Regular", sans-serif';
     ctx.textAlign = 'right';
     ctx.fillText(elem.atomicMass, 236, 40);
 
     // Chemical Symbol (Center prominent)
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 88px "Sniglet", "Orbitron", sans-serif';
+    ctx.font = '500 88px "Singlet", "Singlet-Regular", "Sniglet", "Sniglet-Regular", sans-serif';
     ctx.textAlign = 'center';
     ctx.shadowColor = elem.color;
     ctx.shadowBlur = 16;
@@ -152,7 +154,7 @@ export class PeriodicTable3DService {
 
     // German Element Name
     ctx.fillStyle = elem.color;
-    ctx.font = 'bold 22px "Sniglet", sans-serif';
+    ctx.font = '500 22px "Singlet", "Singlet-Regular", "Sniglet", "Sniglet-Regular", sans-serif';
     ctx.fillText(elem.name, 128, 215);
 
     // Category pill at bottom
@@ -160,7 +162,7 @@ export class PeriodicTable3DService {
     this.roundRect(ctx, 24, 245, 208, 38, 19);
     ctx.fill();
     ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-    ctx.font = '14px "Sniglet", sans-serif';
+    ctx.font = '500 15px "Singlet", "Singlet-Regular", "Sniglet", "Sniglet-Regular", sans-serif';
     ctx.fillText(elem.categoryName, 128, 270);
 
     const texture = new THREE.CanvasTexture(canvas);
@@ -282,58 +284,72 @@ export class PeriodicTable3DService {
     const halo = new THREE.Mesh(haloGeo, haloMat);
     this.atomGroup.add(halo);
 
-    // 2. Electron Shells (Bohr model rings)
+    // 2. Electron Shells (Bohr model rings with lockstep electrons)
     const shells = elem.electronsPerShell || [1];
-    const baseRadius = 2.0;
+    const baseRadius = 2.4;
     const radiusStep = 1.35;
 
-    const electronGeo = new THREE.SphereGeometry(0.18, 16, 16);
-    const electronMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8 });
+    const electronGeo = new THREE.SphereGeometry(0.20, 16, 16);
+    const electronMat = new THREE.MeshBasicMaterial({ color: 0x67e8f9 });
 
     shells.forEach((electronCount, shellIdx) => {
       const ringRadius = baseRadius + shellIdx * radiusStep;
+      const shellGroup = new THREE.Group();
 
-      // Orbit ring line
+      // Distinct 3D orbital inclination for each shell (gyroscopic atomic look)
+      const tiltAngle = (shellIdx / Math.max(shells.length, 1)) * Math.PI;
+      shellGroup.rotation.x = Math.sin(tiltAngle) * 0.55 + 0.25;
+      shellGroup.rotation.y = Math.cos(tiltAngle) * 0.65;
+      shellGroup.rotation.z = shellIdx * 0.35;
+
+      // Orbit ring line: drawn strictly in the local XY plane (Z = 0) of shellGroup
       const ringPoints: THREE.Vector3[] = [];
-      const segments = 64;
+      const segments = 96;
       for (let i = 0; i <= segments; i++) {
         const theta = (i / segments) * Math.PI * 2;
         ringPoints.push(new THREE.Vector3(Math.cos(theta) * ringRadius, Math.sin(theta) * ringRadius, 0));
       }
       const ringGeo = new THREE.BufferGeometry().setFromPoints(ringPoints);
       const ringMat = new THREE.LineBasicMaterial({
-        color: 0xffffff,
+        color: 0x38bdf8,
         transparent: true,
-        opacity: 0.35,
+        opacity: 0.45,
       });
       const ringLine = new THREE.LineLoop(ringGeo, ringMat);
+      shellGroup.add(ringLine);
 
-      // Tilt each shell slightly for 3D gyroscope look
-      ringLine.rotation.x = 0.35 * (shellIdx + 1);
-      ringLine.rotation.y = 0.25 * (shellIdx + 1);
-      this.shellRings.push(ringLine);
-      this.atomGroup.add(ringLine);
-
-      // Place electrons along the shell
+      // Place electrons directly on the shell inside shellGroup
+      const shellElectrons: { mesh: THREE.Mesh; ringRadius: number; speed: number; angle: number }[] = [];
       for (let e = 0; e < electronCount; e++) {
         const electronMesh = new THREE.Mesh(electronGeo, electronMat);
         const initialAngle = (e / electronCount) * Math.PI * 2;
-        const speed = 1.5 / Math.sqrt(shellIdx + 1);
+        // Kepler-like orbital speed: inner electrons travel faster than outer ones
+        const speed = 1.4 / Math.sqrt(shellIdx + 1);
 
-        this.electronMeshes.push({
+        // Position electron exactly on the ring in the shell's local coordinates
+        electronMesh.position.set(
+          Math.cos(initialAngle) * ringRadius,
+          Math.sin(initialAngle) * ringRadius,
+          0,
+        );
+
+        // Add electron directly to shellGroup so it is permanently locked onto ringLine
+        shellGroup.add(electronMesh);
+
+        shellElectrons.push({
           mesh: electronMesh,
           ringRadius,
           speed,
           angle: initialAngle,
-          tiltAxis: new THREE.Vector3(
-            Math.sin(ringLine.rotation.y),
-            Math.cos(ringLine.rotation.x),
-            Math.sin(ringLine.rotation.x),
-          ).normalize(),
         });
-
-        this.atomGroup.add(electronMesh);
       }
+
+      this.atomShells.push({
+        group: shellGroup,
+        electrons: shellElectrons,
+      });
+
+      this.atomGroup.add(shellGroup);
     });
   }
 
@@ -348,36 +364,121 @@ export class PeriodicTable3DService {
   private clearAtomSimulation(): void {
     while (this.atomGroup.children.length > 0) {
       const child = this.atomGroup.children[0];
-      if (child instanceof THREE.Mesh) {
+      if (child instanceof THREE.Group) {
+        while (child.children.length > 0) {
+          const grandChild = child.children[0];
+          if (grandChild instanceof THREE.Mesh || grandChild instanceof THREE.LineLoop) {
+            grandChild.geometry.dispose();
+          }
+          child.remove(grandChild);
+        }
+      } else if (child instanceof THREE.Mesh) {
         child.geometry.dispose();
       }
       this.atomGroup.remove(child);
     }
     this.nucleusMesh = null;
-    this.electronMeshes = [];
-    this.shellRings = [];
+    this.atomShells = [];
   }
 
   /**
-   * Updates animations per frame (Bohr electron orbits, breathing glowing tiles).
+   * Updates animations per frame (Bohr electron orbits, breathing nucleus).
    */
   update(elapsed: number): void {
     if (this.atomGroup.visible) {
-      this.atomGroup.rotation.y = elapsed * 0.15;
+      this.atomGroup.rotation.y = elapsed * 0.12;
 
       if (this.nucleusMesh) {
         const pulse = 1.0 + Math.sin(elapsed * 4) * 0.08;
         this.nucleusMesh.scale.set(pulse, pulse, pulse);
       }
 
-      this.electronMeshes.forEach((e) => {
-        e.angle += e.speed * 0.02;
-        const x = Math.cos(e.angle) * e.ringRadius;
-        const y = Math.sin(e.angle) * e.ringRadius;
-        e.mesh.position.set(x, y, 0);
-        e.mesh.position.applyAxisAngle(e.tiltAxis, 0.4);
+      this.atomShells.forEach((shell) => {
+        shell.electrons.forEach((e) => {
+          e.angle += e.speed * 0.025;
+          // Coordinates in shellGroup's local coordinate system: always exactly on the ring!
+          e.mesh.position.set(
+            Math.cos(e.angle) * e.ringRadius,
+            Math.sin(e.angle) * e.ringRadius,
+            0,
+          );
+        });
       });
     }
+  }
+
+  /**
+   * Preloads and registers the Singlet font faces in document.fonts
+   * ensuring that 2D canvas textures render strictly with the Singlet font.
+   */
+  async ensureFontsLoaded(): Promise<void> {
+    if (typeof document === 'undefined') return;
+
+    if (typeof FontFace !== 'undefined' && document.fonts) {
+      const fontConfigs = [
+        { family: 'Singlet', url: 'fonts/Singlet/Singlet-Regular.ttf', weight: '500' },
+        { family: 'Singlet', url: 'fonts/Singlet/Singlet-Regular.ttf', weight: '400' },
+        { family: 'Singlet', url: 'fonts/Singlet/Singlet-ExtraBold.ttf', weight: '700' },
+        { family: 'Singlet', url: 'fonts/Singlet/Singlet-ExtraBold.ttf', weight: 'bold' },
+        { family: 'Singlet-Regular', url: 'fonts/Singlet/Singlet-Regular.ttf', weight: '500' },
+        { family: 'Singlet-Regular', url: 'fonts/Singlet/Singlet-Regular.ttf', weight: '400' },
+        { family: 'Singlet-ExtraBold', url: 'fonts/Singlet/Singlet-ExtraBold.ttf', weight: '700' },
+        { family: 'Sniglet', url: 'fonts/Singlet/Sniglet-Regular.ttf', weight: '500' },
+        { family: 'Sniglet', url: 'fonts/Singlet/Sniglet-Regular.ttf', weight: '400' },
+        { family: 'Sniglet', url: 'fonts/Singlet/Sniglet-ExtraBold.ttf', weight: '700' },
+        { family: 'Sniglet', url: 'fonts/Singlet/Sniglet-ExtraBold.ttf', weight: 'bold' },
+        { family: 'Sniglet-Regular', url: 'fonts/Singlet/Sniglet-Regular.ttf', weight: '500' },
+        { family: 'Sniglet-Regular', url: 'fonts/Singlet/Sniglet-Regular.ttf', weight: '400' },
+        { family: 'Sniglet-ExtraBold', url: 'fonts/Singlet/Sniglet-ExtraBold.ttf', weight: '700' },
+      ];
+
+      await Promise.all(
+        fontConfigs.map(async (cfg) => {
+          try {
+            const face = new FontFace(cfg.family, `url(${cfg.url})`, {
+              weight: cfg.weight,
+              style: 'normal',
+              display: 'swap',
+            });
+            await face.load();
+            document.fonts.add(face);
+          } catch {
+            // Ignore if already registered
+          }
+        })
+      );
+
+      try {
+        await Promise.all([
+          document.fonts.load('500 88px Singlet'),
+          document.fonts.load('500 26px Singlet'),
+          document.fonts.load('500 22px Singlet'),
+          document.fonts.load('500 16px Singlet'),
+          document.fonts.load('500 15px Singlet'),
+          document.fonts.load('500 88px Sniglet'),
+        ]);
+        await document.fonts.ready;
+      } catch {
+        // Fallback
+      }
+    }
+  }
+
+  /**
+   * Refreshes all 3D element tile textures once fonts (Sniglet/Singlet) are loaded.
+   */
+  refreshTextures(elements: PeriodicElement[]): void {
+    if (this.tiles.length === 0) return;
+    elements.forEach((elem, i) => {
+      const tile = this.tiles[i];
+      if (!tile) return;
+      const oldTex = this.textures[i];
+      const newTex = this.createTileTexture(elem);
+      (tile.material as THREE.MeshBasicMaterial).map = newTex;
+      (tile.material as THREE.MeshBasicMaterial).needsUpdate = true;
+      if (oldTex) oldTex.dispose();
+      this.textures[i] = newTex;
+    });
   }
 
   /**

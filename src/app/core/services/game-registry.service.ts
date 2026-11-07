@@ -412,7 +412,7 @@ export class GameRegistryService {
       icon: 'atom',
       primaryColor: '#38bdf8',
       glowColor: 'rgba(56, 189, 248, 0.32)',
-      tags: ['Natur', 'Wissenschaft', '3D WebGL'],
+      tags: ['Natur', 'Wissenschaft'],
       floatDelay: '0.5s',
       floatDuration: '9.5s',
       sizeClass: 'bubble--lg',

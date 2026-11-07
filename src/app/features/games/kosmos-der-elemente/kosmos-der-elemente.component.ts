@@ -154,10 +154,13 @@ export class KosmosDerElementeComponent implements AfterViewInit, OnDestroy {
   // ---------------------------------------------------------------------------
   // Lifecycle
   // ---------------------------------------------------------------------------
-  ngAfterViewInit(): void {
+  async ngAfterViewInit(): Promise<void> {
     this.initThree();
     this.setupViewMode('periodic');
     this.animate();
+
+    await this.periodicTableService.ensureFontsLoaded();
+    this.periodicTableService.refreshTextures(this.elements);
   }
 
   ngOnDestroy(): void {

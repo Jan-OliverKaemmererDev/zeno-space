@@ -5,13 +5,44 @@
 @use 'styles/mixins' as m;
 
 // ==========================================
-// CUSTOM BUBBLE FONT: SNIGLET
+// CUSTOM BUBBLE FONT: SNIGLET & SINGLET
 // ==========================================
 @font-face {
   font-family: 'Sniglet';
   src: url('../public/fonts/Singlet/Sniglet-Regular.ttf') format('truetype'),
-       url('/fonts/Singlet/Sniglet-Regular.ttf') format('truetype');
-  font-weight: 400;
+       url('/fonts/Singlet/Sniglet-Regular.ttf') format('truetype'),
+       url('/fonts/Singlet/Singlet-Regular.ttf') format('truetype');
+  font-weight: 100 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Sniglet';
+  src: url('../public/fonts/Singlet/Sniglet-Regular.ttf') format('truetype'),
+       url('/fonts/Singlet/Sniglet-Regular.ttf') format('truetype'),
+       url('/fonts/Singlet/Singlet-Regular.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Singlet';
+  src: url('../public/fonts/Singlet/Sniglet-Regular.ttf') format('truetype'),
+       url('/fonts/Singlet/Sniglet-Regular.ttf') format('truetype'),
+       url('/fonts/Singlet/Singlet-Regular.ttf') format('truetype');
+  font-weight: 100 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Singlet';
+  src: url('../public/fonts/Singlet/Sniglet-Regular.ttf') format('truetype'),
+       url('/fonts/Singlet/Sniglet-Regular.ttf') format('truetype'),
+       url('/fonts/Singlet/Singlet-Regular.ttf') format('truetype');
+  font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
@@ -19,7 +50,18 @@
 @font-face {
   font-family: 'Sniglet-Regular';
   src: url('../public/fonts/Singlet/Sniglet-Regular.ttf') format('truetype'),
-       url('/fonts/Singlet/Sniglet-Regular.ttf') format('truetype');
+       url('/fonts/Singlet/Sniglet-Regular.ttf') format('truetype'),
+       url('/fonts/Singlet/Singlet-Regular.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Singlet-Regular';
+  src: url('../public/fonts/Singlet/Sniglet-Regular.ttf') format('truetype'),
+       url('/fonts/Singlet/Sniglet-Regular.ttf') format('truetype'),
+       url('/fonts/Singlet/Singlet-Regular.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -28,8 +70,19 @@
 @font-face {
   font-family: 'Sniglet';
   src: url('../public/fonts/Singlet/Sniglet-ExtraBold.ttf') format('truetype'),
-       url('/fonts/Singlet/Sniglet-ExtraBold.ttf') format('truetype');
-  font-weight: 700 900;
+       url('/fonts/Singlet/Sniglet-ExtraBold.ttf') format('truetype'),
+       url('/fonts/Singlet/Singlet-ExtraBold.ttf') format('truetype');
+  font-weight: 600 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Singlet';
+  src: url('../public/fonts/Singlet/Sniglet-ExtraBold.ttf') format('truetype'),
+       url('/fonts/Singlet/Sniglet-ExtraBold.ttf') format('truetype'),
+       url('/fonts/Singlet/Singlet-ExtraBold.ttf') format('truetype');
+  font-weight: 600 900;
   font-style: normal;
   font-display: swap;
 }
@@ -37,7 +90,18 @@
 @font-face {
   font-family: 'Sniglet-ExtraBold';
   src: url('../public/fonts/Singlet/Sniglet-ExtraBold.ttf') format('truetype'),
-       url('/fonts/Singlet/Sniglet-ExtraBold.ttf') format('truetype');
+       url('/fonts/Singlet/Sniglet-ExtraBold.ttf') format('truetype'),
+       url('/fonts/Singlet/Singlet-ExtraBold.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Singlet-ExtraBold';
+  src: url('../public/fonts/Singlet/Sniglet-ExtraBold.ttf') format('truetype'),
+       url('/fonts/Singlet/Sniglet-ExtraBold.ttf') format('truetype'),
+       url('/fonts/Singlet/Singlet-ExtraBold.ttf') format('truetype');
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
@@ -139,6 +203,7 @@
   --zeno-font-heading: #{v.$font-family-heading};
   --zeno-font-body: #{v.$font-family-body};
   --zeno-font-bubble: #{v.$font-family-bubble};
+  --zeno-font-singlet: #{v.$font-family-singlet};
   --zeno-font-sniglet: #{v.$font-family-sniglet};
   --zeno-font-sniglet-bold: #{v.$font-family-sniglet-extrabold};
   --zeno-font-sniglet-regular: #{v.$font-family-sniglet-regular};

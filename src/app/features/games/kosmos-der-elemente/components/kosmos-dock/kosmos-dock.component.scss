@@ -1,7 +1,16 @@
 @use 'styles/variables' as v;
 @use 'styles/mixins' as m;
 
-$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+$font-singlet: 'Singlet', 'Sniglet', 'Singlet-Regular', 'Sniglet-Regular', cursive, sans-serif;
+
+:host {
+  *,
+  *::before,
+  *::after {
+    font-family: $font-singlet !important;
+    font-weight: 500 !important;
+  }
+}
 
 .game-controls-dock {
   position: absolute;
@@ -16,6 +25,7 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   z-index: 20;
   width: max-content;
   max-width: calc(100vw - 32px);
+  font-family: $font-singlet !important;
 
   @media (max-width: 600px) {
     bottom: 8px;
@@ -43,7 +53,7 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 999px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  font-family: $font-sniglet;
+  font-family: $font-singlet !important;
   max-width: 100%;
 
   &--scrollable {
@@ -80,7 +90,7 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 }
 
 .dock-pill-btn {
-  font-family: $font-sniglet;
+  font-family: $font-singlet !important;
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -111,7 +121,7 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   }
 
   .pill-formula {
-    font-weight: 700;
+    font-weight: 500;
     color: #38bdf8;
   }
   .pill-name {
@@ -123,7 +133,6 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   }
   .pill-spec-name {
     font-size: 0.76rem;
-    font-weight: 600;
   }
 }
 
@@ -136,7 +145,7 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 // Main Bottom Dock Panel (Glassmorphism & Pill Shape)
 // ---------------------------------------------------------------------------
 .main-dock-panel {
-  font-family: $font-sniglet;
+  font-family: $font-singlet !important;
   pointer-events: auto;
   display: flex;
   align-items: center;
@@ -167,7 +176,7 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 }
 
 .mode-switch-btn {
-  font-family: $font-sniglet;
+  font-family: $font-singlet !important;
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -176,7 +185,6 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   padding: 7px 16px;
   border-radius: 999px;
   font-size: 0.88rem;
-  font-weight: 600;
   letter-spacing: 0.02em;
   border: 1px solid transparent;
   background: transparent;

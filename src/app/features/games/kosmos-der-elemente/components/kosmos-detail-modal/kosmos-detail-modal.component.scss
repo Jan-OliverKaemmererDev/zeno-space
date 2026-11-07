@@ -1,7 +1,15 @@
 @use 'styles/variables' as v;
 @use 'styles/mixins' as m;
 
-$font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
+$font-singlet: 'Singlet', 'Sniglet', 'Singlet-Regular', 'Sniglet-Regular', cursive, sans-serif;
+
+:host {
+  *,
+  *::before,
+  *::after {
+    font-family: $font-singlet !important;
+  }
+}
 
 .detail-glass-drawer {
   position: absolute;
@@ -29,7 +37,8 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
     inset 0 1px 0 rgba(255, 255, 255, 0.4);
   padding: 22px;
   z-index: 25;
-  font-family: $font-sniglet;
+  font-family: $font-singlet !important;
+  font-weight: 500 !important;
   color: #ffffff;
   animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 
@@ -81,6 +90,13 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  font-weight: 500 !important;
+
+  *,
+  *::before,
+  *::after {
+    font-weight: 500 !important;
+  }
 }
 
 .species-nav-row {
@@ -96,14 +112,13 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 }
 
 .species-nav-btn {
-  font-family: $font-sniglet;
+  font-family: $font-singlet !important;
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 999px;
   color: #ffffff;
   padding: 4px 10px;
   font-size: 0.78rem;
-  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -143,12 +158,12 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 
   .elem-number {
     font-size: 0.8rem;
-    font-weight: 700;
+    font-weight: 500;
     align-self: flex-start;
   }
   .elem-symbol {
     font-size: 2.2rem;
-    font-weight: 800;
+    font-weight: 500;
     line-height: 1;
   }
   .elem-mass {
@@ -174,7 +189,7 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 
   .formula-large {
     font-size: 1.35rem;
-    font-weight: 800;
+    font-weight: 500;
     color: #38bdf8;
     white-space: nowrap;
     letter-spacing: 0.5px;
@@ -208,8 +223,9 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 
 .hero-name {
   margin: 0;
+  font-family: $font-singlet !important;
   font-size: 1.4rem;
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.2;
 }
 
@@ -231,7 +247,6 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   font-size: 0.75rem;
   padding: 3px 10px;
   border-radius: 999px;
-  font-weight: 600;
 }
 
 .state-pill {
@@ -248,7 +263,7 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 }
 
 .bohr-toggle-btn {
-  font-family: $font-sniglet;
+  font-family: $font-singlet !important;
   width: 100%;
   display: inline-flex;
   align-items: center;
@@ -260,7 +275,6 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   border: 1px solid rgba(56, 189, 248, 0.55);
   color: #ffffff;
   font-size: 0.86rem;
-  font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 
@@ -286,8 +300,9 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
 .info-section {
   .section-title {
     margin: 0 0 6px 0;
+    font-family: $font-singlet !important;
     font-size: 0.88rem;
-    font-weight: 700;
+    font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: rgba(255, 255, 255, 0.7);
@@ -385,7 +400,6 @@ $font-sniglet: 'Sniglet-Regular', 'Sniglet', cursive, sans-serif;
   }
   .spec-value {
     font-size: 0.82rem;
-    font-weight: 600;
     color: #ffffff;
   }
   .sequence-code {

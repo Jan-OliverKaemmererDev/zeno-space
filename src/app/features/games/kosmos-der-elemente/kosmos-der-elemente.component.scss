@@ -1,6 +1,8 @@
 @use 'styles/variables' as v;
 @use 'styles/mixins' as m;
 
+$font-singlet: 'Singlet', 'Sniglet', 'Singlet-Regular', 'Sniglet-Regular', cursive, sans-serif;
+
 :host {
   display: block;
   width: 100vw;
@@ -9,6 +11,15 @@
   position: relative;
   user-select: none;
   -webkit-user-select: none;
+  font-family: $font-singlet !important;
+  font-weight: 500 !important;
+
+  *,
+  *::before,
+  *::after {
+    font-family: $font-singlet !important;
+    font-weight: 500 !important;
+  }
 }
 
 .kosmos-wrapper {
@@ -17,6 +28,15 @@
   height: 100%;
   background: #07080d;
   overflow: hidden;
+  font-family: $font-singlet !important;
+  font-weight: 500 !important;
+
+  *,
+  *::before,
+  *::after {
+    font-family: $font-singlet !important;
+    font-weight: 500 !important;
+  }
 }
 
 .canvas-container {
